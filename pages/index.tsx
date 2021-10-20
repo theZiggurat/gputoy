@@ -59,6 +59,11 @@ const Home: NextPage = () => {
   if (typeof window !== "undefined") {
     gpu = window.navigator.gpu;
   }
+
+  let welcomeCardSpacing = "4rem";
+  if (!gpu) {
+    welcomeCardSpacing = "7rem";
+  }
   
   return (
     <ChakraProvider>
@@ -67,18 +72,22 @@ const Home: NextPage = () => {
         <meta name="description" content="Create your imagination" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {
-        !gpu && <FluiAlert/>
-      }
+      
       
       <Flex flexFlow="column" height="100%">
+        {
+          !gpu && <FluiAlert/>
+        }
         <Nav/>
         {
           gpu && <Canvas/>
         }
+        {
+          !gpu && <chakra.div flex="1 1 auto"/>
+        }
 
 
-      <HStack m={5} alignItems='center' position="absolute" top="4rem" backgroundBlendMode="">
+      <HStack m={5} alignItems='center' position="absolute" top={welcomeCardSpacing} backgroundBlendMode="">
         <WelcomeDescription
           title="Cutting edge "
           bolded="Power"
