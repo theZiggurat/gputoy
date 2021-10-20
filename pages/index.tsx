@@ -20,6 +20,7 @@ import {
   Center,
 } from '@chakra-ui/react'
 import Canvas from './components/canvas'
+import Footer from './components/footer'
 
 const Code = ({children}: {children: ReactNode}) => (
   <chakra.code bg={useColorModeValue('gray.200', 'gray.700')}>
@@ -28,25 +29,26 @@ const Code = ({children}: {children: ReactNode}) => (
 );
 
 const FluiAlert = () => (
-  <Alert status="error" height="3rem" backgroundColor="red.900">
+  <Alert color="white" status="error" height="3rem" backgroundColor="red.900">
     <AlertIcon color="red.400"/>
-    <AlertTitle mr={2}>Your browser is outdated!</AlertTitle>
+    <AlertTitle mr={2} backgroundColor="inherit">Your browser is outdated!</AlertTitle>
     <AlertDescription>
-      &nbsp;WebGPU is required to use Flui.
+      &nbsp;Flui Requires WebGPU.
       Click&nbsp;
       <chakra.a href="https://caniuse.com/webgpu" fontWeight="bold">here</chakra.a> 
-      &nbsp;to learn more about browser compatability.
+      &nbsp;to learn which browsers are compatable.
     </AlertDescription>
   </Alert>
 );
 
 const WelcomeDescription = (props: {title: String, bolded: String | null, desc: String}) => (
-  <Box bgColor={useColorModeValue('gray.100', 'gray.900')} rounded="lg" minH="13rem">
-    <chakra.h1 m={8} fontWeight="bold" fontSize="20">
+  <Box bgColor={useColorModeValue("rgba(247, 247, 248, 0.5)", "rgba(26, 32, 44, 0.5)")} 
+    rounded="lg" minH="10rem" shadow="md">
+    <chakra.h1 m={4} fontWeight="bold" fontSize="20">
       {props.title} <chakra.span fontWeight="extrabold">{props.bolded}</chakra.span>
     </chakra.h1>
       
-    <chakra.p m={8} maxWidth={500} fontFamily="sans-serif">
+    <chakra.p m={4} maxWidth={500} fontFamily="sans-serif">
       {props.desc}
     </chakra.p>
   </Box>
@@ -69,27 +71,31 @@ const Home: NextPage = () => {
         !gpu && <FluiAlert/>
       }
       
-      <main>
+      <Flex flexFlow="column" height="100%">
         <Nav/>
-        <HStack m={5} alignItems='center'>
-          <WelcomeDescription
-            title="Cutting edge "
-            bolded="Power"
-            desc="Flui utilizes WebGPU, which allow you to utilize the same capabilites of desktop graphics applications.
-            This includes compute shaders, offscreen rendering, back buffers, raytracing, and more!"
-          />
-
-          <WelcomeDescription
-            title="Share with "
-            bolded="Everyone"
-            desc="Any creation you make in Flui can be viewed, forked, or even embedded with the click
-            of a link. "
-          />
-        </HStack>
         {
           gpu && <Canvas/>
         }
-      </main>
+
+
+      <HStack m={5} alignItems='center' position="absolute" top="4rem" backgroundBlendMode="">
+        <WelcomeDescription
+          title="Cutting edge "
+          bolded="Power"
+          desc="Flui utilizes WebGPU, which allow you to utilize the same capabilites of desktop graphics applications.
+          This includes compute shaders, offscreen rendering, back buffers, raytracing, and more!"
+        />
+
+        <WelcomeDescription
+          title="Share with "
+          bolded="Everyone"
+          desc="Any creation you make in Flui can be viewed, forked, or even embedded with the click
+          of a link. "
+        />
+        </HStack>
+        <Footer/>
+        
+      </Flex>
     </ChakraProvider>
   )
 }

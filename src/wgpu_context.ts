@@ -1,7 +1,25 @@
 import vs from '../shaders/test_vs.wgsl'
 import fs from '../shaders/test_fs.wgsl'
 
+const particleParams = {
+    trailPower: 16.0,
+    speed: 10.0,
+    sensorAngle: 0.174,
+    turnSpeed: 0.104,
+    numParticles: 100000
+};
+const decayRate = 0.98;
+const diffuseAmount = 0.464;
+const renderParams = {
+    color1: [0.37, 0.38, 0.135],
+    color2: [0.51, 0.59, 0.71],
+    colorPow: 0.83,
+    cutoff: 0.25,
+};
+
 class _WGPUContext {
+
+    
 
     canvas: HTMLCanvasElement | null = null;
     adapter: GPUAdapter | null = null;
@@ -24,11 +42,18 @@ class _WGPUContext {
         this.queue = this.device.queue;
         this.context = this.canvas.getContext('webgpu');
 
+        let rect = this.canvas.parentElement?.getBoundingClientRect();
+        console.log(rect);
+        this.canvas.width = rect!.width;
+        this.canvas.height = rect!.height;
+
         const devicePixelRatio = window.devicePixelRatio || 1;
         const presentationSize = [
-            this.canvas.clientWidth * devicePixelRatio,
-            this.canvas.clientHeight * devicePixelRatio,
+            this.canvas.clientWidth,
+            this.canvas.clientHeight,
         ];
+
+        console.log(presentationSize);
 
         const canvasConfig: GPUCanvasConfiguration = {
             device: this.device,
@@ -195,14 +220,38 @@ class _WGPUContext {
         }
 
         const render = () => {
-            // ⏭ Acquire next image from context
+
+            if (this.canvas!.clientWidth !== presentationSize[0] ||
+                this.canvas!.clientHeight !== presentationSize[1]) {
+                
+                // resize
+                this.colorTexture?.destroy();
+                presentationSize[0] = this.canvas!.clientWidth;
+                presentationSize[1] = this.canvas!.clientHeight;
+
+                this.context?.configure({
+                    device: this.device!,
+                    format: this.context!.getPreferredFormat(this.adapter!),
+                    size: presentationSize
+                });
+
+                this.colorTexture = this.context!.getCurrentTexture();
+                this.colorTextureView = this.colorTexture.createView();
+
+                this.depthTexture = this.device!.createTexture({
+                    size: [this.canvas!.clientWidth, this.canvas!.clientHeight, 1],
+                    dimension: '2d',
+                    format: 'depth24plus-stencil8',
+                    usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
+                });
+                this.depthTextureView = this.depthTexture.createView()
+            }
+
             this.colorTexture = this.context!.getCurrentTexture();
             this.colorTextureView = this.colorTexture.createView();
         
-            // 📦 Write and submit commands to queue
             encodeCommands();
         
-            // ➿ Refresh canvas
             requestAnimationFrame(render);
         };
 
