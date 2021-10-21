@@ -12,6 +12,7 @@ struct SimParams {
 
 struct VertexOutput {
     [[builtin(position)]] position: vec4<f32>;
+    [[location(1)]] uv: vec2<f32>;
 };
 
 [[stage(vertex)]]
@@ -20,6 +21,7 @@ fn vs_main(
 ) -> VertexOutput {
     var out: VertexOutput;
     out.position = vec4<f32>(position, 0.0, 1.0);
+    out.uv = (position + vec2<f32>(1.0)) / 2.0;
     return out;
 }
 
@@ -56,15 +58,13 @@ fn hsv2rgb(c: vec3<f32>) -> vec3<f32>
 
 [[stage(fragment)]]
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    var uv: vec2<f32> = vec2<f32>(in.position.x / 1600.0 / 2.0, in.position.y / 900.0 / 2.0);
 
-    var weight: f32 = textureSample(r_color, r_sampler, uv).r / 8.0;
+    var weight: f32 = textureSample(r_color, r_sampler, in.uv).r / 8.0;
     weight = pow(weight, params.color_pow);
     
     var color: vec3<f32>;
     if (weight > params.cutoff) {
         var acc_weight: f32 = (weight - params.cutoff) / (1.0 - params.cutoff);
-        //var acc_weight: f32 = weight;
         color = vec3<f32>(
             mix(params.r1, params.r2, acc_weight),
             mix(params.g1, params.g2, acc_weight),

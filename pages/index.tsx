@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import Nav from './components/navbar'
+import MonacoEditor from '@uiw/react-monacoeditor/'
 
 import { ReactNode } from 'react'
 import { 
@@ -87,7 +88,7 @@ const Home: NextPage = () => {
         }
 
 
-      <HStack m={5} alignItems='center' position="absolute" top={welcomeCardSpacing} backgroundBlendMode="">
+      {/* <HStack m={5} alignItems='center' position="absolute" top={welcomeCardSpacing} backgroundBlendMode="">
         <WelcomeDescription
           title="Cutting edge "
           bolded="Power"
@@ -101,7 +102,8 @@ const Home: NextPage = () => {
           desc="Any creation you make in Flui can be viewed, forked, or even embedded with the click
           of a link. "
         />
-        </HStack>
+        </HStack> */}
+        
         <Footer/>
         
       </Flex>

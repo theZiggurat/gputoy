@@ -1,31 +1,13 @@
-import vs from '../shaders/test_vs.wgsl'
-import fs from '../shaders/test_fs.wgsl'
-
 import decayShader from "../shaders/decay.wgsl"
 import computeShader from '../shaders/compute.wgsl'
 import diffuseShader from '../shaders/diffuse.wgsl'
 import drawShader from '../shaders/draw.wgsl'
 
-const particleParams = [
-    16.0, // trailPower
-    10.0, // speed
-    0.174, // sensorAngle
-    0.104, // turnSpeed
-];
-const decayRate = [0.98];
-const diffuseAmount = [0.464];
-const renderParams = [
-    0.37, 0.38, 0.135, // color1
-    0.51, 0.59, 0.71, // color2
-    0.83, // colorPow
-    0.25 // cutoff
-];
+import paramsList from './params.json';
 
-const NUM_PARTICLES = 1000;
+const NUM_PARTICLES = 1000000;
 
 class _WGPUContext {
-
-    
 
     canvas: HTMLCanvasElement | null = null;
     adapter: GPUAdapter | null = null;
@@ -34,6 +16,8 @@ class _WGPUContext {
     context: GPUCanvasContext | null = null;
     colorTexture: GPUTexture | null = null;
     colorTextureView: GPUTextureView | null = null;
+
+    updateUniforms: ((index: number) => void) | null = null;
 
     constructor() {
         
@@ -47,13 +31,12 @@ class _WGPUContext {
         this.context = this.canvas.getContext('webgpu');
 
         let rect = this.canvas.parentElement?.getBoundingClientRect();
-        console.log(rect);
         this.canvas.width = rect!.width;
         this.canvas.height = rect!.height;
 
         const devicePixelRatio = window.devicePixelRatio || 1;
         const presentationSize = [
-            this.canvas.clientWidth,
+            this.canvas.clientWidth * devicePixelRatio,
             this.canvas.clientHeight,
         ];
 
@@ -71,109 +54,8 @@ class _WGPUContext {
             addressModeV: "repeat",
             addressModeW: "repeat",
             magFilter: "nearest",
-            minFilter: "linear",
+            minFilter: "nearest",
             mipmapFilter: "nearest"
-        });
-
-        const particleBindGroupLayout = this.device.createBindGroupLayout({
-            entries: [
-                {
-                    binding: 0,
-                    visibility: GPUShaderStage.COMPUTE,
-                    buffer: {
-                        type: "uniform"
-                    }
-                },
-                {
-                    binding: 1,
-                    visibility: GPUShaderStage.COMPUTE,
-                    buffer: {
-                        type: "storage"
-                    }
-                },
-                {
-                    binding: 2,
-                    visibility: GPUShaderStage.COMPUTE,
-                    buffer: {
-                        type: "storage"
-                    }
-                },
-                {
-                    binding: 3,
-                    visibility: GPUShaderStage.COMPUTE,
-                    texture: {
-                        sampleType: "float",
-                        viewDimension: "2d",
-                    }
-                },
-                {
-                    binding: 4,
-                    visibility: GPUShaderStage.COMPUTE,
-                    storageTexture: {
-                        access: "write-only",
-                        format: "r32float",
-                        viewDimension: "2d",
-                    }
-                }
-            ]
-        });
-
-        const decayBindGroupLayout = this.device.createBindGroupLayout({
-            entries: [
-                {
-                    binding: 0,
-                    visibility: GPUShaderStage.COMPUTE,
-                    buffer: {
-                        type: "uniform"
-                    }
-                },
-                {
-                    binding: 1,
-                    visibility: GPUShaderStage.COMPUTE,
-                    texture: {
-                        sampleType: "float",
-                        viewDimension: "2d"
-                    }
-                },
-                {
-                    binding: 2,
-                    visibility: GPUShaderStage.COMPUTE,
-                    storageTexture: {
-                        access: "write-only",
-                        format: "r32float",
-                        viewDimension: "2d"
-                    }
-                }
-            ]
-        });
-
-        const diffuseBindGroupLayout = this.device.createBindGroupLayout({
-            entries: [
-                {
-                    binding: 0,
-                    visibility: GPUShaderStage.COMPUTE,
-                    buffer: {
-                        type: "uniform"
-                    }
-                },
-                {
-                    binding: 1,
-                    visibility: GPUShaderStage.COMPUTE,
-                    texture: {
-                        sampleType: "float",
-                        viewDimension: "2d"
-                    }
-                },
-                {
-                    binding: 2,
-                    visibility: GPUShaderStage.COMPUTE,
-                    storageTexture: {
-                        access: "write-only",
-                        format: "r32float",
-                        viewDimension: "2d"
-                    }
-                }
-            ]
         });
 
         const renderBindGroupLayout = this.device.createBindGroupLayout({
@@ -189,7 +71,7 @@ class _WGPUContext {
                     binding: 1,
                     visibility: GPUShaderStage.FRAGMENT,
                     texture: {
-                        sampleType: "float",
+                        sampleType: "unfilterable-float",
                         multisampled: false,
                         viewDimension: "2d"
                     }
@@ -202,18 +84,6 @@ class _WGPUContext {
                     }
                 }
             ]
-        });
-
-        const particlePipelineLayout = this.device.createPipelineLayout({
-            bindGroupLayouts: [particleBindGroupLayout]
-        });
-
-        const decayPipelineLayout = this.device.createPipelineLayout({
-            bindGroupLayouts: [decayBindGroupLayout]
-        });
-
-        const diffusePipelineLayout = this.device.createPipelineLayout({
-            bindGroupLayouts: [diffuseBindGroupLayout]
         });
 
         const renderPipelineLayout = this.device.createPipelineLayout({
@@ -249,6 +119,7 @@ class _WGPUContext {
 
         const renderShaderModule = this.device.createShaderModule({code: drawShader});
         const renderPipeline = this.device.createRenderPipeline({
+            layout: renderPipelineLayout,
             vertex: {
                 module: renderShaderModule,
                 entryPoint: "vs_main",
@@ -278,13 +149,11 @@ class _WGPUContext {
             }
         });
 
-
         const vertexBufferData = new Float32Array([-1.0, -1.0, 1.0, -1.0, 1.0, 
             1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0]);
         const vertexBuffer = this.device.createBuffer({
             size: vertexBufferData.byteLength,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-            mappedAtCreation: true
         });
         this.queue!.writeBuffer(
             vertexBuffer,
@@ -293,19 +162,19 @@ class _WGPUContext {
             vertexBufferData.byteOffset,
             vertexBufferData.byteLength
         );
-        vertexBuffer.unmap()
 
         let arr = [];
         for (let i = 0; i < NUM_PARTICLES; i++) {
-            arr[4*i] = Math.random();
-            arr[4*i+1] = Math.random();
-            arr[4*i+2] = Math.random() * 2.0 - 1.0;
-            arr[4*i+3] = Math.random() * 2.0 - 1.0;
+            let radius = Math.random() * 0.2;
+            let angle = Math.random() * Math.PI * 2;
+            arr[4*i] = Math.cos(angle) * radius + 0.5;
+            arr[4*i+1] = Math.sin(angle) * radius + 0.5;
+            arr[4*i+2] = (Math.random() * 2.0 - 1.0) * 0.05;
+            arr[4*i+3] = (Math.random() * 2.0 - 1.0) * 0.05;
         }
         const particleBufferData = new Float32Array(arr);
         const particleBuffers = [0, 1].map(() => 
             this.device!.createBuffer({
-                mappedAtCreation: true,
                 size: particleBufferData.length * Float32Array.BYTES_PER_ELEMENT,
                 usage: GPUBufferUsage.STORAGE | 
                 GPUBufferUsage.COPY_DST | 
@@ -319,9 +188,7 @@ class _WGPUContext {
             particleBufferData.byteOffset,
             particleBufferData.byteLength
         );
-        particleBuffers[0].unmap();
-        particleBuffers[1].unmap();
-
+        
         const trailTextures = [0, 1].map(() =>
             this.device!.createTexture({
                 size: {
@@ -335,69 +202,42 @@ class _WGPUContext {
             })
         );
 
-        const particleUniformData = new Float32Array(particleParams);
+        const particleResolutionData = new Uint32Array([presentationSize[0], presentationSize[1], NUM_PARTICLES]);
+        const particleResolutionBuffer = this.device!.createBuffer({
+            size: particleResolutionData.byteLength,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        this.queue!.writeBuffer(
+            particleResolutionBuffer,
+            0,
+            particleResolutionData.buffer,
+            particleResolutionData.byteOffset,
+            particleResolutionData.byteLength
+        );
+
         const particleUniformBuffer = this.device!.createBuffer({
-            size: particleUniformData.byteLength,
+            size: 5 * 4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-            mappedAtCreation: true
         });
-        this.queue!.writeBuffer(
-            particleUniformBuffer,
-            0,
-            particleUniformData.buffer,
-            particleUniformData.byteOffset,
-            particleUniformData.byteLength
-        );
-        particleUniformBuffer.unmap();
 
-        const decayUniformData = new Float32Array(decayRate);
         const decayUniformBuffer = this.device!.createBuffer({
-            size: decayUniformData.byteLength,
+            size: 1 * 4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-            mappedAtCreation: true
         });
-        this.queue!.writeBuffer(
-            decayUniformBuffer,
-            0,
-            decayUniformData.buffer,
-            decayUniformData.byteOffset,
-            decayUniformData.byteLength
-        );
-        decayUniformBuffer.unmap();
         
-        const diffuseUniformData = new Float32Array(diffuseAmount);
         const diffuseUniformBuffer = this.device!.createBuffer({
-            size: diffuseUniformData.byteLength,
+            size: 1 * 4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-            mappedAtCreation: true
         });
-        this.queue!.writeBuffer(
-            diffuseUniformBuffer,
-            0,
-            diffuseUniformData.buffer,
-            diffuseUniformData.byteOffset,
-            diffuseUniformData.byteLength
-        );
-        diffuseUniformBuffer.unmap();
 
-        const renderUniformData = new Float32Array(renderParams);
         const renderUniformBuffer = this.device!.createBuffer({
-            size: renderUniformData.byteLength,
+            size: 8 * 4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-            mappedAtCreation: true
         });
-        this.queue!.writeBuffer(
-            renderUniformBuffer,
-            0,
-            renderUniformData.buffer,
-            renderUniformData.byteOffset,
-            renderUniformData.byteLength
-        );
-        renderUniformBuffer.unmap();
 
         const particleBindGroups = [0, 1].map((i) => 
             this.device!.createBindGroup({
-                layout: particleBindGroupLayout,
+                layout: particleComputePipeline.getBindGroupLayout(0),
                 entries: [
                     {
                         binding: 0,
@@ -418,6 +258,10 @@ class _WGPUContext {
                     {
                         binding: 4,
                         resource: trailTextures[1-i].createView()
+                    },
+                    {
+                        binding: 5,
+                        resource: { buffer: particleResolutionBuffer }
                     }
                 ]
             })
@@ -425,7 +269,7 @@ class _WGPUContext {
 
         const decayBindGroups = [0, 1].map((i) => 
             this.device!.createBindGroup({
-                layout: decayBindGroupLayout,
+                layout: decayComputePipeline.getBindGroupLayout(0),
                 entries: [
                     {
                         binding: 0,
@@ -438,6 +282,10 @@ class _WGPUContext {
                     {
                         binding: 2,
                         resource: trailTextures[i].createView()
+                    },
+                    {
+                        binding: 3,
+                        resource: { buffer: particleResolutionBuffer }
                     }
                 ]
             })
@@ -445,7 +293,7 @@ class _WGPUContext {
 
         const diffuseBindGroups = [0, 1].map((i) => 
             this.device!.createBindGroup({
-                layout: diffuseBindGroupLayout,
+                layout: diffuseComputePipeline.getBindGroupLayout(0),
                 entries: [
                     {
                         binding: 0,
@@ -458,6 +306,10 @@ class _WGPUContext {
                     {
                         binding: 2,
                         resource: trailTextures[1-i].createView()
+                    },
+                    {
+                        binding: 3,
+                        resource: { buffer: particleResolutionBuffer }
                     }
                 ]
             })
@@ -484,18 +336,19 @@ class _WGPUContext {
         );
 
         const particleWorkGroupCount = Math.ceil(NUM_PARTICLES / 64);
-        const screenWorkGroupCount = [presentationSize[0] / 16, presentationSize[1] / 16];
+        const screenWorkGroupCount = 
+            [Math.ceil(presentationSize[0] / 16), Math.ceil(presentationSize[1] / 16)];
 
 
         this.colorTexture = this.context!.getCurrentTexture();
         this.colorTextureView = this.colorTexture.createView();
-
 
         let frameNum = 0;
 
         const encodeCommands = () => {
 
             const renderPassDesc: GPURenderPassDescriptor = {
+                label: "render",
                 colorAttachments: [{
                     view: this.colorTextureView!,
                     loadValue: { r: 0, g: 0, b: 0, a: 1 },
@@ -506,7 +359,7 @@ class _WGPUContext {
             const commandEncoder = this.device!.createCommandEncoder();
 
             {
-                const cpass = commandEncoder.beginComputePass();
+                const cpass = commandEncoder.beginComputePass({label: "particle"});
                 cpass.setPipeline(particleComputePipeline);
                 cpass.setBindGroup(0, particleBindGroups[frameNum % 2]);
                 cpass.dispatch(particleWorkGroupCount);
@@ -514,14 +367,14 @@ class _WGPUContext {
             }
 
             {
-                const cpass = commandEncoder.beginComputePass();
+                const cpass = commandEncoder.beginComputePass({label: "decay"});
                 cpass.setPipeline(decayComputePipeline);
                 cpass.setBindGroup(0, decayBindGroups[frameNum % 2]);
                 cpass.dispatch(screenWorkGroupCount[0], screenWorkGroupCount[1]);
                 cpass.endPass();
             }
             {
-                const cpass = commandEncoder.beginComputePass();
+                const cpass = commandEncoder.beginComputePass({label: "diffuse"});
                 cpass.setPipeline(diffuseComputePipeline);
                 cpass.setBindGroup(0, diffuseBindGroups[frameNum % 2]);
                 cpass.dispatch(screenWorkGroupCount[0], screenWorkGroupCount[1]);
@@ -538,7 +391,7 @@ class _WGPUContext {
                 rpass.endPass();
             }
 
-           
+            ++frameNum;
             this.queue!.submit([commandEncoder.finish()]);
         }
 
@@ -570,6 +423,65 @@ class _WGPUContext {
         
             requestAnimationFrame(render);
         };
+
+        this.updateUniforms = function updateUniforms(index: number) {
+            let param = paramsList.params[index];
+
+            this.queue!.writeBuffer(
+                particleUniformBuffer,
+                0,
+                new Float32Array([
+                    param.particle.trail_power,
+                    param.particle.speed,
+                    param.particle.sensor_angle,
+                    param.particle.sensor_distance,
+                    param.particle.turn_speed
+                ])
+            );
+
+            this.queue!.writeBuffer(
+                decayUniformBuffer,
+                0,
+                new Float32Array([
+                    param.decay.decay_rate
+                ])
+            );
+
+            this.queue!.writeBuffer(
+                diffuseUniformBuffer,
+                0,
+                new Float32Array([
+                    param.diffuse.diffuse_amount
+                ])
+            );
+
+            this.queue!.writeBuffer(
+                renderUniformBuffer,
+                0,
+                new Float32Array([
+                    param.render.color_1[0],
+                    param.render.color_1[1],
+                    param.render.color_1[2],
+                    param.render.color_2[0],
+                    param.render.color_2[1],
+                    param.render.color_2[2],
+                    param.render.color_pow,
+                    param.render.cutoff
+                ])
+            );
+
+            this.queue!.writeBuffer(
+                particleResolutionBuffer,
+                0,
+                new Uint32Array([
+                    presentationSize[0],
+                    presentationSize[1],
+                    param.particle.num_particles
+                ])
+            )
+        }
+
+        this.updateUniforms(4);
 
         render();
 

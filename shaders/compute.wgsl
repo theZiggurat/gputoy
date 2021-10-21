@@ -12,6 +12,12 @@ struct SimParams {
   sensor_angle: f32;
   sensor_distance: f32;
   turn_speed: f32;
+};
+
+[[block]] 
+struct Resolution {
+  width: u32;
+  height: u32;
   num_particles: u32;
 };
 
@@ -25,6 +31,7 @@ struct Particles {
 [[group(0), binding(2)]] var<storage, read_write> particlesDst : Particles;
 [[group(0), binding(3)]] var trailSrc : texture_2d<f32>;
 [[group(0), binding(4)]] var trailDst : texture_storage_2d<r32float, write>;
+[[group(0), binding(5)]] var<uniform> resolution: Resolution;
 
 
 fn rotate(v: vec2<f32>, ang: f32) -> vec2<f32> {
@@ -35,15 +42,14 @@ fn rotate(v: vec2<f32>, ang: f32) -> vec2<f32> {
 }
 
 fn to_trail_space(v: vec2<f32>) -> vec2<i32> {
-  var vec_norm: vec2<f32> = vec2<f32>((v.x) / 2., (v.y) / 2.);
-  return vec2<i32>(i32(vec_norm.x * 3200.0), i32(vec_norm.y * 1800.0));
+  return vec2<i32>(i32(v.x * f32(resolution.width)), i32(v.y * f32(resolution.height)));
 }
 
 
 [[stage(compute), workgroup_size(64)]]
 fn main([[builtin(global_invocation_id)]] global_invocation_id: vec3<u32>) {
   var index = global_invocation_id.x;
-  if (index >= params.num_particles) {
+  if (index >= resolution.num_particles) {
     return;
   }
 
@@ -56,9 +62,9 @@ fn main([[builtin(global_invocation_id)]] global_invocation_id: vec3<u32>) {
   var sens_right: vec2<f32> = rotate(vVel, -params.sensor_angle) * params.sensor_distance + vPos;
   var sens_forward: vec2<f32> = vVel * params.sensor_distance + vPos;
 
-  var sens_left_pixel: vec2<i32> = to_trail_space(sens_left);
-  var sens_right_pixel: vec2<i32> = to_trail_space(sens_right);
-  var sens_forward_pixel: vec2<i32> = to_trail_space(sens_forward);
+  var sens_left_pixel: vec2<i32> = to_trail_space(abs(modf(sens_left).fract));
+  var sens_right_pixel: vec2<i32> = to_trail_space(abs(modf(sens_right).fract));
+  var sens_forward_pixel: vec2<i32> = to_trail_space(abs(modf(sens_forward).fract));
 
   var val_left: f32 = textureLoad(trailSrc, sens_left_pixel, 0).r;
   var val_right: f32 = textureLoad(trailSrc, sens_right_pixel, 0).r;
@@ -75,21 +81,18 @@ fn main([[builtin(global_invocation_id)]] global_invocation_id: vec3<u32>) {
     turn_factor = sign(val_left - val_right) * params.turn_speed;
   }
 
-  var vVel_new: vec2<f32> = normalize(rotate(vVel, turn_factor));
-
+  var vVel_new: vec2<f32> =  normalize(rotate(vVel, turn_factor));
   var vPos_new: vec2<f32> = vPos + ((params.speed/10000.0) * vVel_new);
 
   if (vPos_new.x < 0.0) {
-    vPos_new.x = 0.999;
-  }
-  if (vPos_new.x >= 1.0) {
+    vPos_new.x = 0.999 + vPos_new.x;
+  } elseif (vPos_new.x > 0.999) {
     vPos_new.x = 0.0;
   }
   if (vPos_new.y < 0.0) {
-    vPos_new.y = 0.999;
-  }
-  if (vPos_new.y >= 1.0) {
-    vPos_new.y = 0.0;
+    vPos_new.y = 0.999 + vPos_new.y;
+  } elseif (vPos_new.y > 0.999) {
+    vPos_new.x = 0.0;
   }
 
   particlesDst.particles[index].pos = vPos_new;
