@@ -1,5 +1,4 @@
 /** @type {import('next').NextConfig} */
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 module.exports = {
   reactStrictMode: true,
@@ -8,10 +7,6 @@ module.exports = {
       test: /\.wgsl$/i,
       use: 'raw-loader',
     });
-
-    config.plugins.push(
-      new MonacoWebpackPlugin()
-    );
     return config
   },
 }

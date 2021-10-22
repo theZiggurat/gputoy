@@ -1,5 +1,6 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import {
+  chakra,
   Box,
   Flex,
   Avatar,
@@ -17,35 +18,55 @@ import {
   Center,
   HStack,
 } from '@chakra-ui/react';
+import NextLink from 'next/link';
+import { useRouter } from 'next/router';
 
-const NavLink = ({ children }: { children: ReactNode }) => (
-  <Link
-    px={3}
-    py={1}
-    rounded={'md'}
-    _hover={{
-      textDecoration: 'none',
-      bg: useColorModeValue('gray.200', 'gray.700'),
-    }}
-    href={'#'}>
-    {children}
-  </Link>
-);
+interface NavLinkProps {
+  href: string,
+  text: string,
+  currentPath: string,
+}
+
+const NavLink = (props: NavLinkProps) => {
+  return(
+    <NextLink href={props.href} passHref>
+      <chakra.span px={3} py={1} rounded={'md'} cursor="pointer"
+        bg={ props.currentPath === props.href ? 
+            useColorModeValue('gray.300', 'gray.700') : 'inheret'}
+        shadow={ props.currentPath === props.href ? 'lg' : 'inherit'}
+        _hover={{
+          bg: useColorModeValue('gray.300', 'gray.700'),
+          shadow: "lg"
+          }}>
+        {props.text}
+      </chakra.span>
+    </NextLink>
+  )
+};
 
 export default function Nav() {
+
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const router = useRouter();
+  const isActive = router.pathname == '/'; 
+  console.log(router.pathname)
+
   return (
-      <Box bg={useColorModeValue('gray.200', 'gray.900')} px={4} flex="0 0 auto" shadow="lg">
+      <Box bg={useColorModeValue('gray.200', 'gray.900')} px={4} flex="0 0 auto" shadow="inner">
         <Flex h={16} alignItems={'center'} justifyContent={'space-between'} >
 
           
 
           <HStack>
-            <Box m={5} marginRight={10} fontSize="xl" fontWeight="extrabold">Flui</Box>
-            <NavLink>Browse</NavLink>
-            <NavLink>Create</NavLink>
-            <NavLink>About</NavLink>
+            <Box m={5} marginRight={10} fontSize="xl" fontWeight="extrabold">
+              <NextLink href="/">
+                Flui
+              </NextLink>
+            </Box>
+            <NavLink href="/browse" text="Browse" currentPath={router.pathname}/>
+            <NavLink href="/create" text="Create" currentPath={router.pathname}/>
+            <NavLink href="/projects" text="Projects" currentPath={router.pathname}/>
           </HStack>
           
 

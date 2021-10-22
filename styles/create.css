@@ -1,0 +1,120 @@
+.Resizer {
+  background: #000;
+  opacity: 0.2;
+  z-index: 1;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding;
+  background-clip: padding-box;
+}
+
+.createWindow {
+  position:fixed !important;
+}
+
+.Resizer:hover {
+  -webkit-transition: all 2s ease;
+  transition: all 2s ease;
+}
+
+.Resizer.horizontal {
+  height: 11px;
+  margin: -5px 0;
+  border-top: 5px solid rgba(255, 255, 255, 0);
+  border-bottom: 5px solid rgba(255, 255, 255, 0);
+  cursor: row-resize;
+  width: 100%;
+}
+
+.Resizer.horizontal:hover {
+  border-top: 5px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 5px solid rgba(0, 0, 0, 0.5);
+}
+
+.Resizer.vertical {
+  width: 11px;
+  margin: 0 -5px;
+  border-left: 5px solid rgba(255, 255, 255, 0);
+  border-right: 5px solid rgba(255, 255, 255, 0);
+  cursor: col-resize;
+}
+
+.Resizer.vertical:hover {
+  border-left: 5px solid rgba(0, 0, 0, 0.5);
+  border-right: 5px solid rgba(0, 0, 0, 0.5);
+}
+.Resizer.disabled {
+  cursor: not-allowed;
+}
+.Resizer.disabled:hover {
+  border-color: transparent;
+}
+
+.editor {
+  counter-reset: line;
+}
+
+.editor #codeArea {
+  outline: none;
+  border: none;
+  padding-left: 60px !important;
+}
+
+.editor pre {
+  padding-left: 60px !important;
+}
+
+.editor .editorLineNumber {
+  position: absolute;
+  left: 0px;
+  color: #cccccc;
+  text-align: right;
+  width: 40px;
+  font-weight: 100;
+}
+
+.tabList {
+  /* border-bottom: 1px solid #aaa; */
+  margin: 0 0 10px 20px;
+  padding: 0;
+}
+
+.tabListDark {
+}
+
+.tabListLight {
+
+}
+
+.tab {
+  font-weight: light;
+  font-size: medium;
+  display: inline-block;
+  border: 5px solid transparent;
+  border-bottom: none;
+  /* bottom: -1px; */
+  position: relative;
+  list-style: none;
+  padding: 2px 12px 8px;
+  cursor: pointer;
+}
+
+.tabDark--selected {
+  background-color: #171923 !important;
+  border-radius: 0px 0px 5px 5px;
+}
+
+.tabLight--selected {
+  background-color: #E2E8F0 !important;
+  border-radius: 0px 0px 5px 5px;
+}
+
+.tabDark {
+  background-color: #1A202C;
+}
+
+.tabLight {
+
+}

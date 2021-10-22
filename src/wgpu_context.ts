@@ -18,10 +18,10 @@ class _WGPUContext {
     colorTextureView: GPUTextureView | null = null;
 
     updateUniforms: ((index: number) => void) | null = null;
+    start: (() => void) | null = null;
+    stop: (() => void) | null = null
 
-    constructor() {
-        
-    }
+    loop: boolean = false;
 
     async registerCanvas(id: string) {
         this.canvas = document.getElementById(id) as HTMLCanvasElement;
@@ -421,7 +421,8 @@ class _WGPUContext {
         
             encodeCommands();
         
-            requestAnimationFrame(render);
+            if(this.loop) 
+                requestAnimationFrame(render);
         };
 
         this.updateUniforms = function updateUniforms(index: number) {
@@ -481,11 +482,20 @@ class _WGPUContext {
             )
         }
 
-        this.updateUniforms(4);
+        this.start = () => {
+            if (this.loop)
+                return
+            this.loop = true;
+            render();
+        }
 
-        render();
+        this.stop = () => {
+            this.loop = false;
+        }
 
+        this.updateUniforms(0);
 
+        console.log("Finished WGPU context initialization")
     }
 }
 
