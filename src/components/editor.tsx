@@ -2,16 +2,7 @@ import React, { useEffect } from 'react'
 import { 
     chakra, 
     useColorMode,
-    Textarea,
-    Flex, 
-    IconButton, 
-    Divider, 
-    Input, 
-    NumberInput,
-    NumberInputField,
-    NumberInputStepper,
-    NumberIncrementStepper,
-    NumberDecrementStepper, 
+    IconButton,
 } from '@chakra-ui/react'
 
 import Editor from 'react-simple-code-editor'
@@ -20,6 +11,7 @@ import { highlight, languages } from "prismjs/components/prism-core";
 import "prismjs/components/prism-rust";
 import shader from '../../shaders/diffuse.wgsl'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import {IoIosAdd} from 'react-icons/io'
 
 
 
@@ -88,6 +80,7 @@ const CodeEditor = () => {
                         <Tab className={tabClass} >
                             {filename}
                     </Tab>)}
+                    <IconButton icon={<IoIosAdd/>} variant="unstyled"/>
                 </TabList>
                 {
                 Object.entries(code).map(([filename, file]) => 

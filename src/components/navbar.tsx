@@ -64,7 +64,7 @@ export default function Nav() {
           <HStack>
             <Box m={5} marginRight={10} fontSize={25} fontWeight="extrabold">
               <NextLink href="/">
-                Flui
+                Shdr
               </NextLink>
               <Badge ml="1" position="relative" colorScheme="blue" fontSize="0.4em" top="-.25em">
                   Alpha
