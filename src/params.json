@@ -1,0 +1,226 @@
+{
+    "current": 0,
+    "params": [
+      {
+        "name": "Default",
+        "particle": {
+          "trail_power": 16.0,
+          "speed": 10.0,
+          "sensor_angle": 0.174033,
+          "sensor_distance": 0.01,
+          "turn_speed": 0.104088,
+          "num_particles": 144831
+        },
+        "decay": {
+          "decay_rate": 0.98
+        },
+        "diffuse": {
+          "diffuse_amount": 0.464088
+        },
+        "render": {
+          "color_1": [
+            0.3718872,
+            0.3874581,
+            0.13509755
+          ],
+          "color_2": [
+            0.51695436,
+            0.59639215,
+            0.71486413
+          ],
+          "color_pow": 0.832044,
+          "cutoff": 0.25
+        }
+      },
+      {
+        "name": "Disperse",
+        "particle": {
+          "trail_power": 64.0,
+          "speed": 6.215469,
+          "sensor_angle": 1.5,
+          "sensor_distance": 0.005525,
+          "turn_speed": 0.034696,
+          "num_particles": 100000
+        },
+        "decay": {
+          "decay_rate": 0.906077
+        },
+        "diffuse": {
+          "diffuse_amount": 0.889503
+        },
+        "render": {
+          "color_1": [
+            0.8684857,
+            0.8548935,
+            0.81668615
+          ],
+          "color_2": [
+            0.79613185,
+            0.6188964,
+            1.0
+          ],
+          "color_pow": 0.59337,
+          "cutoff": 0.25
+        }
+      },
+      {
+        "name": "Transmission",
+        "particle": {
+          "trail_power": 57.28177,
+          "speed": 6,
+          "sensor_angle": 0.1,
+          "sensor_distance": 0.007,
+          "turn_speed": 0.02,
+          "num_particles": 926917
+        },
+        "decay": {
+          "decay_rate": 0.975138
+        },
+        "diffuse": {
+          "diffuse_amount": 0.220994
+        },
+        "render": {
+          "color_1": [
+            1.0,
+            0.9999,
+            0.9999
+          ],
+          "color_2": [
+            0.82727593,
+            0.86924195,
+            0.9029992
+          ],
+          "color_pow": 0.99558,
+          "cutoff": 0.25
+        }
+      },
+      {
+        "name": "Infernal",
+        "particle": {
+          "trail_power": 64.0,
+          "speed": 15.0,
+          "sensor_angle": 0.430939,
+          "sensor_distance": 0.05,
+          "turn_speed": 0.728619,
+          "num_particles": 1000000
+        },
+        "decay": {
+          "decay_rate": 0.939227
+        },
+        "diffuse": {
+          "diffuse_amount": 0.856354
+        },
+        "render": {
+          "color_1": [
+            0.5785465,
+            0.32075462,
+            0.0
+          ],
+          "color_2": [
+            0.9141843,
+            0.0,
+            0.07131297
+          ],
+          "color_pow": 1.0,
+          "cutoff": 0.25
+        }
+      },
+      {
+        "name": "Dark Matter",
+        "particle": {
+          "trail_power": 22.276243,
+          "speed": 10,
+          "sensor_angle": 1.5,
+          "sensor_distance": 0.1,
+          "turn_speed": 0.02,
+          "num_particles": 1036989
+        },
+        "decay": {
+          "decay_rate": 0.953039
+        },
+        "diffuse": {
+          "diffuse_amount": 1.0
+        },
+        "render": {
+          "color_1": [
+            0.3605136,
+            0.0010387873,
+            0.8347923
+          ],
+          "color_2": [
+            0.04286754,
+            0.042863254,
+            0.04286375
+          ],
+          "color_pow": 1.0,
+          "cutoff": 0.25
+        }
+      },
+      {
+        "name": "Ice Bender",
+        "particle": {
+          "trail_power": 64.0,
+          "speed": 14.0,
+          "sensor_angle": 1.5,
+          "sensor_distance": 0.1,
+          "turn_speed": 0.711271,
+          "num_particles": 718361
+        },
+        "decay": {
+          "decay_rate": 0.864641
+        },
+        "diffuse": {
+          "diffuse_amount": 1.0
+        },
+        "render": {
+          "color_1": [
+            0.14853027,
+            0.21077356,
+            0.46479672
+          ],
+          "color_2": [
+            0.9999,
+            0.9999618,
+            1.0
+          ],
+          "color_pow": 1.0,
+          "cutoff": 0.25
+        }
+      },
+      {
+        "name": "Tacky 2000s",
+        "particle": {
+          "trail_power": 64.0,
+          "speed": 6.215469,
+          "sensor_angle": 1.5,
+          "sensor_distance": 0.005525,
+          "turn_speed": 0.277569,
+          "num_particles": 100000
+        },
+        "decay": {
+          "decay_rate": 0.955801
+        },
+        "diffuse": {
+          "diffuse_amount": 0.889503
+        },
+        "render": {
+          "color_1": [
+            0.23401105,
+            0.11379758,
+            0.06730453
+          ],
+          "color_2": [
+            0.0,
+            0.990206,
+            1.0
+          ],
+          "color_pow": 0.292818,
+          "cutoff": 0.25
+        }
+      }
+    ],
+    "global": {
+      "post_enabled": true,
+      "max_particles": 1048576
+    }
+  }
