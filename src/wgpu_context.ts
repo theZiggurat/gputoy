@@ -5,7 +5,7 @@ import drawShader from '../shaders/draw.wgsl'
 
 import paramsList from './params.json';
 
-const NUM_PARTICLES = 1000000;
+const NUM_PARTICLES = 2000000;
 
 class _WGPUContext {
 
@@ -424,6 +424,8 @@ class _WGPUContext {
             if(this.loop) 
                 requestAnimationFrame(render);
         };
+
+        
 
         this.updateUniforms = function updateUniforms(index: number) {
             let param = paramsList.params[index];

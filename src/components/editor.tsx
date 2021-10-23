@@ -63,6 +63,7 @@ const CodeEditor = () => {
                     codefiles[filename] = file
                 }
             })
+            console.log(codefiles)
             setCode(codefiles)
         }
     }, [])
@@ -78,8 +79,8 @@ const CodeEditor = () => {
     }
 
     return (
-        <chakra.div overflowY="auto" maxHeight="100%">
-            <Tabs className="react-tabs_MOD" selectedTabClassName={
+        <chakra.div maxHeight="100%" display="flex">
+            <Tabs id="tabContainer" selectedTabClassName={
                             colorMode==="light" ? "tabLight--selected" : "tabDark--selected"
                         }>
                 <TabList className={tabListClass}>
@@ -90,22 +91,24 @@ const CodeEditor = () => {
                 </TabList>
                 {
                 Object.entries(code).map(([filename, file]) => 
-                    (<TabPanel>
-                        <Editor
-                            className="editor"
-                            textareaId="codeArea"
-                            value={file}
-                            onValueChange={(code) => _setCode(code, filename)}
-                            highlight={code => hightlightWithLineNumbers(code, languages.rust)}
-                            padding={10}
-                            style={{
-                                fontFamily: '"Fira code", "Fira Mono", monospace',
-                                fontSize: 13,
-                                width: '100%',
-                                height: '100%',
-                            }}
-                        />
-                    </TabPanel>))
+                    (<chakra.div overflowY="auto" maxHeight="100%">
+                        <TabPanel>
+                            <Editor
+                                className="editor"
+                                textareaId="codeArea"
+                                value={file}
+                                onValueChange={(code) => _setCode(code, filename)}
+                                highlight={code => hightlightWithLineNumbers(code, languages.rust)}
+                                padding={10}
+                                style={{
+                                    fontFamily: '"Fira code", "Fira Mono", monospace',
+                                    fontSize: 13,
+                                    width: '100%',
+                                    height: '100%',
+                                }}
+                            />
+                        </TabPanel>
+                    </chakra.div>))
                 }
             </Tabs>
         </chakra.div>

@@ -17,9 +17,12 @@ import {
   useColorMode,
   Center,
   HStack,
+  Icon,
+  Badge
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
+import { MdNightlight, MdWbSunny} from 'react-icons/md'
 
 interface NavLinkProps {
   href: string,
@@ -59,10 +62,13 @@ export default function Nav() {
           
 
           <HStack>
-            <Box m={5} marginRight={10} fontSize="xl" fontWeight="extrabold">
+            <Box m={5} marginRight={10} fontSize={25} fontWeight="extrabold">
               <NextLink href="/">
                 Flui
               </NextLink>
+              <Badge ml="1" position="relative" colorScheme="blue" fontSize="0.4em" top="-.25em">
+                  Alpha
+                </Badge>
             </Box>
             <NavLink href="/browse" text="Browse" currentPath={router.pathname}/>
             <NavLink href="/create" text="Create" currentPath={router.pathname}/>
@@ -72,8 +78,8 @@ export default function Nav() {
 
           <Flex alignItems={'center'}>
             <Stack direction={'row'} spacing={7}>
-              <Button onClick={toggleColorMode}>
-                  Toggle
+              <Button onClick={toggleColorMode} size="sm">
+                <Icon as={colorMode==="light" ? MdWbSunny : MdNightlight}/>
               </Button>
               <Menu>
                 <MenuButton

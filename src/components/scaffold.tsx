@@ -48,7 +48,7 @@ const Scaffold = ({children}: {children: ReactNode}) => {
               }
               <Nav/>
                 { children }
-              <Footer/> 
+              {/* <Footer/>  */}
           </Flex>
         </chakra.div>
     )

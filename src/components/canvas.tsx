@@ -12,15 +12,6 @@ export default function Canvas() {
         WGPUContext.registerCanvas(id)
     }, [])
 
-    var onStartClick = () => {
-        console.log("starting")
-        WGPUContext.start!()
-    }
-
-    var onStopClick = () => {
-        WGPUContext.stop!()
-    }
-
     return (
         <chakra.div
              backgroundColor="black" height="100%">
