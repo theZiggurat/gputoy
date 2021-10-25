@@ -8,9 +8,9 @@ export default function Canvas() {
 
     const id = "canvas";
 
-    useEffect(() => {
-        WGPUContext.registerCanvas(id)
-    }, [])
+    // useEffect(() => {
+    //     WGPUContext.registerCanvas(id)
+    // }, [])
 
     return (
         <chakra.div

@@ -1,15 +1,12 @@
-import { ReactNode, useEffect } from 'react';
 import {
   chakra,
   Box,
   Flex,
   Avatar,
-  Link,
   Button,
   Menu,
-  MenuButton,
   MenuList,
-  MenuItem,
+  MenuItem, 
   MenuDivider,
   useDisclosure,
   useColorModeValue,
@@ -18,11 +15,16 @@ import {
   Center,
   HStack,
   Icon,
-  Badge
+  Badge,
+  MenuButton
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { MdNightlight, MdWbSunny} from 'react-icons/md'
+
+import dynamic from 'next/dynamic'
+
+//const MenuButton = dynamic(() => import('@chakra-ui/menu'), {ssr: false})
 
 interface NavLinkProps {
   href: string,
@@ -33,7 +35,7 @@ interface NavLinkProps {
 const NavLink = (props: NavLinkProps) => {
   return(
     <NextLink href={props.href} passHref>
-      <chakra.span px={3} py={1} rounded={'md'} cursor="pointer"
+      <chakra.span px={3} py={1} rounded={'md'} cursor="pointer" userSelect="none"
         bg={ props.currentPath === props.href ? 
             useColorModeValue('gray.300', 'gray.700') : 'inheret'}
         shadow={ props.currentPath === props.href ? 'lg' : 'inherit'}
@@ -53,29 +55,25 @@ export default function Nav() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const router = useRouter();
   const isActive = router.pathname == '/'; 
-  console.log(router.pathname)
 
   return (
       <Box bg={useColorModeValue('gray.200', 'gray.900')} px={4} flex="0 0 auto" shadow="inner">
-        <Flex h={16} alignItems={'center'} justifyContent={'space-between'} >
-
-          
+        <Flex h={16} alignItems={'center'} justifyContent='space-between' >
 
           <HStack>
             <Box m={5} marginRight={10} fontSize={25} fontWeight="extrabold">
               <NextLink href="/">
-                Flui
+                GPUTOY
               </NextLink>
               <Badge ml="1" position="relative" colorScheme="blue" fontSize="0.4em" top="-.25em">
-                  Alpha
+                  Dev
                 </Badge>
             </Box>
             <NavLink href="/browse" text="Browse" currentPath={router.pathname}/>
             <NavLink href="/create" text="Create" currentPath={router.pathname}/>
             <NavLink href="/projects" text="Projects" currentPath={router.pathname}/>
           </HStack>
-          
-
+        
           <Flex alignItems={'center'}>
             <Stack direction={'row'} spacing={7}>
               <Button onClick={toggleColorMode} size="sm">
@@ -83,6 +81,7 @@ export default function Nav() {
               </Button>
               <Menu>
                 <MenuButton
+                  id="menubutton"
                   as={Button}
                   rounded={'full'}
                   variant={'link'}

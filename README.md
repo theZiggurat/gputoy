@@ -1,34 +1,43 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+# GPUtoy
 
-First, run the development server:
+GPUtoy is the next evolution of shader prototyping. It is like shadertoy, but built with WebGPU. 
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+## Planned features:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+  - Fully syntax highlighted shader editors
+    - .wgsl
+    - .glsl
+  - Node editor for shader i/o
+    - Modules that can be reordered, ping-ponged, conditionally run, etc.
+  - Shader auto binding
+    - Automatically imports bindings based on names given to uniforms and buffers in UI
+  - 'Marketplace' for shader modules that can be plugged into a project
+    - Import modules into project
+    - User can export modules they created to the marketplace
+  - Browser for community creations which can be viewed or forked
+    - Canonical mode ( as the creator intended to be viewed/interacted with )
+    - Forked mode ( user can edit the shaders and parameters to their liking )
+    - User ratings
+      - Like/Dislike
+      - Performance ratings
+    - User comments
+  - Buffer generation scripts and i/o
+    - buffer from image
+    - buffer from sound
+    - buffer from video
+    - buffer from file (models, csv, blobs of data)
+    - buffer from code generation (random values, api calls, etc)
+  - Animation editor
+    - allow shader parameters to change through time
+  - Universal uniforms
+    - time
+    - mouse input
+    - keyboard input
+    - resolution
+    - date
+  - Thoughtful error messages
+    - shader compilation errors
+    - device errors
+    - bind group mismatches
