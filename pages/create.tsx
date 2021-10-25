@@ -19,10 +19,7 @@ const Create = () => {
                     <chakra.div height="100%" width="100%">
                         <Canvas></Canvas>
                     </chakra.div>
-                    <ParamsPanel
-                        onRequestStart={() => WGPUContext.start()}
-                        onRequestPause={() => WGPUContext.stop()}
-                    />
+                    <ParamsPanel/>
                 </SplitPane>
                     <CodeEditor/>
             </SplitPane>

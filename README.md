@@ -1,8 +1,8 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-# Flui Alpha
+# GPUtoy
 
-Flui is the next evolution of shader prototyping. It is like shadertoy, but built with WebGPU. 
+GPUtoy is the next evolution of shader prototyping. It is like shadertoy, but built with WebGPU. 
 
 ## Planned features:
 
