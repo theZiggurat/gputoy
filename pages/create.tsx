@@ -4,10 +4,10 @@ import {
 } from '@chakra-ui/react'
 import Scaffold from '../src/components/scaffold'
 import Canvas from '../src/components/canvas'
-import CodeEditor from '../src/components/editor'
+import CodeEditor from '../src/components/create/editor'
 import SplitPane from 'react-split-pane'
 import WGPUContext from '../src/wgpu_context'
-import ParamsPanel from '../src/components/params'
+import ParamsPanel from '../src/components/create/params'
 
 const Create = () => {
 

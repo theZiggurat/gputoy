@@ -30,7 +30,7 @@ const StatusInfo = (props: {text: string, textColor?: string}) => (
     <Center mr={3} 
         backgroundColor={useColorModeValue('gray.100', 'whiteAlpha.200')} 
         fontFamily='"Fira code", "Fira Mono", monospace'
-        borderRadius={5}
+        borderRadius={2}
         userSelect="none"
     >
         <Text pl={2} pr={2} fontSize={12} color={props.textColor}>{props.text}</Text>
