@@ -1,20 +1,12 @@
-import React, { useEffect, ReactElement, ReactNode } from 'react'
+import React, { ReactElement } from 'react'
 import { 
     chakra, 
-    useColorMode,
     Divider,
     IconButton,
-    Input,
     Flex,
     useColorModeValue
 } from '@chakra-ui/react'
-import Editor from 'react-simple-code-editor'
-import "prismjs";
-import { highlight, languages } from "prismjs/components/prism-core";
-import "prismjs/components/prism-rust";
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
-import {IoIosAdd} from 'react-icons/io'
 import {
     BsFileCheck,
     BsFileEarmarkPlus,
@@ -24,17 +16,12 @@ import {
 
 } from 'react-icons/bs'
 
-import shader from '../../shaders/compute.wgsl'
-
-import SplitPane from 'react-split-pane'
-
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
   PopoverHeader,
   PopoverBody,
-  PopoverFooter,
   PopoverArrow,
   PopoverCloseButton,
   Button,
@@ -42,9 +29,6 @@ import {
   useDisclosure,
 } from "@chakra-ui/react"
 import { CodeFiles } from './editor';
-
-
-
 
 interface SidebarButtonProps {
   onClick?: () => void,

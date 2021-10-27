@@ -1,30 +1,41 @@
+import {ParamDesc, ParamType} from './params'
+
+interface ProjcetSerializable {
+
+}
+
 class Project {
 
+  // run state
   lastStartTime: number = 0
   lastFrameRendered: number = 0
   dt: number = 0
   frameNum: number = 0
-
   runDuration: number = 0
-
   running: boolean = false
 
-  render: (() => void) | null = null
+  // project state
+  uniforms: ParamDesc[] = []
+
+  status: string = 'Ok'
+
+  render: (() => void) = () => {}
   
   constructor() {
-    this.render = () => {}
+
   }
 
-  run() {
-    if (!this.render || this.running) return
+  run = () => {
+    if (!(this.render) || this.running) return
 
     this.lastStartTime = Date.now()
 
     this.running = true
+    this.status = 'Running'
     this.renderInternal()
   }
 
-  renderInternal() {
+  renderInternal = () => {
     if (!this.running) return
     
     this.render!()
@@ -37,19 +48,29 @@ class Project {
     window.requestAnimationFrame(this.renderInternal)
   }
 
-  pause() {
+  pause = () => {
+    this.status = 'Paused'
     this.running = false
   }
 
-  stop() {
+  stop = () => {
+    this.status = '--'
     this.running = false
+    this.frameNum = 0
+
     this.initBuffers()
   }
 
-  initBuffers() {
+  updateUniforms = (params: ParamDesc[]) => {
+    this.uniforms.splice(0, this.uniforms.length, ...params)
+
+  }
+
+  initBuffers = () => {
 
   }
 
 }
 
-export default Project;
+const WorkingProject = new Project()
+export default WorkingProject;

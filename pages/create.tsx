@@ -7,7 +7,8 @@ import Canvas from '../src/components/canvas'
 import CodeEditor from '../src/components/create/editor'
 import SplitPane from 'react-split-pane'
 import WGPUContext from '../src/wgpu_context'
-import ParamsPanel from '../src/components/create/params'
+import ParamsPanel from '../src/components/create/paramspanel'
+import WorkingProject from '../src/gpu/project'
 
 const Create = () => {
 
@@ -19,7 +20,12 @@ const Create = () => {
                     <chakra.div height="100%" width="100%">
                         <Canvas></Canvas>
                     </chakra.div>
-                    <ParamsPanel/>
+                    <ParamsPanel
+                        onRequestStart={WorkingProject.run}
+                        onRequestPause={WorkingProject.pause}
+                        onRequestStop={WorkingProject.stop}
+                        onParamChange={WorkingProject.updateUniforms}
+                    />
                 </SplitPane>
                     <CodeEditor/>
             </SplitPane>
