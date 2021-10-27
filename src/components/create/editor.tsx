@@ -146,7 +146,7 @@ const CodeEditor = () => {
                     </TabList>
                     {
                     codeFiles.map((codefile, idx) => 
-                        (<chakra.div overflowY="auto" maxHeight="100%">
+                        (<chakra.div overflowY="auto" maxHeight="100%" key={idx}>
                             <TabPanel>
                                 <Editor
                                     className="editor"

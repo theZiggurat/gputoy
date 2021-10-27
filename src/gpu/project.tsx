@@ -1,4 +1,5 @@
 import {ParamDesc, ParamType} from './params'
+import GPU from './gpu'
 
 interface ProjcetSerializable {
 
@@ -25,6 +26,12 @@ class Project {
 
   }
 
+  attachCanvas = (canvasId: string) => {
+    let status = GPU.attachCanvas(canvasId)
+    console.log(status)
+    this.status = status
+  }
+
   run = () => {
     if (!(this.render) || this.running) return
 
@@ -43,6 +50,7 @@ class Project {
     let now = Date.now()
     this.dt = now - this.lastFrameRendered
     this.lastFrameRendered = now
+    this.runDuration = (now - this.lastStartTime) / 1000
     ++this.frameNum
 
     window.requestAnimationFrame(this.renderInternal)
@@ -54,11 +62,12 @@ class Project {
   }
 
   stop = () => {
-    this.status = '--'
+    this.status = 'Ok'
     this.running = false
     this.frameNum = 0
+    this.runDuration = 0
 
-    this.initBuffers()
+    this.mapBuffers()
   }
 
   updateUniforms = (params: ParamDesc[]) => {
@@ -66,7 +75,7 @@ class Project {
 
   }
 
-  initBuffers = () => {
+  mapBuffers = () => {
 
   }
 

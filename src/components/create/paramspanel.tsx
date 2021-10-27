@@ -255,7 +255,7 @@ const ParamsPanel = (props: ParamsPanelProps) => {
                 let newStatus = {
                     gpustatus: WorkingProject.status,
                     fps: fps,
-                    time: (WorkingProject.runDuration).toString()
+                    time: (WorkingProject.runDuration).toFixed(1).toString()
                 }
                 return newStatus
             })
@@ -298,7 +298,7 @@ const ParamsPanel = (props: ParamsPanelProps) => {
                 </Flex>
                 <Flex>
                     <StatusInfo text={`FPS: ${projectStatus.fps}`}/>
-                    <StatusInfo text={`Duration: ${projectStatus.time}`}/>
+                    <StatusInfo text={`Duration: ${projectStatus.time}s`}/>
                     <StatusInfo text={`Status: ${projectStatus.gpustatus}`}/>
                 </Flex>
             </Flex>

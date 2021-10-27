@@ -1,16 +1,16 @@
 
+import Status from "./status"
+
 export type GPUInitResult = 'ok' | 'error' | 'incompatible'
 
 class _GPU {
 
-    canvas!: HTMLCanvasElement
-    adapter!: GPUAdapter
-    device!: GPUDevice
+    canvas: HTMLCanvasElement | null = null
+    adapter: GPUAdapter | null = null
+    device: GPUDevice | null = null
     canvasContext!: GPUCanvasContext
 
     constuctor() {}
-
-
 
     async init(): Promise<GPUInitResult> {
 
@@ -52,8 +52,24 @@ class _GPU {
     }
 
     isInitialized(): boolean {
-        return !(!this.adapter || !this.device)
+        return !(this.adapter == null && this.device == null)
     }
+
+    attachCanvas(canvasID : string): string {
+        if (this.isInitialized())
+            return 'Cannot attach canvas: GPU failed or did not to initialize'
+
+        this.canvas = document.getElementById(canvasID) as HTMLCanvasElement
+        if (!this.canvas)
+            return "Cannot attach canvas: Canvas doesn't exist"
+
+        this.canvasContext = this.canvas.getContext('webgpu')
+        if (!this.canvasContext)
+            return 'Cannot attach canvas: Failed to create WEBGPU context'
+        return 'Ok'
+    }
+
+
 
     
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { 
     chakra, 
 } from '@chakra-ui/react'
@@ -11,6 +11,10 @@ import ParamsPanel from '../src/components/create/paramspanel'
 import WorkingProject from '../src/gpu/project'
 
 const Create = () => {
+
+    useEffect(() => {
+        WorkingProject.attachCanvas('canvas')
+    }, [])
 
     return (
         <Scaffold>
