@@ -23,10 +23,10 @@ const theme = extendTheme({
 function MyApp({ Component, pageProps }: AppProps) {
   const [gpuInitResult, setGPUInitResult] = React.useState('ok' as GPUInitResult)
 
-  useEffect(() => {
-    const initGPU = async () =>  setGPUInitResult(await GPU.init())
-    initGPU()
-  }, [])
+  // useEffect(() => {
+  //   const initGPU = async () =>  setGPUInitResult(await GPU.init())
+  //   initGPU()
+  // }, [])
 
   return (
     <ChakraProvider theme={theme}>

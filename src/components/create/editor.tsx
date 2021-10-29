@@ -15,7 +15,7 @@ import "prismjs";
 import { highlight, languages } from "prismjs/components/prism-core";
 import "prismjs/components/prism-rust";
 
-import shader from '../../../shaders/compute.wgsl'
+import shader from '../../../shaders/basicShader.wgsl'
 
 
 const defaultShader = shader//'fn main() {\n\n}\n'
@@ -43,6 +43,10 @@ const hightlightWithLineNumbers = (input, language) =>
     .split("\n")
     .map((line, i) => `<span class='editorLineNumber'>${i + 1}</span>${line}`)
     .join("\n");
+
+interface CodeEditorProps {
+    codeFiles: CodeFile[]
+}
 
 const CodeEditor = () => {
 
@@ -152,7 +156,7 @@ const CodeEditor = () => {
                                     className="editor"
                                     textareaId="codeArea"
                                     value={codefile.file}
-                                    onValueChange={(code) => onEditorCodeChange(idx, code, codefile.filename)}
+                                    onValueChange={code => onEditorCodeChange(idx, code, codefile.filename)}
                                     highlight={code => hightlightWithLineNumbers(code, languages.rust)}
                                     padding={10}
                                     style={{

@@ -12,8 +12,16 @@ import WorkingProject from '../src/gpu/project'
 
 const Create = () => {
 
+    const [ready, setReady] = React.useState(false)
+
     useEffect(() => {
-        WorkingProject.attachCanvas('canvas')
+        const initCanvas = async () => {
+            await WorkingProject.attachCanvas('canvas')
+            let status = WorkingProject.status
+            if (status === 'Ok')
+                setReady(true)
+        }
+        initCanvas()
     }, [])
 
     return (
@@ -29,6 +37,7 @@ const Create = () => {
                         onRequestPause={WorkingProject.pause}
                         onRequestStop={WorkingProject.stop}
                         onParamChange={WorkingProject.updateUniforms}
+                        disabled={!ready}
                     />
                 </SplitPane>
                     <CodeEditor/>

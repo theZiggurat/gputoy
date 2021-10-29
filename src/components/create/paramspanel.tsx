@@ -194,6 +194,7 @@ interface ParamsPanelProps {
     onRequestPause?: () => void,
     onRequestStop?: () => void,
     onParamChange?: (params: ParamDesc[]) => void,
+    disabled: boolean
 }
 
 const ParamsPanel = (props: ParamsPanelProps) => {
@@ -273,6 +274,7 @@ const ParamsPanel = (props: ParamsPanelProps) => {
                         marginRight={3}
                         icon={<FaPlay/>} 
                         onClick={props.onRequestStart}
+                        disabled={props.disabled}
                         />
                     <IconButton 
                         size="sm"
@@ -280,6 +282,7 @@ const ParamsPanel = (props: ParamsPanelProps) => {
                         marginRight={3}
                         icon={<FaPause/>} 
                         onClick={props.onRequestPause}
+                        disabled={props.disabled}
                         />
                     <IconButton 
                         size="sm"
@@ -287,6 +290,7 @@ const ParamsPanel = (props: ParamsPanelProps) => {
                         marginRight={3}
                         icon={<FaStop/>} 
                         onClick={props.onRequestStop}
+                        disabled={props.disabled}
                         />
                     <IconButton 
                         size="sm"
@@ -294,6 +298,7 @@ const ParamsPanel = (props: ParamsPanelProps) => {
                         marginRight={3}
                         icon={<FaPlus/>} 
                         onClick={addNewParam}
+                        disabled={props.disabled}
                         />
                 </Flex>
                 <Flex>
