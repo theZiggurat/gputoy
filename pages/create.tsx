@@ -1,15 +1,28 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { 
     chakra, 
 } from '@chakra-ui/react'
 import Scaffold from '../src/components/scaffold'
 import Canvas from '../src/components/canvas'
-import CodeEditor from '../src/components/editor'
+import CodeEditor from '../src/components/create/editor'
 import SplitPane from 'react-split-pane'
 import WGPUContext from '../src/wgpu_context'
-import ParamsPanel from '../src/components/params'
+import ParamsPanel from '../src/components/create/paramspanel'
+import WorkingProject from '../src/gpu/project'
 
 const Create = () => {
+
+    const [ready, setReady] = React.useState(false)
+
+    useEffect(() => {
+        const initCanvas = async () => {
+            await WorkingProject.attachCanvas('canvas')
+            let status = WorkingProject.status
+            if (status === 'Ok')
+                setReady(true)
+        }
+        initCanvas()
+    }, [])
 
     return (
         <Scaffold>
@@ -19,7 +32,13 @@ const Create = () => {
                     <chakra.div height="100%" width="100%">
                         <Canvas></Canvas>
                     </chakra.div>
-                    <ParamsPanel/>
+                    <ParamsPanel
+                        onRequestStart={WorkingProject.run}
+                        onRequestPause={WorkingProject.pause}
+                        onRequestStop={WorkingProject.stop}
+                        onParamChange={WorkingProject.updateUniforms}
+                        disabled={!ready}
+                    />
                 </SplitPane>
                     <CodeEditor/>
             </SplitPane>

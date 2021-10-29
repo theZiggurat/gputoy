@@ -1,95 +1,52 @@
-import React, { useEffect, ReactElement } from 'react'
+import React, { useEffect } from 'react'
 import { 
     chakra, 
     useColorMode,
-    Divider,
-    IconButton,
     Input,
-    Flex,
     useColorModeValue
 } from '@chakra-ui/react'
+
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import Editor from 'react-simple-code-editor'
+import SplitPane from 'react-split-pane'
+import Sidebar from './sidebar';
+
 import "prismjs";
 import { highlight, languages } from "prismjs/components/prism-core";
 import "prismjs/components/prism-rust";
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
-import {IoIosAdd} from 'react-icons/io'
-import {
-    BsFileCheck,
-    BsFileEarmarkPlus,
-    BsFileEarmarkX,
-    BsFileEarmarkArrowUp,
-    BsFileEarmarkArrowDown,
+import shader from '../../../shaders/basicShader.wgsl'
 
-} from 'react-icons/bs'
 
-import SplitPane from 'react-split-pane'
-
-const defaultShader = 'fn main() {\n\n}\n'
+const defaultShader = shader//'fn main() {\n\n}\n'
 
 interface CodeFile {
     filename: string,
     file: string,
 }
-type CodeFiles = CodeFile[]
+export type CodeFiles = CodeFile[]
 
-interface SidebarButtonProps {
-    onClick: () => void,
-    icon: ReactElement,
-    purpose: string,
-}
-
-const SidebarButton = (props: SidebarButtonProps) => (
-    <IconButton 
-        m={1}
-        borderRadius='100%'
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        size="md"
-        icon={
-            React.cloneElement(props.icon, {size: 20})
-        } 
-        variant="ghost"  
-        aria-label={props.purpose} 
-        title={props.purpose}
-        onClick={props.onClick}
-        _hover={{
-            bg: useColorModeValue('gray.300', 'gray.700'),
-            shadow: "lg"
-        }}
-        _focus={{
-            bg: useColorModeValue('gray.400', 'gray.600'),
-            shadow: "lg"
-        }}
-    />
-)
-
-const tabListClass = (colorMode) => { return {
+const tabListClass = (colorMode: string) => { return {
     "tabList": true,
     "tabListDark": colorMode === 'dark',
     "tabListLight": colorMode === 'light'
 }}
 
-const tabClass = (colorMode) => { return {
+const tabClass = (colorMode: string) => { return {
     "tab": true,
     "tabDark": colorMode === 'dark',
     "tabLight": colorMode === 'light'
 }}
-
-const tabSelectedClass = (colorMode) => { return {
-    "tab--selected": true,
-    "tabDark--selected": colorMode === 'dark',
-    "tabLight--selected": colorMode === 'light'
-}}
-
 
 const hightlightWithLineNumbers = (input, language) =>
   highlight(input, language)
     .split("\n")
     .map((line, i) => `<span class='editorLineNumber'>${i + 1}</span>${line}`)
     .join("\n");
+
+interface CodeEditorProps {
+    codeFiles: CodeFile[]
+}
 
 const CodeEditor = () => {
 
@@ -127,6 +84,7 @@ const CodeEditor = () => {
             }
             return updated
         })
+        setCurrentFile(idx)
     }
 
     const createNewFile = () => {
@@ -156,13 +114,14 @@ const CodeEditor = () => {
 
     return (
         <chakra.div maxHeight="100%" display="flex">
-            <SplitPane primary="second" maxSize={32} allowResize={false} resizerStyle={{cursor: 'default', backgroundColor:"white"}}>
+            <SplitPane primary="second" maxSize={32} allowResize={false} resizerStyle={{cursor: 'default', backgroundColor:(useColorModeValue("white", 'gray.800'))}}>
                 <Tabs id="tabContainer" selectedTabClassName={
                                 colorMode==="light" ? "tabLight--selected" : "tabDark--selected"
                             }
                         onSelect={(idx) => setCurrentFile(idx)}>
-                    <TabList className={tabListClass(colorMode)}>
-                        {codeFiles.map((codefile, idx) => (
+                    <TabList className={tabListClass(colorMode)} onScroll={()=>console.log('scrolled')}>
+                        {
+                        codeFiles.map((codefile, idx) => 
                             <Tab className={tabClass(colorMode)} key={idx}>
                                 <Input 
                                     onDoubleClickCapture={() => onTabDoubleClick(idx)}
@@ -187,17 +146,17 @@ const CodeEditor = () => {
                                     }}
                                 />
                             </Tab>
-                        ))}
+                        )}
                     </TabList>
                     {
                     codeFiles.map((codefile, idx) => 
-                        (<chakra.div overflowY="auto" maxHeight="100%">
+                        (<chakra.div overflowY="auto" maxHeight="100%" key={idx}>
                             <TabPanel>
                                 <Editor
                                     className="editor"
                                     textareaId="codeArea"
                                     value={codefile.file}
-                                    onValueChange={(code) => onEditorCodeChange(idx, code, codefile.filename)}
+                                    onValueChange={code => onEditorCodeChange(idx, code, codefile.filename)}
                                     highlight={code => hightlightWithLineNumbers(code, languages.rust)}
                                     padding={10}
                                     style={{
@@ -211,16 +170,12 @@ const CodeEditor = () => {
                         </chakra.div>))
                     }
                 </Tabs>
-                <chakra.div height="100%" backgroundColor={useColorModeValue('gray.150', 'gray.850')}>
-                    <Flex direction="column">
-                        <SidebarButton icon={<BsFileEarmarkPlus/>} purpose="New file" onClick={createNewFile}/>
-                        <SidebarButton icon={<BsFileEarmarkX/>} purpose="Delete file" onClick={() => deleteFile(currentFile)}/>
-                        <SidebarButton icon={<BsFileEarmarkArrowUp/>} purpose="Upload file" onClick={createNewFile}/>
-                        <SidebarButton icon={<BsFileEarmarkArrowDown/>} purpose="Download file" onClick={createNewFile}/>
-                        <Divider mt={1} mb={1} color={useColorModeValue('gray.100', 'gray.850')}/>
-                        <SidebarButton icon={<BsFileCheck/>} purpose="New file" onClick={createNewFile}/>
-                    </Flex>   
-                </chakra.div>
+                <Sidebar 
+                    onCreateNewFile={createNewFile}
+                    onDeleteFile={deleteFile}
+                    codeFiles={codeFiles}
+                    currentFile={currentFile}
+                />
             </SplitPane>
             
         </chakra.div>
