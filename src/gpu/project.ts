@@ -1,8 +1,6 @@
 import {ParamDesc, ParamType} from './params'
 import GPU from './gpu'
 
-import basicShader from '../../shaders/basicShader.wgsl'
-
 interface ProjcetSerializable {
 
 }
@@ -15,6 +13,7 @@ class Project {
   dt: number = 0
   frameNum: number = 0
   runDuration: number = 0
+  prevDuration: number = 0
   running: boolean = false
 
   // project state
@@ -30,6 +29,8 @@ class Project {
 
   pipeline!: GPURenderPipeline
   pipelineLayout!: GPUPipelineLayout
+
+  shaderSrc: string = ""
 
   //render: (() => void) = () => {}
   
@@ -54,6 +55,14 @@ class Project {
 
     let status = GPU.attachCanvas(canvasId)
     this.status = status
+
+    GPU.device.onuncapturederror = (ev: GPUUncapturedErrorEvent) => {
+      let message:string = ev.error.message
+      if (message.startsWith('Tint WGSL reader failure')) {
+        console.log(ev)
+      }
+      
+    }
   }
 
   // starts project
@@ -70,6 +79,7 @@ class Project {
     }
       
 
+
     this.lastStartTime = performance.now()
 
     this.running = true
@@ -85,7 +95,7 @@ class Project {
     let now = performance.now()
     this.dt = now - this.lastFrameRendered
     this.lastFrameRendered = now
-    this.runDuration = (now - this.lastStartTime) / 1000
+    this.runDuration = (now - this.lastStartTime) / 1000 + this.prevDuration
     ++this.frameNum
 
     window.requestAnimationFrame(this.renderInternal)
@@ -97,6 +107,7 @@ class Project {
       return
     this.status = 'Paused'
     this.running = false
+    this.prevDuration = this.runDuration
   }
 
   // stops render loop with restarting
@@ -139,7 +150,7 @@ class Project {
 
   compileShaders = () => {
     this.shaderModule = GPU.device.createShaderModule({
-      code: basicShader
+      code: this.shaderSrc
     })
   }
 

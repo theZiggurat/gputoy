@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { 
     chakra, 
     useColorMode,
@@ -9,22 +9,13 @@ import {
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import Editor from 'react-simple-code-editor'
 import SplitPane from 'react-split-pane'
-import Sidebar from './sidebar';
 
 import "prismjs";
 import { highlight, languages } from "prismjs/components/prism-core";
 import "prismjs/components/prism-rust";
 
-import shader from '../../../shaders/basicShader.wgsl'
-
-
-const defaultShader = shader//'fn main() {\n\n}\n'
-
-interface CodeFile {
-    filename: string,
-    file: string,
-}
-export type CodeFiles = CodeFile[]
+import { CodeFiles } from '../../../pages/create';
+import Sidebar from './sidebar';
 
 const tabListClass = (colorMode: string) => { return {
     "tabList": true,
@@ -44,73 +35,23 @@ const hightlightWithLineNumbers = (input, language) =>
     .map((line, i) => `<span class='editorLineNumber'>${i + 1}</span>${line}`)
     .join("\n");
 
+
 interface CodeEditorProps {
-    codeFiles: CodeFile[]
+    codeFiles: CodeFiles,
+    editedTab: number,
+    currentFile: number,
+    onEditorCodeChange: (idx: number, code: string, filename: string) => void,
+    createNewFile: () => void,
+    deleteFile: (idx: number) => void,
+    onTabDoubleClick: (idx: number) => void
+    onFinishEditingTab: () => void,
+    onTabNameChanged: (ev: React.ChangeEvent<HTMLInputElement>, idx: number) => void,
+    setCurrentFile: React.Dispatch<React.SetStateAction<number>>,
 }
 
-const CodeEditor = () => {
-
-    const [codeFiles, setCodeFiles] = React.useState<CodeFiles>([])
-    const [editedTab, setEditedTab] = React.useState(-1)
-    const [currentFile, setCurrentFile] = React.useState(-1)
+const CodeEditor = (props: CodeEditorProps) => {
 
     const {colorMode, toggleColorMode} = useColorMode()
-    
-
-    useEffect(() => {
-        let filenames = window.localStorage.getItem("files");
-        if (filenames != null) {
-            let codefiles: CodeFiles = [];
-            filenames.split(',').forEach((filename, idx)=> {
-                let file = window.localStorage.getItem(filename);
-                if (file != null) {
-                    codefiles[idx] = {
-                        filename: filename,
-                        file: file
-                    }
-                }
-            })
-            setCodeFiles(codefiles)
-        }
-    }, [])
-
-    const onEditorCodeChange = (idx: number, code: string, filename: string) => {
-        window.localStorage.setItem(filename, code)
-        setCodeFiles(prevCode => {
-            let updated = [...prevCode]
-            updated[idx] = {
-                filename: filename,
-                file: code
-            }
-            return updated
-        })
-        setCurrentFile(idx)
-    }
-
-    const createNewFile = () => {
-        let idx = 0
-        while (codeFiles.map((c) => c.filename).includes(`shader${idx}.wgsl`)) 
-            ++idx
-        onEditorCodeChange(codeFiles.length, defaultShader, `shader${idx}.wgsl`)
-    }
-
-    const deleteFile = (idx) => {
-        setCodeFiles(prevCode => {
-            let updated = [...prevCode]
-            updated.splice(idx, 1)
-            return updated
-        })
-    }
-
-    const onTabDoubleClick = (idx: number) => setEditedTab(idx)
-    const onFinishedEditingTab = () => setEditedTab(-1)
-    const onTabNameChanged = (ev, idx: number) => {
-        setCodeFiles(prevCode => {
-            let updated = [...prevCode]
-            updated[idx].filename = ev.target.value
-            return updated
-        })
-    }
 
     return (
         <chakra.div maxHeight="100%" display="flex">
@@ -118,17 +59,17 @@ const CodeEditor = () => {
                 <Tabs id="tabContainer" selectedTabClassName={
                                 colorMode==="light" ? "tabLight--selected" : "tabDark--selected"
                             }
-                        onSelect={(idx) => setCurrentFile(idx)}>
+                        onSelect={(idx: number) => props.setCurrentFile(idx)}>
                     <TabList className={tabListClass(colorMode)} onScroll={()=>console.log('scrolled')}>
                         {
-                        codeFiles.map((codefile, idx) => 
+                        props.codeFiles.map((codefile, idx) => 
                             <Tab className={tabClass(colorMode)} key={idx}>
                                 <Input 
-                                    onDoubleClickCapture={() => onTabDoubleClick(idx)}
-                                    onBlurCapture={() => onFinishedEditingTab()}
-                                    onChange={(ev) => onTabNameChanged(ev, idx)}
+                                    onDoubleClickCapture={() => props.onTabDoubleClick(idx)}
+                                    onBlurCapture={() => props.onFinishEditingTab()}
+                                    onChange={(ev) => props.onTabNameChanged(ev, idx)}
                                     userSelect="none"
-                                    readOnly={editedTab !== idx}
+                                    readOnly={props.editedTab !== idx}
                                     maxLength={20}
                                     variant="unstyled"
                                     size="sm" 
@@ -139,8 +80,8 @@ const CodeEditor = () => {
                                     style={{
                                         padding: "5px",
                                         borderColor: "red",
-                                        borderBottom: editedTab == idx ? "0.5px solid": "none",
-                                        cursor: editedTab == idx ? 'text': 'pointer',
+                                        borderBottom: props.editedTab == idx ? "0.5px solid": "none",
+                                        cursor: props.editedTab == idx ? 'text': 'pointer',
                                         textAlign: "center",
                                         width: `${(codefile.filename.length/2)+2}em`
                                     }}
@@ -149,14 +90,14 @@ const CodeEditor = () => {
                         )}
                     </TabList>
                     {
-                    codeFiles.map((codefile, idx) => 
+                    props.codeFiles.map((codefile, idx) => 
                         (<chakra.div overflowY="auto" maxHeight="100%" key={idx}>
                             <TabPanel>
                                 <Editor
                                     className="editor"
                                     textareaId="codeArea"
                                     value={codefile.file}
-                                    onValueChange={code => onEditorCodeChange(idx, code, codefile.filename)}
+                                    onValueChange={code => props.onEditorCodeChange(idx, code, codefile.filename)}
                                     highlight={code => hightlightWithLineNumbers(code, languages.rust)}
                                     padding={10}
                                     style={{
@@ -171,10 +112,10 @@ const CodeEditor = () => {
                     }
                 </Tabs>
                 <Sidebar 
-                    onCreateNewFile={createNewFile}
-                    onDeleteFile={deleteFile}
-                    codeFiles={codeFiles}
-                    currentFile={currentFile}
+                    onCreateNewFile={props.createNewFile}
+                    onDeleteFile={props.deleteFile}
+                    codeFiles={props.codeFiles}
+                    currentFile={props.currentFile}
                 />
             </SplitPane>
             

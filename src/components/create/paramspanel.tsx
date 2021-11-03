@@ -59,10 +59,6 @@ const TableRow = (props: TableRowProps) => {
 
     let paramInput = null;
 
-    const checkAndApplyColor = (color: string) => {
-
-    }
-
     if (props.paramType === 'color') {
         paramInput = 
         <Popover 
