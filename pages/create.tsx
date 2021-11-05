@@ -6,7 +6,7 @@ import Scaffold from '../src/components/scaffold'
 import Canvas from '../src/components/canvas'
 import CodeEditor from '../src/components/create/editor'
 import SplitPane from 'react-split-pane'
-import ParamsPanel from '../src/components/create/paramspanel'
+import MultiPanel from '../src/components/create/multipanel'
 import WorkingProject from '../src/gpu/project'
 
 import basicShader from '../shaders/basicShader.wgsl'
@@ -20,6 +20,7 @@ export type CodeFiles = CodeFile[]
 const Create = () => {
 
     const [ready, setReady] = React.useState(false)
+    const [dirty, setDirty] = React.useState(true)
 
     const [codeFiles, setCodeFiles] = React.useState<CodeFiles>([])
     const [editedTab, setEditedTab] = React.useState(-1)
@@ -53,6 +54,7 @@ const Create = () => {
             return updated
         })
         setCurrentFile(idx)
+        setDirty(true)
     }
 
     const createNewFile = () => {
@@ -98,10 +100,12 @@ const Create = () => {
                     <chakra.div height="100%" width="100%">
                         <Canvas></Canvas>
                     </chakra.div>
-                    <ParamsPanel
+                    <MultiPanel
                         onRequestStart={() => {
-                            WorkingProject.shaderSrc = codeFiles[currentFile].file
-                            WorkingProject.compileShaders()
+                            if (dirty) {
+                                WorkingProject.setShaderSrc(codeFiles[currentFile].file)
+                                setDirty(false)
+                            }
                             WorkingProject.run()
                         }}
                         onRequestPause={WorkingProject.pause}

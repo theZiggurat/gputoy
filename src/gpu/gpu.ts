@@ -1,4 +1,5 @@
 
+import Console from "./console"
 import Status from "./status"
 
 export type GPUInitResult = 'ok' | 'error' | 'incompatible'
@@ -33,7 +34,7 @@ class _GPU {
             if (!this.adapter) return 'error'
         }
 
-        console.log(`GPUTrace -- Device found: ${this.device}`)
+        Console.trace('GPU', 'Device found')
         return 'ok'
     }
 
@@ -42,12 +43,12 @@ class _GPU {
             this.adapter = await navigator.gpu.requestAdapter()
 
             if (!this.adapter) {
-                console.error("GPUError -- Adapter not found")
+                Console.err('GPU', 'Adapter not found')
                 return;
             }
         }
 
-        console.log(`GPUTrace -- Adapter found: ${this.adapter.name}`)
+        Console.trace('GPU', `Adapter found: ${this.adapter.name}`)
         this.device = await this.adapter.requestDevice()
 
         this.device.lost.then((info) => {
@@ -62,14 +63,9 @@ class _GPU {
 
     attachCanvas(canvasID : string): string {
 
-        console.log('trying to attach canvas: ', this)
-        console.log(this.isInitialized())
-
-        if (!this.isInitialized()) {
-            console.log('doing init');
-            console.log('init result: ', (async () => await this.init())())
-            console.log(this)
-        }
+        if (!this.isInitialized()) 
+            (async () => await this.init())()
+        
 
         this.canvas = document.getElementById(canvasID) as HTMLCanvasElement
         if (!this.canvas)
@@ -104,13 +100,7 @@ class _GPU {
 
     resizeRenderTarget() {
 
-    }
-
-    
-
-
-
-    
+    }  
 
 }
 

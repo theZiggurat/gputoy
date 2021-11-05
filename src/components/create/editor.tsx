@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { 
     chakra, 
     useColorMode,
@@ -53,9 +53,11 @@ const CodeEditor = (props: CodeEditorProps) => {
 
     const {colorMode, toggleColorMode} = useColorMode()
 
+    useEffect(() => props.createNewFile(), [])
+
     return (
         <chakra.div maxHeight="100%" display="flex">
-            <SplitPane primary="second" maxSize={32} allowResize={false} resizerStyle={{cursor: 'default', backgroundColor:(useColorModeValue("white", 'gray.800'))}}>
+            <SplitPane primary="second" maxSize={32} allowResize={false} resizerStyle={{cursor: 'default', backgroundColor:(useColorModeValue("white", '#191d28'))}}>
                 <Tabs id="tabContainer" selectedTabClassName={
                                 colorMode==="light" ? "tabLight--selected" : "tabDark--selected"
                             }

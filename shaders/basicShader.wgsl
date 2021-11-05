@@ -16,6 +16,7 @@ fn vs_main(
 [[stage(fragment)]]
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 
-    return vec4<f32>(in.uv, 1.0, 1.0);
+    let sin = (sin(f.time * 3.14) + 1.0) / 2.0;
+    return vec4<f32>(in.uv, sin, 1.0);
 
 }

@@ -1,5 +1,6 @@
 import {ParamDesc, ParamType} from './params'
 import GPU from './gpu'
+import Console from './console'
 
 interface ProjcetSerializable {
 
@@ -16,11 +17,14 @@ class Project {
   prevDuration: number = 0
   running: boolean = false
 
+  canvas!: HTMLCanvasElement
+  mousePos: [number, number] = [0, 0]
+
   // project state
   uniforms: ParamDesc[] = []
-
   status: string = 'Ok'
 
+  // gpu state
   vertexBuffer!: GPUBuffer
   shaderModule!: GPUShaderModule
 
@@ -30,9 +34,35 @@ class Project {
   pipeline!: GPURenderPipeline
   pipelineLayout!: GPUPipelineLayout
 
+
+  defaultDecl = `[[block]]
+  struct DefaultUniformsF {
+      time: f32;
+      dt: f32;
+      mouse: vec2<f32>;
+  };
+  
+  [[block]]
+  struct DefaultUniformsI {
+      resolution: vec2<i32>;
+      frame: i32;
+      mouse: vec2<i32>;
+  };
+  
+  [[group(0), binding(0)]] var<uniform> f : DefaultUniformsF;
+  [[group(0), binding(1)]] var<uniform> i : DefaultUniformsI;`
+
+  defaultBindGroupLayout!: GPUBindGroupLayout
+  defaultBindGroup!: GPUBindGroup
+
+  defaultFBuffer!: GPUBuffer
+  defaultIBuffer!: GPUBuffer
+  
+
   shaderSrc: string = ""
 
-  //render: (() => void) = () => {}
+  // needs update
+  dirty = true
   
   constructor() {
   }
@@ -56,29 +86,26 @@ class Project {
     let status = GPU.attachCanvas(canvasId)
     this.status = status
 
-    GPU.device.onuncapturederror = (ev: GPUUncapturedErrorEvent) => {
-      let message:string = ev.error.message
-      if (message.startsWith('Tint WGSL reader failure')) {
-        console.log(ev)
-      }
-      
-    }
+    this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
+    if(this.canvas) 
+      this.canvas.addEventListener('mousemove', evt => {
+        let rect = this.canvas.getBoundingClientRect()
+        this.mousePos = [
+          evt.clientX - rect.left,
+          evt.clientY - rect.top
+        ]
+      }, false);
+
+    GPU.device.onuncapturederror = this.errorHandler
   }
 
   // starts project
   run = () => {
-    if (!(this.render) || this.running || !GPU.isInitialized()) return
+    if (!(this.render) || this.running || !GPU.isInitialized()) 
+      return
 
-    if (this.frameNum == 0) {
-      console.log('doing stuff')
-      this.mapBuffers()
-      this.compileShaders()
-      this.createBindGroupLayout()
-      this.createPipeline()
-      this.createBindGroups()
-    }
-      
-
+    if (this.dirty) 
+      this.compile()
 
     this.lastStartTime = performance.now()
 
@@ -91,12 +118,14 @@ class Project {
   renderInternal = () => {
     if (!this.running) return
     
-    this.render()
     let now = performance.now()
     this.dt = now - this.lastFrameRendered
     this.lastFrameRendered = now
     this.runDuration = (now - this.lastStartTime) / 1000 + this.prevDuration
     ++this.frameNum
+
+    this.updateDefaultParams()
+    this.render()
 
     window.requestAnimationFrame(this.renderInternal)
   }
@@ -114,10 +143,109 @@ class Project {
   stop = () => {
     if (!GPU.isInitialized())
       return
+    
+    this.dirty = true
     this.status = 'Ok'
     this.running = false
     this.frameNum = 0
     this.runDuration = 0
+  }
+
+  halt = () => {
+    this.stop()
+    this.dt = 0
+    this.status = "Error"
+  }
+
+  compile() {
+    this.createDefaults()
+
+    this.mapBuffers()
+    this.compileShaders()
+    this.createBindGroupLayout()
+    this.createPipeline()
+    this.createBindGroups()
+    this.dirty = false
+  }
+
+  createDefaults = () => {
+    this.defaultBindGroupLayout = GPU.device.createBindGroupLayout({
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.FRAGMENT,
+          buffer: {
+            type: 'uniform'
+          }
+        },
+        {
+          binding: 1,
+          visibility: GPUShaderStage.FRAGMENT,
+          buffer: {
+            type: 'uniform'
+          }
+        },
+      ]
+    })
+
+    this.defaultFBuffer = GPU.device.createBuffer({
+      size: 4 * 4,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
+    this.defaultIBuffer = GPU.device.createBuffer({
+      size: 5 * 4,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
+    this.defaultBindGroup = GPU.device.createBindGroup({
+      layout: this.defaultBindGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: { buffer: this.defaultFBuffer }
+        },
+        {
+          binding: 1,
+          resource: { buffer: this.defaultIBuffer }
+        }
+      ]
+    })
+  }
+
+  updateDefaultParams = () => {
+
+    let rect = this.canvas.getBoundingClientRect()
+
+    let fbuf = new Float32Array([
+      this.runDuration, //time
+      this.dt,          //dt
+      this.mousePos[0], //mousex
+      this.mousePos[1], //mousey
+    ])
+    GPU.device.queue.writeBuffer(
+      this.defaultFBuffer,
+      0,
+      fbuf.buffer,
+      fbuf.byteOffset,
+      fbuf.byteLength
+    )
+
+    let ibuf = new Int32Array([
+      rect.width,       //resX
+      rect.height,      //resY,
+      this.frameNum,    //frame
+      this.mousePos[0], //mousex
+      this.mousePos[1], //mouseY
+    ])
+
+    GPU.device.queue.writeBuffer(
+      this.defaultIBuffer,
+      0,
+      ibuf.buffer,
+      ibuf.byteOffset,
+      ibuf.byteLength
+    )
   }
 
   // called when project run() or values are updated in GUI
@@ -149,6 +277,7 @@ class Project {
   }
 
   compileShaders = () => {
+    //Console.trace("Creating shader", "example.wgsl")
     this.shaderModule = GPU.device.createShaderModule({
       code: this.shaderSrc
     })
@@ -170,9 +299,10 @@ class Project {
       return
 
     this.pipelineLayout = GPU.device.createPipelineLayout({
-      bindGroupLayouts: [this.bindGroupLayout]
+      bindGroupLayouts: [this.defaultBindGroupLayout, this.bindGroupLayout]
     })
 
+    //GPU.device.pushErrorScope('validation')
     this.pipeline = GPU.device.createRenderPipeline({
       layout: this.pipelineLayout,
         vertex: {
@@ -203,6 +333,7 @@ class Project {
           topology: "triangle-list"
         }
     })
+    //GPU.device.popErrorScope().then(error => console.log(error))
     
   }
 
@@ -236,7 +367,8 @@ class Project {
     const rpass = commandEncoder.beginRenderPass(renderPassDesc)
     rpass.setPipeline(this.pipeline)
     rpass.setVertexBuffer(0, this.vertexBuffer)
-    rpass.setBindGroup(0, this.bindGroup)
+    rpass.setBindGroup(0, this.defaultBindGroup)
+    rpass.setBindGroup(1, this.bindGroup)
     rpass.draw(6, 1, 0, 0)
     rpass.endPass()
 
@@ -245,6 +377,36 @@ class Project {
 
   render = () => {
     this.encodeCommands()
+  }
+
+  errorHandler = (ev: GPUUncapturedErrorEvent) => {
+    let message: string = ev.error.message
+
+    // shader error
+    if (message.startsWith('Tint WGSL reader failure')) {
+      
+      let start = message.indexOf(':')+1
+      let body = message.substr(start, message.indexOf('Shader')-start).trim()
+      Console.err("Shader error", body)
+    }
+    else if (message.startsWith('[ShaderModule] is an error.')) {
+      Console.err("Shader module", message)
+    }
+    else {
+      Console.err("Unknown error", message)
+      
+    }
+    this.halt()
+  }
+
+  onStart: () => void = () => {}
+  onPause: () => void = () => {}
+  onStop: () => void = () => {}
+  onHalt: () => void = () => {}
+
+  setShaderSrc = (src: string) => {
+    this.shaderSrc = this.defaultDecl.concat(src)
+    this.dirty = true
   }
 
 }
