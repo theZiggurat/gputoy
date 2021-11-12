@@ -40,6 +40,7 @@ class Project {
       time: f32;
       dt: f32;
       mouse: vec2<f32>;
+      aspect_ratio: f32;
   };
   
   [[block]]
@@ -50,19 +51,44 @@ class Project {
   };
   
   [[group(0), binding(0)]] var<uniform> f : DefaultUniformsF;
-  [[group(0), binding(1)]] var<uniform> i : DefaultUniformsI;`
+  [[group(0), binding(1)]] var<uniform> i : DefaultUniformsI;
+`
+
+  vertexDecl = `struct VertexOutput {
+    [[builtin(position)]] position: vec4<f32>;
+    [[location(1)]] uv: vec2<f32>;
+  };
+
+  [[stage(vertex)]]
+  fn vs_main(
+      [[location(0)]] position: vec2<f32>,
+  ) -> VertexOutput {
+      var out: VertexOutput;
+      out.position = vec4<f32>(position, 0.0, 1.0);
+      out.uv = (position + vec2<f32>(1.0)) / 2.0;
+      return out;
+  }
+`
+
+  uniformDecl = ""
 
   defaultBindGroupLayout!: GPUBindGroupLayout
   defaultBindGroup!: GPUBindGroup
+
+  uniformBindGroupLayout!: GPUBindGroupLayout
+  uniformBindGroup!: GPUBindGroup
+  uniformBuffer!: GPUBuffer
 
   defaultFBuffer!: GPUBuffer
   defaultIBuffer!: GPUBuffer
   
 
+  userSrc:  string = ""
   shaderSrc: string = ""
 
   // needs update
-  dirty = true
+  shaderDirty = true
+  uniformsDirty = true
   
   constructor() {
   }
@@ -104,11 +130,15 @@ class Project {
     if (!(this.render) || this.running || !GPU.isInitialized()) 
       return
 
-    if (this.dirty) 
+    if (this.shaderDirty) 
       this.compile()
+
+    if (this.uniformsDirty)
+      this.mapUniforms()
 
     this.lastStartTime = performance.now()
 
+    Console.log("debug output", this.shaderSrc)
     this.running = true
     this.status = 'Running'
     this.renderInternal()
@@ -124,6 +154,8 @@ class Project {
     this.runDuration = (now - this.lastStartTime) / 1000 + this.prevDuration
     ++this.frameNum
 
+    if (this.uniformsDirty)
+      this.mapUniforms()
     this.updateDefaultParams()
     this.render()
 
@@ -144,7 +176,7 @@ class Project {
     if (!GPU.isInitialized())
       return
     
-    this.dirty = true
+    this.shaderDirty = true
     this.status = 'Ok'
     this.running = false
     this.frameNum = 0
@@ -159,13 +191,12 @@ class Project {
 
   compile() {
     this.createDefaults()
-
     this.mapBuffers()
     this.compileShaders()
-    this.createBindGroupLayout()
+    //this.createBindGroupLayout()
     this.createPipeline()
-    this.createBindGroups()
-    this.dirty = false
+    //this.createBindGroups()
+    this.shaderDirty = false
   }
 
   createDefaults = () => {
@@ -189,7 +220,7 @@ class Project {
     })
 
     this.defaultFBuffer = GPU.device.createBuffer({
-      size: 4 * 4,
+      size: 5 * 4,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
 
@@ -220,8 +251,9 @@ class Project {
     let fbuf = new Float32Array([
       this.runDuration, //time
       this.dt,          //dt
-      this.mousePos[0], //mousex
-      this.mousePos[1], //mousey
+      this.mousePos[0] / rect.width, //mousex
+      1 - this.mousePos[1] / rect.height, //mousey
+      rect.width / rect.height, // aspectRatio
     ])
     GPU.device.queue.writeBuffer(
       this.defaultFBuffer,
@@ -236,7 +268,7 @@ class Project {
       rect.height,      //resY,
       this.frameNum,    //frame
       this.mousePos[0], //mousex
-      this.mousePos[1], //mouseY
+      rect.height - this.mousePos[1], //mouseY
     ])
 
     GPU.device.queue.writeBuffer(
@@ -248,12 +280,49 @@ class Project {
     )
   }
 
-  // called when project run() or values are updated in GUI
-  updateUniforms = (params: ParamDesc[]) => {
+  // ran when descriptors of uniforms are updated
+  // i.e. uniform is added, removed, or changed type
+  setParamDesc = () => {
     if (!GPU.isInitialized())
       return
 
-    this.uniforms.splice(0, this.uniforms.length, ...params)
+    let fUniforms = this.uniforms.filter(desc => desc.paramType == "float")
+    let iUniforms = this.uniforms.filter(desc => desc.paramType == "int")
+    let cUniforms = this.uniforms.filter(desc => desc.paramType == "color")
+
+    if(this.uniforms.length > 0) {
+      let unidecl = []
+      unidecl.push("[[block]] struct Params {")
+      fUniforms.forEach(desc => unidecl.push(`\t${desc.paramName}: f32;`))
+      iUniforms.forEach(desc => unidecl.push(`\t${desc.paramName}: i32;`))
+      cUniforms.forEach(desc => unidecl.push(`\t${desc.paramName}: vec3<f32>;`))
+      unidecl.push("};")
+      unidecl.push("[[group(1), binding(0)]]")
+      unidecl.push("var<uniform> p: Params;\n")
+      this.uniformDecl = unidecl.join("\n")
+      this.uniformBuffer = GPU.device.createBuffer({
+        size: fUniforms.length * 4 + iUniforms.length * 4 + cUniforms.length * 12,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      })
+    } else {
+      this.uniformDecl = ""
+    }
+
+    this.uniformBindGroupLayout = GPU.device.createBindGroupLayout({
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.FRAGMENT,
+          buffer: {
+            type: 'uniform'
+          }
+        }
+      ]
+    })
+    
+    // shader must recompile since uniform descriptor has changed
+    this.setShaderSrc(this.userSrc)
+    this.uniformsDirty = true
   }
 
   // buffer initialization called on run()
@@ -276,30 +345,90 @@ class Project {
     );
   }
 
+  mapUniforms = () => {
+
+    if(this.uniforms.length == 0) return
+
+    let fVals = this.uniforms.filter(desc => desc.paramType == "float").map(desc => parseFloat(desc.param))
+    let iVals = this.uniforms.filter(desc => desc.paramType == "int").map(desc => parseInt(desc.param))
+    let cVals = this.uniforms.filter(desc => desc.paramType == "color").map(desc => {
+      let z = parseInt(desc.param.substr(1), 16)
+      return [(z >> 16 & 0xFF)/255, (z >> 8 & 0xFF)/255, (z >> 0 & 0xFF)/255]
+    }).flat()
+
+    let fBuffer = Float32Array.from(fVals)
+    let iBuffer = Int32Array.from(iVals)
+    let cBuffer = Float32Array.from(cVals)
+
+    this.uniformBuffer = GPU.device.createBuffer({
+      size: fBuffer.byteLength + iBuffer.byteLength + cBuffer.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
+    GPU.device.queue.writeBuffer(
+      this.uniformBuffer,
+      0,
+      fBuffer.buffer,
+      fBuffer.byteOffset,
+      fBuffer.byteLength
+    )
+
+    GPU.device.queue.writeBuffer(
+      this.uniformBuffer,
+      fBuffer.byteLength,
+      iBuffer.buffer,
+      iBuffer.byteOffset,
+      iBuffer.byteLength
+    )
+
+    GPU.device.queue.writeBuffer(
+      this.uniformBuffer,
+      fBuffer.byteLength + iBuffer.byteLength,
+      cBuffer.buffer,
+      cBuffer.byteOffset,
+      cBuffer.byteLength
+    )
+    
+    this.uniformBindGroup = GPU.device.createBindGroup({
+      layout: this.uniformBindGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: { buffer: this.uniformBuffer }
+        }
+      ]
+    })
+
+    this.uniformsDirty = false
+  }
+
   compileShaders = () => {
-    //Console.trace("Creating shader", "example.wgsl")
     this.shaderModule = GPU.device.createShaderModule({
       code: this.shaderSrc
     })
   }
 
-  createBindGroupLayout = () => {
-    if (!GPU.isInitialized())
-      return
+  // createBindGroupLayout = () => {
+  //   if (!GPU.isInitialized())
+  //     return
     
-    this.bindGroupLayout = GPU.device.createBindGroupLayout({
-      entries: [
+  //   this.bindGroupLayout = GPU.device.createBindGroupLayout({
+  //     entries: [
         
-      ]
-    })
-  }
+  //     ]
+  //   })
+  // }
 
   createPipeline = () => {
     if (!GPU.isInitialized())
       return
 
+    let layouts = [this.defaultBindGroupLayout]
+    if(this.uniforms.length > 0)
+      layouts.push(this.uniformBindGroupLayout)
+
     this.pipelineLayout = GPU.device.createPipelineLayout({
-      bindGroupLayouts: [this.defaultBindGroupLayout, this.bindGroupLayout]
+      bindGroupLayouts: layouts
     })
 
     //GPU.device.pushErrorScope('validation')
@@ -337,15 +466,15 @@ class Project {
     
   }
 
-  createBindGroups = () => {
-    if (!GPU.isInitialized())
-      return
+  // createBindGroups = () => {
+  //   if (!GPU.isInitialized())
+  //     return
     
-    this.bindGroup = GPU.device.createBindGroup({
-      layout: this.bindGroupLayout,
-      entries: []
-    })
-  }
+  //   this.bindGroup = GPU.device.createBindGroup({
+  //     layout: this.bindGroupLayout,
+  //     entries: []
+  //   })
+  // }
 
   encodeCommands = () => {
     if (!GPU.isInitialized())
@@ -368,7 +497,8 @@ class Project {
     rpass.setPipeline(this.pipeline)
     rpass.setVertexBuffer(0, this.vertexBuffer)
     rpass.setBindGroup(0, this.defaultBindGroup)
-    rpass.setBindGroup(1, this.bindGroup)
+    if(this.uniforms.length > 0)
+      rpass.setBindGroup(1, this.uniformBindGroup)
     rpass.draw(6, 1, 0, 0)
     rpass.endPass()
 
@@ -405,10 +535,17 @@ class Project {
   onHalt: () => void = () => {}
 
   setShaderSrc = (src: string) => {
-    this.shaderSrc = this.defaultDecl.concat(src)
-    this.dirty = true
+    this.userSrc = src
+    this.shaderSrc = this.defaultDecl.concat(this.vertexDecl).concat(this.uniformDecl).concat(this.userSrc)
+    this.shaderDirty = true
   }
 
+  setParams = (params: ParamDesc[], updateDesc: boolean) => {
+    this.uniforms = params
+    this.uniformsDirty = true
+    if (updateDesc)
+      this.setParamDesc()
+  }
 }
 
 const WorkingProject = new Project()

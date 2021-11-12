@@ -56,13 +56,13 @@ const ConsolePanel = () => {
           </Flex>
         )}
       </Box>
-      <Box 
+      {/* <Box 
         minHeight="70px" 
         backgroundColor={useColorModeValue('gray.150', 'gray.850')}
         flex="0 0 80"
       >
         Test
-      </Box>
+      </Box> */}
     </Flex>
   )
 }

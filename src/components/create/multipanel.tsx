@@ -50,10 +50,10 @@ const StatusBarTab = (props: {name: string, index: number, setIndex: (idx: numbe
 )
 
 interface MultiPanelProps {
-    onRequestStart?: () => void,
-    onRequestPause?: () => void,
-    onRequestStop?: () => void,
-    onParamChange?: (params: ParamDesc[]) => void,
+    onRequestStart: () => void,
+    onRequestPause: () => void,
+    onRequestStop: () => void,
+    onParamChange: (params: ParamDesc[], updateDesc: boolean) => void,
     disabled: boolean
 }
 
@@ -105,7 +105,7 @@ const MultiPanel = (props: MultiPanelProps) => {
         })
     }
 
-    useEffect(() => props.onParamChange(params), [params])
+    useEffect(() => props.onParamChange(params, true), [params])
 
     useEffect(() => {
         const id = setInterval(() => {

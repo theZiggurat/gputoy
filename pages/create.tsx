@@ -110,7 +110,7 @@ const Create = () => {
                         }}
                         onRequestPause={WorkingProject.pause}
                         onRequestStop={WorkingProject.stop}
-                        onParamChange={WorkingProject.updateUniforms}
+                        onParamChange={WorkingProject.setParams}
                         disabled={!ready}
                     />
                 </SplitPane>
