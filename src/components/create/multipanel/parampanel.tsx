@@ -73,7 +73,11 @@ const TableRow = (props: TableRowProps) => {
                     <PopoverArrow/>
                     {/* <PopoverCloseButton /> */}
                     <PopoverBody m={0} p={0}>
-                            <HexColorPicker style={{margin:0}} color={props.param as string} onChange={props.onParamChange}/>
+                            <HexColorPicker 
+                                style={{margin:0}} 
+                                color={props.param as string} 
+                                onChange={props.onParamChange}
+                            />
                     </PopoverBody>
                 </PopoverContent>
             </Portal>
@@ -171,12 +175,14 @@ const ParamPanel = (props: ParamPanelProps) => {
   return (
     <Table variant="simple" overflowY="auto" maxHeight="100%" size={'sm'}>
         <Thead>
-            <Th>Variable name</Th>
-            <Th>Type</Th>
-            <Th>Value</Th>
-            <Th>Min</Th>
-            <Th>Max</Th>
-            <Th></Th>
+            <Tr>
+                <Th>Variable name</Th>
+                <Th>Type</Th>
+                <Th>Value</Th>
+                <Th>Min</Th>
+                <Th>Max</Th>
+                <Th></Th>
+            </Tr>
         </Thead>
         <Tbody>
         {

@@ -1,4 +1,4 @@
-import {ParamDesc, ParamType} from './params'
+import Params, {ParamDesc, ParamType} from './params'
 import GPU from './gpu'
 import Console from './console'
 
@@ -21,7 +21,7 @@ class Project {
   mousePos: [number, number] = [0, 0]
 
   // project state
-  uniforms: ParamDesc[] = []
+  params: Params = new Params()
   status: string = 'Ok'
 
   // gpu state
@@ -76,8 +76,7 @@ class Project {
 
   uniformBindGroupLayout!: GPUBindGroupLayout
   uniformBindGroup!: GPUBindGroup
-  uniformFBuffer!: GPUBuffer
-  uniformIBuffer!: GPUBuffer
+  uniformBuffer!: GPUBuffer
 
   userSrc:  string = ""
   shaderSrc: string = ""
@@ -85,9 +84,6 @@ class Project {
   // needs update
   shaderDirty = true
   uniformsDirty = true
-  
-  constructor() {
-  }
 
   // attaches canvas to current GPU device if there is one
   // if there is no device, it will try to init
@@ -129,12 +125,9 @@ class Project {
     if (this.shaderDirty) 
       this.compile()
 
-    if (this.uniformsDirty)
-      this.mapUniforms()
-
     this.lastStartTime = performance.now()
 
-    Console.log("debug output", this.shaderSrc)
+    //Console.log("debug output", this.shaderSrc)
     this.running = true
     this.status = 'Running'
     this.renderInternal()
@@ -150,8 +143,6 @@ class Project {
     this.runDuration = (now - this.lastStartTime) / 1000 + this.prevDuration
     ++this.frameNum
 
-    if (this.uniformsDirty)
-      this.mapUniforms()
     this.updateDefaultParams()
     this.render()
 
@@ -177,6 +168,11 @@ class Project {
     this.running = false
     this.frameNum = 0
     this.runDuration = 0
+  }
+
+  restart = () => {
+    this.stop()
+    this.run()
   }
 
   halt = () => {
@@ -274,141 +270,20 @@ class Project {
     )
   }
 
-  // ran when descriptors of uniforms are updated
-  // i.e. uniform is added, removed, or changed type
-  setParamDesc = () => {
-    if (!GPU.isInitialized())
-      return
-
-    let fUniforms = this.uniforms.filter(desc => desc.paramType == "float")
-    let iUniforms = this.uniforms.filter(desc => desc.paramType == "int")
-    let cUniforms = this.uniforms.filter(desc => desc.paramType == "color")
-    let binding = 0
-    let entries = []
-
-    let unidecl = []
-
-    // float uniforms
-    if(fUniforms.length > 0 || cUniforms.length > 0) {
-      unidecl.push("[[block]] struct FParams {")
-      cUniforms.forEach(desc => unidecl.push(`\t${desc.paramName}: vec3<f32>;`))
-      fUniforms.forEach(desc => unidecl.push(`\t${desc.paramName}: f32;`))
-      unidecl.push("};")
-      unidecl.push(`[[group(1), binding(${binding})]]`)
-      unidecl.push("var<uniform> f_reserved: FParams;\n")
-      
-      this.uniformFBuffer = GPU.device.createBuffer({
-        size: fUniforms.length * 4 + cUniforms.length * 16,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      })
-      entries.push({
-        binding: binding,
-        visibility: GPUShaderStage.FRAGMENT,
-        buffer: {
-          type: 'uniform'
-        }
-      })
-      binding++
-    } 
-
-    // integer uniforms
-    if (iUniforms.length > 0) {
-
-      unidecl.push("[[block]] struct IParams {")
-      iUniforms.forEach(desc => unidecl.push(`\t${desc.paramName}: i32;`))
-      unidecl.push("};")
-      unidecl.push(`[[group(1), binding(${binding})]]`)
-      unidecl.push("var<uniform> i_reserved: IParams;\n")
-
-      this.uniformIBuffer = GPU.device.createBuffer({
-        size: iUniforms.length * 4,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      })
-
-      entries.push({
-        binding: binding,
-        visibility: GPUShaderStage.FRAGMENT,
-        buffer: {
-          type: 'uniform'
-        }
-      })
+  setParams = (params: ParamDesc[], _updateDesc: boolean) => {
+    let updateDesc = this.params.set(params)
+    if (updateDesc) {
+      [
+        this.uniformDecl, 
+        this.uniformBuffer, 
+        this.uniformBindGroupLayout, 
+        this.uniformBindGroup
+      ] = this.params.generateDesc(GPU.device, 1)
+      this.shaderDirty = true
+      if (this.running)
+        this.restart
     }
-
-    console.log("bind group layouts", entries)
-    console.log(unidecl)
-
-    // complete uniform declarations in shader by joining lines
-    this.uniformDecl = unidecl.join("\n")
-    // create bind groups corresponding to creating declarations
-    this.uniformBindGroupLayout = GPU.device.createBindGroupLayout({entries})
-    
-    // shader must recompile since uniform descriptor has changed
-    this.shaderDirty = true
-    this.uniformsDirty = true
-  }
-
-  mapUniforms = () => {
-
-    let fVals = this.uniforms.filter(desc => desc.paramType == "float").map(desc => parseFloat(desc.param))
-    let iVals = this.uniforms.filter(desc => desc.paramType == "int").map(desc => parseInt(desc.param))
-    let cVals = this.uniforms.filter(desc => desc.paramType == "color").map(desc => {
-      let z = parseInt(desc.param.substr(1), 16)
-      return [(z >> 16 & 0xFF)/255, (z >> 8 & 0xFF)/255, (z >> 0 & 0xFF)/255, 1]
-    }).flat()
-
-    let entries = []
-    let binding = 0
-
-    if (fVals.length > 0 || cVals.length > 0) {
-      let fBuffer = new Float32Array(cVals.concat(fVals))
-      console.log(fBuffer)
-      this.uniformFBuffer = GPU.device.createBuffer({
-        label: "_userUniformF",
-        size: fBuffer.byteLength,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      })
-      GPU.device.queue.writeBuffer(
-        this.uniformFBuffer,
-        0,
-        fBuffer.buffer,
-        fBuffer.byteOffset,
-        fBuffer.byteLength
-      )
-      entries.push({
-        binding: binding,
-        resource: { buffer: this.uniformFBuffer }
-      })
-      binding++
-    }
-
-    if (iVals.length > 0) {
-      let iBuffer = new Int32Array(iVals)
-      this.uniformIBuffer = GPU.device.createBuffer({
-        label: "_userUniformI",
-        size: iBuffer.byteLength,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      })
-      GPU.device.queue.writeBuffer(
-        this.uniformIBuffer,
-        0,
-        iBuffer.buffer,
-        iBuffer.byteOffset,
-        iBuffer.byteLength
-      )
-      entries.push({
-        binding: binding,
-        resource: { buffer: this.uniformIBuffer }
-      })
-    }
-
-    console.log(entries)
-
-    this.uniformBindGroup = GPU.device.createBindGroup({
-      layout: this.uniformBindGroupLayout,
-      entries: entries
-    })
-
-    this.uniformsDirty = false
+    this.params.toBuffer(GPU.device, this.uniformBuffer)
   }
 
   // buffer initialization called on run()
@@ -433,12 +308,12 @@ class Project {
   }
 
   compileShaders = () => {
-    let moddedSrc = this.userSrc
-    this.uniforms.forEach(uni => {
-      moddedSrc = moddedSrc.replaceAll(new RegExp(`(?<![A-Z|a-z])${uni.paramName}(?![A-Z|a-z])`, 'g'), 
-      `${uni.paramType=='int'?'i_reserved':'f_reserved'}.${uni.paramName}`)
-    })
-    this.shaderSrc = this.defaultDecl.concat(this.vertexDecl).concat(this.uniformDecl).concat(moddedSrc)
+    // let moddedSrc = this.userSrc
+    // this.uniforms.forEach(uni => {
+    //   moddedSrc = moddedSrc.replaceAll(new RegExp(`(?<![A-Z|a-z])${uni.paramName}(?![A-Z|a-z])`, 'g'), 
+    //   `${uni.paramType=='int'?'i_reserved':'f_reserved'}.${uni.paramName}`)
+    // })
+    this.shaderSrc = this.defaultDecl.concat(this.vertexDecl).concat(this.uniformDecl).concat(this.userSrc)
     this.shaderModule = GPU.device.createShaderModule({
       code: this.shaderSrc
     })
@@ -449,7 +324,7 @@ class Project {
       return
 
     let layouts = [this.defaultBindGroupLayout]
-    if(this.uniforms.length > 0)
+    if(!this.params.isEmpty())
       layouts.push(this.uniformBindGroupLayout)
 
     this.pipelineLayout = GPU.device.createPipelineLayout({
@@ -513,7 +388,7 @@ class Project {
     rpass.setPipeline(this.pipeline)
     rpass.setVertexBuffer(0, this.vertexBuffer)
     rpass.setBindGroup(0, this.defaultBindGroup)
-    if(this.uniforms.length > 0)
+    if(!this.params.isEmpty())
       rpass.setBindGroup(1, this.uniformBindGroup)
     rpass.draw(6, 1, 0, 0)
     rpass.endPass()
@@ -553,13 +428,6 @@ class Project {
   setShaderSrc = (src: string) => {
     this.userSrc = src
     this.shaderDirty = true
-  }
-
-  setParams = (params: ParamDesc[], updateDesc: boolean) => {
-    this.uniforms = params
-    this.uniformsDirty = true
-    if (updateDesc)
-      this.setParamDesc()
   }
 }
 
