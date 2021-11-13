@@ -64,6 +64,11 @@ class _Console {
     return this.buffer
   }
 
+  clear = () => {
+    this.buffer = []
+    this.onMessage()
+  }
+
 
 
 }

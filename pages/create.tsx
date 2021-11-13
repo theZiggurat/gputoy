@@ -10,6 +10,7 @@ import MultiPanel from '../src/components/create/multipanel'
 import WorkingProject from '../src/gpu/project'
 
 import basicShader from '../shaders/basicShader.wgsl'
+import Console from '../src/gpu/console'
 
 interface CodeFile {
     filename: string,
@@ -102,6 +103,7 @@ const Create = () => {
                     </chakra.div>
                     <MultiPanel
                         onRequestStart={() => {
+                            Console.clear()
                             if (dirty) {
                                 WorkingProject.setShaderSrc(codeFiles[currentFile].file)
                                 setDirty(false)

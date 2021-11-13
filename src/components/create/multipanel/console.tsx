@@ -50,7 +50,8 @@ const ConsolePanel = () => {
               {message.header}:&nbsp;
             </Box>
             <Divider orientation="vertical"/>
-            <Box p={2} flex="1 1 auto" whiteSpace="pre-wrap" >
+            <Box 
+              p={2} flex="1 1 auto" whiteSpace="pre-wrap"  >
               <Text>{message.body}</Text>
             </Box>
           </Flex>

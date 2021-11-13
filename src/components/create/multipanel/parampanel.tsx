@@ -133,6 +133,8 @@ const TableRow = (props: TableRowProps) => {
                 size="sm"
                 variant="filled"
                 type="number"
+                disabled={props.paramType=='color'}
+                readOnly={props.paramType=='color'}
             />
         </Td>
         <Td w="5%">
@@ -142,6 +144,8 @@ const TableRow = (props: TableRowProps) => {
                 size="sm"
                 variant="filled"
                 type="number"
+                disabled={props.paramType=='color'}
+                readOnly={props.paramType=='color'}
             />
         </Td>
         <Td w='2%'>
