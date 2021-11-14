@@ -27,7 +27,7 @@ import {
   } from "@chakra-ui/react"
 import {FaMinus} from 'react-icons/fa'
 import { HexColorPicker } from "react-colorful";
-import {ParamType, ParamDesc} from '../../gpu/params'
+import {ParamType, ParamDesc, encode, decode} from '../../../gpu/params'
 
 
 interface TableRowProps {
@@ -190,10 +190,10 @@ const ParamPanel = (props: ParamPanelProps) => {
                 <TableRow
                     key={idx}
                     idx={idx}
-                    param={p.param}
+                    param={encode(p.param)}
                     paramType={p.paramType}
                     paramName={p.paramName}
-                    onParamChange={(param: string) => props.setParamAtIndex({...p, param}, idx, false)}
+                    onParamChange={(val: string) => props.setParamAtIndex({...p, param: decode(val, p.paramType)}, idx, false)}
                     onParamNameChange={(paramName: string) => props.setParamAtIndex({...p, paramName}, idx, false)}
                     onParamTypeChange={(paramType: ParamType) => props.setParamAtIndex({...p, paramType}, idx, true)}
                     onParamDelete={props.deleteParam}

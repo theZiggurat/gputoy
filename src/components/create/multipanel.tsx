@@ -72,9 +72,9 @@ const MultiPanel = (props: MultiPanelProps) => {
 
         if (changedType) {
             if (p.paramType === 'color') {
-                p.param = '#FF0000'
+                p.param = [1, 0, 0]
             } else {
-                p.param = '0'
+                p.param = [0]
             }
         }
 
@@ -91,7 +91,7 @@ const MultiPanel = (props: MultiPanelProps) => {
             newParams.push({
                 paramName: `param${newParams.length}`,
                 paramType: 'int',
-                param: '0'
+                param: [0]
             })
             return newParams
         })

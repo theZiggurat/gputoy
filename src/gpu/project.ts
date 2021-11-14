@@ -21,7 +21,9 @@ class Project {
   mousePos: [number, number] = [0, 0]
 
   // project state
-  params: Params = new Params()
+  included: Params = new Params('Included', 'i', true)
+  params: Params = new Params('Params', 'p', false, 1)
+
   status: string = 'Ok'
 
   // gpu state
@@ -30,26 +32,6 @@ class Project {
 
   pipeline!: GPURenderPipeline
   pipelineLayout!: GPUPipelineLayout
-
-
-  defaultDecl = `[[block]]
-  struct DefaultUniformsF {
-      time: f32;
-      dt: f32;
-      mouse: vec2<f32>;
-      aspect_ratio: f32;
-  };
-  
-  [[block]]
-  struct DefaultUniformsI {
-      resolution: vec2<i32>;
-      frame: i32;
-      mouse: vec2<i32>;
-  };
-  
-  [[group(0), binding(0)]] var<uniform> f : DefaultUniformsF;
-  [[group(0), binding(1)]] var<uniform> i : DefaultUniformsI;
-`
 
   vertexDecl = `struct VertexOutput {
     [[builtin(position)]] position: vec4<f32>;
@@ -66,17 +48,6 @@ class Project {
       return out;
   }
 `
-
-  uniformDecl = ""
-
-  defaultBindGroupLayout!: GPUBindGroupLayout
-  defaultBindGroup!: GPUBindGroup
-  defaultFBuffer!: GPUBuffer
-  defaultIBuffer!: GPUBuffer
-
-  uniformBindGroupLayout!: GPUBindGroupLayout
-  uniformBindGroup!: GPUBindGroup
-  uniformBuffer!: GPUBuffer
 
   userSrc:  string = ""
   shaderSrc: string = ""
@@ -122,6 +93,7 @@ class Project {
     if (!(this.render) || this.running || !GPU.isInitialized()) 
       return
 
+    this.updateDefaultParams()
     if (this.shaderDirty) 
       this.compile()
 
@@ -182,108 +154,35 @@ class Project {
   }
 
   compile() {
-    this.createDefaults()
     this.mapBuffers()
     this.compileShaders()
     this.createPipeline()
     this.shaderDirty = false
   }
 
-  createDefaults = () => {
-    this.defaultBindGroupLayout = GPU.device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.FRAGMENT,
-          buffer: {
-            type: 'uniform'
-          }
-        },
-        {
-          binding: 1,
-          visibility: GPUShaderStage.FRAGMENT,
-          buffer: {
-            type: 'uniform'
-          }
-        },
-      ]
-    })
-
-    this.defaultFBuffer = GPU.device.createBuffer({
-      size: 5 * 4,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    })
-
-    this.defaultIBuffer = GPU.device.createBuffer({
-      size: 5 * 4,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    })
-
-    this.defaultBindGroup = GPU.device.createBindGroup({
-      layout: this.defaultBindGroupLayout,
-      entries: [
-        {
-          binding: 0,
-          resource: { buffer: this.defaultFBuffer }
-        },
-        {
-          binding: 1,
-          resource: { buffer: this.defaultIBuffer }
-        }
-      ]
-    })
-  }
-
   updateDefaultParams = () => {
 
     let rect = this.canvas.getBoundingClientRect()
+    let mouseNorm = [this.mousePos[0] / rect.width, 1 - this.mousePos[1] / rect.height]
 
-    let fbuf = new Float32Array([
-      this.runDuration, //time
-      this.dt,          //dt
-      this.mousePos[0] / rect.width, //mousex
-      1 - this.mousePos[1] / rect.height, //mousey
-      rect.width / rect.height, // aspectRatio
-    ])
-    GPU.device.queue.writeBuffer(
-      this.defaultFBuffer,
-      0,
-      fbuf.buffer,
-      fbuf.byteOffset,
-      fbuf.byteLength
-    )
-
-    let ibuf = new Int32Array([
-      rect.width,       //resX
-      rect.height,      //resY,
-      this.frameNum,    //frame
-      this.mousePos[0], //mousex
-      rect.height - this.mousePos[1], //mouseY
-    ])
-
-    GPU.device.queue.writeBuffer(
-      this.defaultIBuffer,
-      0,
-      ibuf.buffer,
-      ibuf.byteOffset,
-      ibuf.byteLength
-    )
+    this.shaderDirty = this.included.set([
+      {paramName: 'time', paramType: 'float', param: [this.runDuration]},
+      {paramName: 'dt',   paramType: 'float', param: [this.dt]},
+      {paramName: 'mouseNorm', paramType: 'vec2f', param: mouseNorm},
+      {paramName: 'aspectRatio', paramType: 'float', param: [rect.width / rect.height]},
+      {paramName: 'res', paramType: 'vec2i', param: [rect.width, rect.height]},
+      {paramName: 'frame', paramType: 'int', param: [this.frameNum]},
+      {paramName: 'mouse', paramType: 'vec2i', param: [this.mousePos[0], rect.height - this.mousePos[1]]},
+    ], GPU.device)
   }
 
   setParams = (params: ParamDesc[], _updateDesc: boolean) => {
-    let updateDesc = this.params.set(params)
+    let updateDesc = this.params.set(params, GPU.device)
     if (updateDesc) {
-      [
-        this.uniformDecl, 
-        this.uniformBuffer, 
-        this.uniformBindGroupLayout, 
-        this.uniformBindGroup
-      ] = this.params.generateDesc(GPU.device, 1)
       this.shaderDirty = true
       if (this.running)
         this.restart
     }
-    this.params.toBuffer(GPU.device, this.uniformBuffer)
   }
 
   // buffer initialization called on run()
@@ -308,12 +207,10 @@ class Project {
   }
 
   compileShaders = () => {
-    // let moddedSrc = this.userSrc
-    // this.uniforms.forEach(uni => {
-    //   moddedSrc = moddedSrc.replaceAll(new RegExp(`(?<![A-Z|a-z])${uni.paramName}(?![A-Z|a-z])`, 'g'), 
-    //   `${uni.paramType=='int'?'i_reserved':'f_reserved'}.${uni.paramName}`)
-    // })
-    this.shaderSrc = this.defaultDecl.concat(this.vertexDecl).concat(this.uniformDecl).concat(this.userSrc)
+    this.shaderSrc = this.included.getShaderDecl()
+      .concat(this.vertexDecl)
+      .concat(this.params.getShaderDecl())
+      .concat(this.userSrc)
     this.shaderModule = GPU.device.createShaderModule({
       code: this.shaderSrc
     })
@@ -323,9 +220,9 @@ class Project {
     if (!GPU.isInitialized())
       return
 
-    let layouts = [this.defaultBindGroupLayout]
+    let layouts = [this.included.getBindGroupLayout()]
     if(!this.params.isEmpty())
-      layouts.push(this.uniformBindGroupLayout)
+      layouts.push(this.params.getBindGroupLayout())
 
     this.pipelineLayout = GPU.device.createPipelineLayout({
       bindGroupLayouts: layouts
@@ -387,9 +284,9 @@ class Project {
     const rpass = commandEncoder.beginRenderPass(renderPassDesc)
     rpass.setPipeline(this.pipeline)
     rpass.setVertexBuffer(0, this.vertexBuffer)
-    rpass.setBindGroup(0, this.defaultBindGroup)
+    rpass.setBindGroup(0, this.included.getBindGroup())
     if(!this.params.isEmpty())
-      rpass.setBindGroup(1, this.uniformBindGroup)
+      rpass.setBindGroup(1, this.params.getBindGroup())
     rpass.draw(6, 1, 0, 0)
     rpass.endPass()
 
