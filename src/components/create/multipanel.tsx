@@ -10,7 +10,7 @@ import {
     Button,
 } from '@chakra-ui/react'
 
-import {FaPlay, FaStop, FaPause, FaPlus} from 'react-icons/fa'
+import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
 
 import {ParamType, ParamDesc} from '../../gpu/params'
 import WorkingProject from '../../gpu/project'
@@ -81,6 +81,7 @@ const MultiPanel = (props: MultiPanelProps) => {
         setParams(oldParams => {
             let newParams = [...oldParams]
             newParams[idx] = p
+            window.localStorage.setItem('params', JSON.stringify(newParams))
             return newParams
         })
     }
@@ -93,19 +94,24 @@ const MultiPanel = (props: MultiPanelProps) => {
                 paramType: 'int',
                 param: [0]
             })
+            window.localStorage.setItem('params', JSON.stringify(newParams))
             return newParams
         })
+        
     }
 
     const deleteParam = (idx: number) => {
         setParams(oldParams => {
             let newParams = [...oldParams]
             newParams.splice(idx, 1)
+            window.localStorage.setItem('params', JSON.stringify(newParams))
             return newParams
         })
     }
 
-    useEffect(() => props.onParamChange(params, true), [params])
+    useEffect(() => {
+        props.onParamChange(params, true)
+    }, [params])
 
     useEffect(() => {
         const id = setInterval(() => {
@@ -125,6 +131,12 @@ const MultiPanel = (props: MultiPanelProps) => {
         },(100))
         return () => clearInterval(id)
     },[])
+
+    useEffect(() => {
+        let params = window.localStorage.getItem('params')
+        if (params) 
+            setParams(JSON.parse(params))
+    }, [])
 
     const views = [
         <ParamPanel
@@ -146,16 +158,8 @@ const MultiPanel = (props: MultiPanelProps) => {
                         size="sm"
                         aria-label="Play"
                         marginRight={3}
-                        icon={<FaPlay/>} 
-                        onClick={props.onRequestStart}
-                        disabled={props.disabled}
-                        />
-                    <IconButton 
-                        size="sm"
-                        aria-label="Pause"
-                        marginRight={3}
-                        icon={<FaPause/>} 
-                        onClick={props.onRequestPause}
+                        icon={WorkingProject.shaderDirty ? <FaUpload/> : WorkingProject.running ? <FaPause/>:<FaPlay/>} 
+                        onClick={WorkingProject.running ? props.onRequestPause : props.onRequestStart}
                         disabled={props.disabled}
                         />
                     <IconButton 

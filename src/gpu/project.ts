@@ -68,6 +68,7 @@ class Project {
       let status = await GPU.init()
       if (status === 'incompatible') {
         this.status = 'Browser Incompatible'
+        Console.fatal('Error', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
         return
       }
     }
@@ -93,15 +94,21 @@ class Project {
     if (!(this.render) || this.running || !GPU.isInitialized()) 
       return
 
+    Console.clear()
+
     this.updateDefaultParams()
+    if (!this.params.isEmpty() && !this.params.isBuilt())
+      this.params.updateDesc(GPU.device)
+
     if (this.shaderDirty) 
       this.compile()
 
     this.lastStartTime = performance.now()
 
-    //Console.log("debug output", this.shaderSrc)
+    //Console.trace("debug output", this.shaderSrc)
     this.running = true
     this.status = 'Running'
+    Console.trace('Project', 'Running')
     this.renderInternal()
   }
 
@@ -123,6 +130,7 @@ class Project {
 
   // stops render loop without restarting
   pause = () => {
+    Console.trace('Project', 'Pausing')
     if (!GPU.isInitialized())
       return
     this.status = 'Paused'
@@ -132,6 +140,7 @@ class Project {
 
   // stops render loop with restarting
   stop = () => {
+    Console.trace('Project', 'Stopping')
     if (!GPU.isInitialized())
       return
     
@@ -143,17 +152,20 @@ class Project {
   }
 
   restart = () => {
+    console.log('restart')
     this.stop()
     this.run()
   }
 
   halt = () => {
+    console.log('halt')
     this.stop()
     this.dt = 0
     this.status = "Error"
   }
 
   compile() {
+    Console.trace('Project', 'Compiling..')
     this.mapBuffers()
     this.compileShaders()
     this.createPipeline()
@@ -173,7 +185,7 @@ class Project {
       {paramName: 'res', paramType: 'vec2i', param: [rect.width, rect.height]},
       {paramName: 'frame', paramType: 'int', param: [this.frameNum]},
       {paramName: 'mouse', paramType: 'vec2i', param: [this.mousePos[0], rect.height - this.mousePos[1]]},
-    ], GPU.device)
+    ], GPU.device) || this.shaderDirty
   }
 
   setParams = (params: ParamDesc[], _updateDesc: boolean) => {
@@ -181,7 +193,7 @@ class Project {
     if (updateDesc) {
       this.shaderDirty = true
       if (this.running)
-        this.restart
+        this.stop()
     }
   }
 
@@ -230,33 +242,33 @@ class Project {
 
     this.pipeline = GPU.device.createRenderPipeline({
       layout: this.pipelineLayout,
-        vertex: {
-          module: this.shaderModule,
-          entryPoint: "vs_main",
-          buffers: [
-            {
-              arrayStride: 2 * 4,
-              stepMode: "vertex",
-              attributes: [{
-                shaderLocation: 0,
-                offset: 0,
-                format: 'float32x2'
-              }],
-            }
-          ]
-        },
-        fragment: {
-          module: this.shaderModule,
-          entryPoint: "fs_main",
-          targets: [
-            {
-              format: GPU.preferredFormat,
-            }
-          ]
-        },
-        primitive: {
-          topology: "triangle-list"
-        }
+      vertex: {
+        module: this.shaderModule,
+        entryPoint: "vs_main",
+        buffers: [
+          {
+            arrayStride: 2 * 4,
+            stepMode: "vertex",
+            attributes: [{
+              shaderLocation: 0,
+              offset: 0,
+              format: 'float32x2'
+            }],
+          }
+        ]
+      },
+      fragment: {
+        module: this.shaderModule,
+        entryPoint: "main",
+        targets: [
+          {
+            format: GPU.preferredFormat,
+          }
+        ]
+      },
+      primitive: {
+        topology: "triangle-list"
+      }
     })
     
   }
@@ -314,7 +326,8 @@ class Project {
       Console.err("Unknown error", message)
       
     }
-    this.halt()
+    if (this.running)
+      this.halt()
   }
 
   onStart: () => void = () => {}

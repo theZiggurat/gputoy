@@ -1,3 +1,5 @@
+import Console from "./console"
+
 /**
  * TODO: add mat4, vec4f, vec4i, and rgba
  */
@@ -24,7 +26,12 @@ const declInfo = {
 
 export const encode = (val: number[], type: ParamType): string => {
   switch (type) {
-    case 'color': return "#".concat(val.map(d => (d*255).toString(16)).join())
+    case 'color': return "#".concat(val.map(d => {
+      let v = (d*255).toString(16)
+      return v.length == 1 ? '0' + v: v
+    }).join(''))
+    case 'int': return val[0].toString()
+    case 'float': return val[0].toString()
     default: return val.map(toString).join(',')
   }
 }
@@ -53,7 +60,8 @@ class Params {
   private params: ParamDesc[] = []
   private byteOffsets: number[] = []
 
-  private frozen: ConstrainBoolean
+  private frozen: boolean
+  private built: boolean = false
 
   private binding: number
   private group: number
@@ -88,9 +96,12 @@ class Params {
         return match ?  newp.paramType === match.paramType : false
       })
     }
-    //this.params = inparams.sort((a, b) => declInfo[a.paramType].order - declInfo[b.paramType].order)
-    if (needRecompile)
+    this.params = inparams
+    if (needRecompile){
+      this.built = false
       this.updateDesc(device)
+    }
+      
 
     this.uploadToGPU(device)
     return needRecompile
@@ -151,6 +162,8 @@ class Params {
         resource: { buffer: this.buffer }
       }]
     })
+
+    this.built = true
   }
 
 
@@ -182,25 +195,14 @@ class Params {
     )
   }
 
-  isEmpty = (): boolean => {
-    return this.params.length == 0
-  }
+  getBindGroup = (): GPUBindGroup => this.bindGroup
+  getBindGroupLayout = (): GPUBindGroupLayout => this.bindGroupLayout
+  getBuffer = (): GPUBuffer => this.buffer
+  getShaderDecl = (): string => this.shaderDecl
 
-  getBindGroup = (): GPUBindGroup => {
-    return this.bindGroup
-  }
-
-  getBindGroupLayout = (): GPUBindGroupLayout => {
-    return this.bindGroupLayout
-  }
-
-  getBuffer = (): GPUBuffer => {
-    return this.buffer
-  }
-
-  getShaderDecl = (): string => {
-    return this.shaderDecl
-  }
+  isEmpty = (): boolean => this.params.length == 0
+  isBuilt = (): boolean => this.built
+  
 }
 
 export default Params

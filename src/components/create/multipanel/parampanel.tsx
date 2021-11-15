@@ -190,7 +190,7 @@ const ParamPanel = (props: ParamPanelProps) => {
                 <TableRow
                     key={idx}
                     idx={idx}
-                    param={encode(p.param)}
+                    param={encode(p.param, p.paramType)}
                     paramType={p.paramType}
                     paramName={p.paramName}
                     onParamChange={(val: string) => props.setParamAtIndex({...p, param: decode(val, p.paramType)}, idx, false)}

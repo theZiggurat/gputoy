@@ -10,7 +10,6 @@ import MultiPanel from '../src/components/create/multipanel'
 import WorkingProject from '../src/gpu/project'
 
 import basicShader from '../shaders/basicShader.wgsl'
-import Console from '../src/gpu/console'
 
 interface CodeFile {
     filename: string,
@@ -27,25 +26,38 @@ const Create = () => {
     const [editedTab, setEditedTab] = React.useState(-1)
     const [currentFile, setCurrentFile] = React.useState(-1)
 
+    /**
+     * Local storage file loading
+     */
     useEffect(() => {
-        let filenames = window.localStorage.getItem("files");
-        if (filenames != null) {
-            let codefiles: CodeFiles = [];
-            filenames.split(',').forEach((filename, idx)=> {
-                let file = window.localStorage.getItem(filename);
-                if (file != null) {
-                    codefiles[idx] = {
-                        filename: filename,
-                        file: file
-                    }
-                }
-            })
-            setCodeFiles(codefiles)
+        let storedFiles = window.localStorage.getItem('files');
+        if (storedFiles) 
+            setCodeFiles(JSON.parse(storedFiles))
+        else
+            createNewFile()
+    }, [])
+
+    /**
+     * Local storage file saving
+     */
+    useEffect(() => {
+        window.localStorage.setItem('files', JSON.stringify(codeFiles))
+    }, [codeFiles])
+
+    /**
+     * Canvas init
+     */
+    useEffect(() => {
+        const initCanvas = async () => {
+            await WorkingProject.attachCanvas('canvas')
+            let status = WorkingProject.status
+            if (status === 'Ok')
+                setReady(true)
         }
+        initCanvas()
     }, [])
 
     const onEditorCodeChange = (idx: number, code: string, filename: string) => {
-        window.localStorage.setItem(filename, code)
         setCodeFiles(prevCode => {
             let updated = [...prevCode]
             updated[idx] = {
@@ -65,7 +77,7 @@ const Create = () => {
         onEditorCodeChange(codeFiles.length, basicShader, `shader${idx}.wgsl`)
     }
 
-    const deleteFile = (idx) => {
+    const deleteFile = (idx: number) => {
         setCodeFiles(prevCode => {
             let updated = [...prevCode]
             updated.splice(idx, 1)
@@ -83,16 +95,6 @@ const Create = () => {
         })
     }
 
-    useEffect(() => {
-        const initCanvas = async () => {
-            await WorkingProject.attachCanvas('canvas')
-            let status = WorkingProject.status
-            if (status === 'Ok')
-                setReady(true)
-        }
-        initCanvas()
-    }, [])
-
     return (
         <Scaffold>
             <SplitPane split="vertical" minSize='50%' defaultSize='60%' 
@@ -103,7 +105,6 @@ const Create = () => {
                     </chakra.div>
                     <MultiPanel
                         onRequestStart={() => {
-                            Console.clear()
                             if (dirty) {
                                 WorkingProject.setShaderSrc(codeFiles[currentFile].file)
                                 setDirty(false)
