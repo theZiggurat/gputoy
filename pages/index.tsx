@@ -8,6 +8,8 @@ import {
 
 import Scaffold from '../src/components/scaffold';
 
+
+
 const WelcomeDescription = (props: {title: String, bolded: String | null, desc: String}) => (
   <Box bgColor={useColorModeValue("rgba(247, 247, 248, 0.5)", "rgba(26, 32, 44, 0.5)")} 
     rounded="lg" minH="10rem" shadow="md">
