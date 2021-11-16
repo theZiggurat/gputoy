@@ -11,8 +11,6 @@ import '../styles/create.css'
 import '../styles/prism-custom.css'
 import 'react-tabs/style/react-tabs.css';
 
-import init, {test} from '../naga-compiler/pkg/naga_compiler'
-
 //const NagaShader = dynamic(() => import('../naga-compiler/pkg/naga_compiler'))
 
 const theme = extendTheme({
@@ -32,17 +30,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   //   const initGPU = async () =>  setGPUInitResult(await GPU.init())
   //   initGPU()
   // }, [])
-
-  useEffect(() => {
-    init()
-      .then(() => {
-        let result = test()
-        if(result)
-          console.log("result good!", result)
-        else
-          console.log("no good")
-      })
-  }, [])
 
   return (
     <ChakraProvider theme={theme}>
