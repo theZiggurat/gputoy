@@ -12,10 +12,11 @@ import {
 
 import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
 
-import {ParamType, ParamDesc} from '../../gpu/params'
+import { ParamDesc } from '../../gpu/params'
 import WorkingProject from '../../gpu/project'
 import ParamPanel from './multipanel/parampanel'
 import ConsolePanel from './multipanel/console'
+import { ProjectStatus } from '../../../pages/create';
 
 const StatusInfo = (props: {text: string, textColor?: string}) => (
     <Center mr={3} 
@@ -50,104 +51,30 @@ const StatusBarTab = (props: {name: string, index: number, setIndex: (idx: numbe
 )
 
 interface MultiPanelProps {
+    params: ParamDesc[],
     onRequestStart: () => void,
     onRequestPause: () => void,
     onRequestStop: () => void,
     onParamChange: (params: ParamDesc[], updateDesc: boolean) => void,
+    setParamAtIndex: (p: ParamDesc, idx: number, changedType: boolean) => void,
+    addNewParam: () => void,
+    deleteParam: (idx: number) => void
+    projectStatus: ProjectStatus,
     disabled: boolean
 }
 
 const MultiPanel = (props: MultiPanelProps) => {
 
-    const [params, setParams] = React.useState<ParamDesc[]>([])
-    const [projectStatus, setProjectStatus] = React.useState({
-        gpustatus: "",
-        fps: "--",
-        time: "--",
-    })
-
     const [viewIndex, setViewIndex] = React.useState(1)
-
-    const setParamAtIndex = (p: ParamDesc, idx: number, changedType: boolean) => {
-
-        if (changedType) {
-            if (p.paramType === 'color') {
-                p.param = [1, 0, 0]
-            } else {
-                p.param = [0]
-            }
-        }
-
-        setParams(oldParams => {
-            let newParams = [...oldParams]
-            newParams[idx] = p
-            window.localStorage.setItem('params', JSON.stringify(newParams))
-            return newParams
-        })
-    }
-
-    const addNewParam = () => {
-        setParams(oldParams => {
-            let newParams = [...oldParams]
-            newParams.push({
-                paramName: `param${newParams.length}`,
-                paramType: 'int',
-                param: [0]
-            })
-            window.localStorage.setItem('params', JSON.stringify(newParams))
-            return newParams
-        })
-        
-    }
-
-    const deleteParam = (idx: number) => {
-        setParams(oldParams => {
-            let newParams = [...oldParams]
-            newParams.splice(idx, 1)
-            window.localStorage.setItem('params', JSON.stringify(newParams))
-            return newParams
-        })
-    }
-
-    useEffect(() => {
-        props.onParamChange(params, true)
-    }, [params])
-
-    useEffect(() => {
-        const id = setInterval(() => {
-            let fps = '--'
-            if (WorkingProject.dt != 0) {
-                fps = (1 / WorkingProject.dt * 1000).toFixed(2).toString()
-            }
-
-            setProjectStatus(oldStatus => {
-                let newStatus = {
-                    gpustatus: WorkingProject.status,
-                    fps: fps,
-                    time: (WorkingProject.runDuration).toFixed(1).toString()
-                }
-                return newStatus
-            })
-        },(100))
-        return () => clearInterval(id)
-    },[])
-
-    useEffect(() => {
-        let params = window.localStorage.getItem('params')
-        if (params) 
-            setParams(JSON.parse(params))
-    }, [])
 
     const views = [
         <ParamPanel
-            setParamAtIndex={setParamAtIndex}
-            deleteParam={deleteParam}
-            params={params}
+            setParamAtIndex={props.setParamAtIndex}
+            deleteParam={props.deleteParam}
+            params={props.params}
         ></ParamPanel>,
         <ConsolePanel/>
     ]
-
-    
 
     return(
         
@@ -175,7 +102,7 @@ const MultiPanel = (props: MultiPanelProps) => {
                         aria-label="Add"
                         marginRight={3}
                         icon={<FaPlus/>} 
-                        onClick={addNewParam}
+                        onClick={props.addNewParam}
                         disabled={props.disabled}
                         />
                 </Flex>
@@ -185,9 +112,9 @@ const MultiPanel = (props: MultiPanelProps) => {
                 </Flex>
                     
                 <Flex m={3}>
-                    <StatusInfo text={`FPS: ${projectStatus.fps}`}/>
-                    <StatusInfo text={`Duration: ${projectStatus.time}s`}/>
-                    <StatusInfo text={`Status: ${projectStatus.gpustatus}`}/>
+                    <StatusInfo text={`FPS: ${props.projectStatus.fps}`}/>
+                    <StatusInfo text={`Duration: ${props.projectStatus.time}s`}/>
+                    <StatusInfo text={`Status: ${props.projectStatus.gpustatus}`}/>
                 </Flex>
             </Flex>
             <Divider></Divider>

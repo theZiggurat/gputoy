@@ -8,13 +8,21 @@ import CodeEditor from '../src/components/create/editor'
 import SplitPane from 'react-split-pane'
 import MultiPanel from '../src/components/create/multipanel'
 import WorkingProject from '../src/gpu/project'
+import {ParamType, ParamDesc} from '../src/gpu/params'
 
 import basicShader from '../shaders/basicShader.wgsl'
 
-interface CodeFile {
+export interface CodeFile {
     filename: string,
     file: string,
 }
+
+export interface ProjectStatus {
+    gpustatus: string,
+    fps: string,
+    time: string,
+}
+
 export type CodeFiles = CodeFile[]
 
 const Create = () => {
@@ -26,10 +34,68 @@ const Create = () => {
     const [editedTab, setEditedTab] = React.useState(-1)
     const [currentFile, setCurrentFile] = React.useState(-1)
 
+    const [params, setParams] = React.useState<ParamDesc[]>([])
+    const [projectStatus, setProjectStatus] = React.useState<ProjectStatus>({
+        gpustatus: "",
+        fps: "--",
+        time: "--",
+    })
+
     /**
-     * Local storage file loading
+     * Canvas init
      */
     useEffect(() => {
+        const initCanvas = async () => {
+            await WorkingProject.attachCanvas('canvas')
+            let status = WorkingProject.status
+            if (status === 'Ok')
+                setReady(true)
+        }
+        initCanvas()
+    }, [])
+
+    /**
+     * On param state change
+     */
+    useEffect(() => {
+        WorkingProject.setParams(params, true)
+    }, [params])
+
+    /**
+     * Status panel periodic update
+     */
+    useEffect(() => {
+        const id = setInterval(() => {
+            let fps = '--'
+            if (WorkingProject.dt != 0) {
+                fps = (1 / WorkingProject.dt * 1000).toFixed(2).toString()
+            }
+
+            setProjectStatus(oldStatus => {
+                let newStatus = {
+                    gpustatus: WorkingProject.status,
+                    fps: fps,
+                    time: (WorkingProject.runDuration).toFixed(1).toString()
+                }
+                return newStatus
+            })
+        },(100))
+        return () => clearInterval(id)
+    },[])
+
+    /**
+     * Local storage param loading
+     */
+    useEffect(() => {
+        let params = window.localStorage.getItem('params')
+        if (params) 
+            setParams(JSON.parse(params))
+    }, [])
+
+     /**
+     * Local storage file loading
+     */
+      useEffect(() => {
         let storedFiles = window.localStorage.getItem('files');
         if (storedFiles) 
             setCodeFiles(JSON.parse(storedFiles))
@@ -44,18 +110,46 @@ const Create = () => {
         window.localStorage.setItem('files', JSON.stringify(codeFiles))
     }, [codeFiles])
 
-    /**
-     * Canvas init
-     */
-    useEffect(() => {
-        const initCanvas = async () => {
-            await WorkingProject.attachCanvas('canvas')
-            let status = WorkingProject.status
-            if (status === 'Ok')
-                setReady(true)
+    const setParamAtIndex = (p: ParamDesc, idx: number, changedType: boolean) => {
+
+        if (changedType) {
+            if (p.paramType === 'color') {
+                p.param = [1, 0, 0]
+            } else {
+                p.param = [0]
+            }
         }
-        initCanvas()
-    }, [])
+
+        setParams(oldParams => {
+            let newParams = [...oldParams]
+            newParams[idx] = p
+            window.localStorage.setItem('params', JSON.stringify(newParams))
+            return newParams
+        })
+    }
+
+    const addNewParam = () => {
+        setParams(oldParams => {
+            let newParams = [...oldParams]
+            newParams.push({
+                paramName: `param${newParams.length}`,
+                paramType: 'int',
+                param: [0]
+            })
+            window.localStorage.setItem('params', JSON.stringify(newParams))
+            return newParams
+        })
+        
+    }
+
+    const deleteParam = (idx: number) => {
+        setParams(oldParams => {
+            let newParams = [...oldParams]
+            newParams.splice(idx, 1)
+            window.localStorage.setItem('params', JSON.stringify(newParams))
+            return newParams
+        })
+    }
 
     const onEditorCodeChange = (idx: number, code: string, filename: string) => {
         setCodeFiles(prevCode => {
@@ -114,6 +208,11 @@ const Create = () => {
                         onRequestPause={WorkingProject.pause}
                         onRequestStop={WorkingProject.stop}
                         onParamChange={WorkingProject.setParams}
+                        params={params}
+                        setParamAtIndex={setParamAtIndex}
+                        addNewParam={addNewParam}
+                        deleteParam={deleteParam}
+                        projectStatus={projectStatus}
                         disabled={!ready}
                     />
                 </SplitPane>
