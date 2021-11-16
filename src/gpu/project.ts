@@ -115,7 +115,7 @@ class Project {
   // runs external render and does record-keeping
   renderInternal = () => {
     if (!this.running) return
-    
+
     let now = performance.now()
     this.dt = now - this.lastFrameRendered
     this.lastFrameRendered = now
@@ -124,7 +124,7 @@ class Project {
 
     this.updateDefaultParams()
     this.render()
-
+    
     window.requestAnimationFrame(this.renderInternal)
   }
 
@@ -289,8 +289,6 @@ class Project {
           storeOp: 'store'
       }],
     }
-
-    //Console.log("Shader", this.shaderSrc)
 
     const commandEncoder = GPU.device.createCommandEncoder()
     const rpass = commandEncoder.beginRenderPass(renderPassDesc)

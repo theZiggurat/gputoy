@@ -138,6 +138,8 @@ class Params {
       this.sizeByte = roundUp(align, this.byteOffsets[this.params.length - 1] + declInfo[lastMemberType].size)
     }
 
+    Console.log('param buffer size', `${this.sizeByte} bytes`)
+
     this.shaderDecl = unidecl.join("\n")
     this.buffer = device.createBuffer({
       label: `${this.name}Buffer`,
