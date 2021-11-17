@@ -1,16 +1,24 @@
 import React, { useEffect } from 'react'
 import { 
     chakra, 
+    Box,
+    Button,
 } from '@chakra-ui/react'
+
 import Scaffold from '../src/components/scaffold'
-import CanvasPanel from '../src/components/viewpanel'
-import CodeEditor from '../src/components/create/editor'
 import SplitPane from 'react-split-pane'
-import MultiPanel from '../src/components/create/multipanel'
+
+import CanvasPanel from '../src/components/panels/viewPanel'
+import ParamPanel from '../src/components/panels/paramPanel'
+import ConsolePanel from '../src/components/panels/consolePanel'
+import EditorPanel from '../src/components/panels/editorPanel'
+
 import WorkingProject from '../src/gpu/project'
 import {ParamDesc} from '../src/gpu/params'
+import { FaBorderNone } from 'react-icons/fa'
+import { BsFillFileEarmarkCodeFill, BsFillFileSpreadsheetFill, BsTerminalFill } from 'react-icons/bs'
 
-import basicShader from '../shaders/basicShader.wgsl'
+//import basicShader from '../shaders/basicShader.wgsl'
 
 export interface CodeFile {
     filename: string,
@@ -24,6 +32,12 @@ export interface ProjectStatus {
 }
 
 export type CodeFiles = CodeFile[]
+
+export interface PanelDescriptor {
+    index: number
+    name: string,
+    icon: React.ReactElement<any>,
+}
 
 const Create = () => {
 
@@ -40,6 +54,25 @@ const Create = () => {
         fps: "--",
         time: "--",
     })
+
+    const [panelTree, setPanelTree] = React.useState(construct({
+        type: 'vertical',
+        left: {
+            type: 'horizontal',
+            left: {
+                type: 'leaf',
+                index: 0
+            },
+            right: {
+                type: 'leaf',
+                index: 3
+            }
+        },
+        right: {
+            type: 'leaf',
+            index: 2
+        }
+    }))  
 
     /**
      * Canvas init
@@ -65,22 +98,22 @@ const Create = () => {
      * Status panel periodic update
      */
     useEffect(() => {
-        const id = setInterval(() => {
-            let fps = '--'
-            if (WorkingProject.dt != 0) {
-                fps = (1 / WorkingProject.dt * 1000).toFixed(2).toString()
-            }
+        // const id = setInterval(() => {
+        //     let fps = '--'
+        //     if (WorkingProject.dt != 0) {
+        //         fps = (1 / WorkingProject.dt * 1000).toFixed(2).toString()
+        //     }
 
-            setProjectStatus(oldStatus => {
-                let newStatus = {
-                    gpustatus: WorkingProject.status,
-                    fps: fps,
-                    time: (WorkingProject.runDuration).toFixed(1).toString()
-                }
-                return newStatus
-            })
-        },(100))
-        return () => clearInterval(id)
+        //     setProjectStatus(oldStatus => {
+        //         let newStatus = {
+        //             gpustatus: WorkingProject.status,
+        //             fps: fps,
+        //             time: (WorkingProject.runDuration).toFixed(1).toString()
+        //         }
+        //         return newStatus
+        //     })
+        // },(100))
+        // return () => clearInterval(id)
     },[])
 
     /**
@@ -99,8 +132,6 @@ const Create = () => {
         let storedFiles = window.localStorage.getItem('files');
         if (storedFiles) 
             setCodeFiles(JSON.parse(storedFiles))
-        else
-            createNewFile()
     }, [])
 
     /**
@@ -168,7 +199,7 @@ const Create = () => {
         let idx = 0
         while (codeFiles.map((c) => c.filename).includes(`shader${idx}.wgsl`)) 
             ++idx
-        onEditorCodeChange(codeFiles.length, basicShader, `shader${idx}.wgsl`)
+        onEditorCodeChange(codeFiles.length, "", `shader${idx}.wgsl`)
     }
 
     const deleteFile = (idx: number) => {
@@ -189,49 +220,133 @@ const Create = () => {
         })
     }
 
+    const onSplit = (path: string, direction: 'horizontal' | 'vertical') => {
+        console.log("splitting", path, direction)
+    }
+    const onCombine= (path: string) => {
+        console.log('combining', path)
+    }
+
+
+
+    const forceUpdate = () => {
+        setPanelTree(panelTree.clone())
+    }
+
+    
+
+    const panels = [
+        <CanvasPanel
+            onRequestStart={() => {
+                if (dirty) {
+                    WorkingProject.setShaderSrc(codeFiles[currentFile].file)
+                    setDirty(false)
+                }
+                WorkingProject.run()
+            }}
+            onRequestPause={WorkingProject.pause}
+            onRequestStop={WorkingProject.stop}
+            projectStatus={projectStatus}
+            disabled={!ready}
+        />,
+        <ParamPanel
+            onParamChange={WorkingProject.setParams}
+            params={params}
+            setParamAtIndex={setParamAtIndex}
+            addNewParam={addNewParam}
+            deleteParam={deleteParam}
+        />,
+        <EditorPanel 
+            codeFiles={codeFiles}
+            editedTab={editedTab}
+            currentFile={currentFile}
+            onEditorCodeChange={onEditorCodeChange}
+            createNewFile={createNewFile}
+            deleteFile={deleteFile}
+            onTabDoubleClick={onTabDoubleClick}
+            onFinishEditingTab={onFinishedEditingTab}
+            onTabNameChanged={onTabNameChanged}
+            setCurrentFile={setCurrentFile}
+        />,
+        <ConsolePanel/>
+    ]
+
+    const panelDesc: PanelDescriptor[] = [
+        {index: 0, name: 'Viewport', icon: <FaBorderNone/>},
+        {index: 1, name: 'Params', icon: <BsFillFileSpreadsheetFill/>},
+        {index: 2, name: 'Editor', icon: <BsFillFileEarmarkCodeFill/>},
+        {index: 3, name: 'Console', icon: <BsTerminalFill/>}
+    ]
+
+    console.log(panelDesc)
+
     return (
         <Scaffold>
-            <SplitPane split="vertical" minSize='50%' defaultSize='60%' 
-                className="createWindow" maxSize="100%">
-                <SplitPane split="horizontal" defaultSize="60%">
-                    <CanvasPanel
-                        onRequestStart={() => {
-                            if (dirty) {
-                                WorkingProject.setShaderSrc(codeFiles[currentFile].file)
-                                setDirty(false)
-                            }
-                            WorkingProject.run()
-                        }}
-                        onRequestPause={WorkingProject.pause}
-                        onRequestStop={WorkingProject.stop}
-                        projectStatus={projectStatus}
-                        disabled={!ready}
-                    />
-                    <MultiPanel
-                        onParamChange={WorkingProject.setParams}
-                        params={params}
-                        setParamAtIndex={setParamAtIndex}
-                        addNewParam={addNewParam}
-                        deleteParam={deleteParam}
-                    />
-                </SplitPane>
-                    <CodeEditor 
-                        codeFiles={codeFiles}
-                        editedTab={editedTab}
-                        currentFile={currentFile}
-                        onEditorCodeChange={onEditorCodeChange}
-                        createNewFile={createNewFile}
-                        deleteFile={deleteFile}
-                        onTabDoubleClick={onTabDoubleClick}
-                        onFinishEditingTab={onFinishedEditingTab}
-                        onTabNameChanged={onTabNameChanged}
-                        setCurrentFile={setCurrentFile}
-                    />
-            </SplitPane>
+        {
+            panelTree.render(panels, '', 
+                {
+                    onSplit: onSplit,
+                    onCombine: onCombine,
+                    panelDesc: panelDesc,
+                }
+            )
+        }
+            {/* <Button position='absolute' left='500px' top='500px' onClick={onSplit}>
+                Test
+            </Button> */}
         </Scaffold>
     )
 }
 export default Create;
 
+type TreeType = 'vertical' | 'horizontal' | 'leaf'
+const err1 = () => <Box width="100%" height="100%" backgroundColor="orange"/>
+const err2 = () => <Box width="100%" height="100%" backgroundColor="red"/>
+class Tree {
+    type: TreeType
+    index: number
+    left?: Tree
+    right?: Tree
 
+    constructor(type: TreeType, index: number = -1) {
+        this.type = type
+        this.index = index
+    }
+
+    render(panels: JSX.Element[], path: string, props: any): React.ReactElement<any> {
+        if (this.type == 'leaf')
+            return panels.length <= this.index ? <err1/>: 
+                React.cloneElement(
+                    panels[this.index], 
+                    {...props, path: path, panelIndex: this.index}
+                )
+        else if (this.left && this.right)
+            return React.createElement(
+                SplitPane,
+                {
+                    split: this.type, 
+                    defaultSize: "60%", 
+                    style: path=='' ? {
+                        flex: '1 1 auto',
+                        position: 'relative'
+                    } : {}
+                },
+                [this.left.render(panels, path.concat('l'), props), this.right.render(panels, path.concat('r'), props)]
+            )
+        else 
+            return <err2/>
+    }
+
+    clone(): Tree {
+        return Object.assign(Object.create(Object.getPrototypeOf(this)), this)
+    }
+}
+
+const construct = (obj: any): Tree => {
+    let ret
+    ret = new Tree(obj['type'], obj['index'])
+    ret.left = 'left' in obj ? construct(obj['left']) : undefined
+    ret.right = 'right' in obj ? construct(obj['right']) : undefined
+    return ret
+}
 

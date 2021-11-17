@@ -19,8 +19,7 @@ import {
 import {FaBorderNone, FaTerminal} from 'react-icons/fa'
 import {BsTerminalFill, BsFillFileSpreadsheetFill} from 'react-icons/bs'
 import {RiSplitCellsHorizontal, RiSplitCellsVertical, RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
-import _ from 'lodash'
-
+import {PanelDescriptor} from '../../../pages/create'
 
 interface PanelContentProps {
   children: ReactNode
@@ -53,7 +52,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
     justifyContent="left"
     iconSpacing="4"
   >
-    <Text fontSize="sm" fontWeight="thin">{props.title}</Text>
+    <Text fontSize="xs" fontWeight="thin">{props.title}</Text>
   </Button>
 
 }
@@ -78,6 +77,11 @@ interface PanelBarProps {
   children: ReactNode,
   location?: BarLocation,
   onChangeLocation?: () => void,
+  path: string,
+  onSplit: (path: string, dir: 'vertical' | 'horizontal') => void,
+  onCombine: (path: string) => void,
+  panelIndex: number,
+  panelDesc: PanelDescriptor[],
 }
 export class PanelBar extends React.Component<PanelBarProps, {}> {
 
@@ -104,9 +108,9 @@ export class PanelBar extends React.Component<PanelBarProps, {}> {
           <IconButton
             aria-label="Swap bar position"
             size="sm"
-            icon={location == 'top' ? <RiArrowDropDownLine/>: <RiArrowDropUpLine/>}
+            icon={location == 'top' ? <RiArrowDropDownLine size={20}/>: <RiArrowDropUpLine size={20}/>}
             onClick={onChangeLocation}
-            borderStartRadius="100%"
+            borderStartRadius="25%"
             borderEndRadius="0%"
             borderRight="1px"
             borderColor="blackAlpha.300"
@@ -115,6 +119,7 @@ export class PanelBar extends React.Component<PanelBarProps, {}> {
             computePositionOnMount 
             placement='top-end'
             gutter={15}
+            preventOverflow
             // onOpen={onOpen}
             // onClose={onClose}
             // isOpen={isOpen}
@@ -122,7 +127,7 @@ export class PanelBar extends React.Component<PanelBarProps, {}> {
             <PopoverTrigger>
               <IconButton 
                 size="sm"
-                icon={<FaBorderNone/>} 
+                icon={this.props.panelDesc[this.props.panelIndex].icon} 
                 variant="solid"  
                 aria-label="Choose panel"
                 title="Choose panel"
@@ -139,9 +144,13 @@ export class PanelBar extends React.Component<PanelBarProps, {}> {
               >
                 <PopoverArrow backgroundColor="gray.900"/>
                 <Stack>
-                  <PanelSelectorButton icon={<FaBorderNone/>} title="Viewport"/>
-                  <PanelSelectorButton icon={<BsTerminalFill/>} title="Console"/>
-                  <PanelSelectorButton icon={<BsFillFileSpreadsheetFill/>} title="Params"/>
+                  {
+                    this.props.panelDesc.map(desc => 
+                    <PanelSelectorButton 
+                      icon={desc.icon} 
+                      title={desc.name}
+                    />)
+                  }                  
                 </Stack>
               </PopoverContent>
             </Portal>
@@ -153,6 +162,7 @@ export class PanelBar extends React.Component<PanelBarProps, {}> {
             aria-label="Split panel horizontally"
             title="Split panel horizontally"
             borderRadius="0%"
+            onClick={() => this.props.onSplit(this.props.path, 'horizontal')}
             />
           <IconButton 
             size="sm"
@@ -160,10 +170,11 @@ export class PanelBar extends React.Component<PanelBarProps, {}> {
             variant="solid"  
             aria-label="Split panel vertically"
             title="Split panel vertically"
-            borderEndRadius="100%"
+            borderEndRadius="25%"
             borderStartRadius="0%"
             borderLeft="1px"
             borderColor="blackAlpha.300"
+            onClick={() => this.props.onSplit(this.props.path, 'vertical')}
           />
       </Flex>
         {children}
@@ -178,7 +189,11 @@ type BarLocation = 'top' | 'bottom'
 
 interface PanelProps {
   children: ReactElement[],
-  panelIcon?: ReactElement<any>
+  path: string,
+  panelIndex: number,
+  panelDesc: PanelDescriptor[],
+  onSplit: (path: string, dir: 'vertical' | 'horizontal') => void,
+  onCombine: (path: string) => void,
 }
 interface PanelState {
   barLocation: BarLocation
@@ -191,6 +206,7 @@ export default class Panel extends React.Component<PanelProps, PanelState> {
     this.state = {
       barLocation: 'bottom'
     }
+    console.log(this.props)
   }
 
   onChangeLocation = () => {
@@ -200,7 +216,7 @@ export default class Panel extends React.Component<PanelProps, PanelState> {
   }
 
   render() {
-    const {children, panelIcon, ...paneProps} = this.props
+    const {children, ...paneProps} = this.props 
     
     return (
       <Flex 
@@ -211,12 +227,16 @@ export default class Panel extends React.Component<PanelProps, PanelState> {
         {...paneProps}
       >
         {React.Children.map(this.props.children, (elem: ReactElement<any>) => {
-          console.log(elem)
-          if (elem.type.name == 'PanelBar'){
-            console.log('found')
-            return React.cloneElement(elem, {location: this.state.barLocation, onChangeLocation: this.onChangeLocation})
-          }
-            
+          if (elem.type.name == 'PanelBar')
+            return React.cloneElement(elem, {
+              location: this.state.barLocation, 
+              onChangeLocation: this.onChangeLocation,
+              path: this.props.path,
+              onSplit: this.props.onSplit,
+              onCombine: this.props.onCombine,
+              panelDesc: this.props.panelDesc,
+              panelIndex: this.props.panelIndex,
+            })
           else
             return elem
         })}

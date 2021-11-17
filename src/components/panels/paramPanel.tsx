@@ -28,7 +28,7 @@ import {
 import {FaMinus} from 'react-icons/fa'
 import { HexColorPicker } from "react-colorful";
 import {ParamType, ParamDesc, encode, decode} from '../../gpu/params'
-import Panel, { PanelBar, PanelContent } from '../panel';
+import Panel, { PanelBar, PanelContent } from './panel';
 
 
 interface TableRowProps {
@@ -174,7 +174,7 @@ interface ParamPanelProps {
 
 const ParamPanel = (props: ParamPanelProps) => {
   return (
-    <Panel>
+    <Panel {...props}>
         <PanelContent>
         <Table variant="simple" overflowY="auto" maxHeight="100%" size={'sm'}>
             <Thead>

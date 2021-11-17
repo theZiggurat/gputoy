@@ -20,7 +20,7 @@ import {FaRegClipboard, FaRegTrashAlt, FaSearch} from 'react-icons/fa'
 import {CloseIcon} from '@chakra-ui/icons'
 import Console, {Message, MessageType} from '../../gpu/console'
 
-import Panel, { PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd } from '../panel';
+import Panel, { PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd } from './panel';
 
 const colors = [
   "green",
@@ -60,7 +60,7 @@ const LogLevelCheckboxes = (props: {filters: boolean[], toggle: (idx: number, va
   </>
 )
 
-const ConsolePanel = () => {
+const ConsolePanel = (props: any) => {
 
   const [text, setText] = React.useState(Console.getBuffer())
 
@@ -117,7 +117,7 @@ const ConsolePanel = () => {
   }
 
   return(
-    <Panel>
+    <Panel {...props}>
       <PanelContent 
         fontFamily='"Fira code", "Fira Mono", monospace' 
         fontSize="sm" 

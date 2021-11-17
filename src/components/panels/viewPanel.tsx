@@ -9,8 +9,8 @@ import {
 } from '@chakra-ui/react';
 import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
 
-import WorkingProject from '../gpu/project';
-import { ProjectStatus } from '../../pages/create';
+import WorkingProject from '../../gpu/project';
+import { ProjectStatus } from '../../../pages/create';
 import Panel, {PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd} from './panel'
 
 
@@ -39,7 +39,7 @@ const StatusInfo = (props: {text: string, textColor?: string}) => (
 export default function CanvasPanel(props: CanvasProps) {
 
     return (
-        <Panel>
+        <Panel {...props}>
             <PanelContent backgroundColor="black">
                 <canvas id='canvas' style={{width: '100%', height:'100%'}}/>
             </PanelContent>
