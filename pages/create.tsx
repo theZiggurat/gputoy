@@ -3,12 +3,12 @@ import {
     chakra, 
 } from '@chakra-ui/react'
 import Scaffold from '../src/components/scaffold'
-import Canvas from '../src/components/canvas'
+import CanvasPanel from '../src/components/viewpanel'
 import CodeEditor from '../src/components/create/editor'
 import SplitPane from 'react-split-pane'
 import MultiPanel from '../src/components/create/multipanel'
 import WorkingProject from '../src/gpu/project'
-import {ParamType, ParamDesc} from '../src/gpu/params'
+import {ParamDesc} from '../src/gpu/params'
 
 import basicShader from '../shaders/basicShader.wgsl'
 
@@ -194,7 +194,7 @@ const Create = () => {
             <SplitPane split="vertical" minSize='50%' defaultSize='60%' 
                 className="createWindow" maxSize="100%">
                 <SplitPane split="horizontal" defaultSize="60%">
-                    <Canvas
+                    <CanvasPanel
                         onRequestStart={() => {
                             if (dirty) {
                                 WorkingProject.setShaderSrc(codeFiles[currentFile].file)

@@ -20,7 +20,7 @@ import {FaRegClipboard, FaRegTrashAlt, FaSearch} from 'react-icons/fa'
 import {CloseIcon} from '@chakra-ui/icons'
 import Console, {Message, MessageType} from '../../gpu/console'
 
-import Panel, { PanelContent, PanelBar } from '../panel';
+import Panel, { PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd } from '../panel';
 
 const colors = [
   "green",
@@ -145,12 +145,13 @@ const ConsolePanel = () => {
       </PanelContent>
       <PanelBar>
         {/* search & type filters */}
-        <Flex dir="row" flex="1 0 auto" justifyContent="center">
-          <InputGroup ml={2} size="sm" variant="filled" maxWidth="500" minWidth="100">
+        <PanelBarMiddle>
+          <InputGroup ml={2} size="sm" variant="filled" maxWidth="500" minWidth="100" >
             <InputLeftElement
               children={<FaSearch/>}
             />
             <Input
+              borderRadius="lg"
               value={keywordFilter}
               onChange={ev => setKeywordFilter(ev.target.value)}
             />
@@ -163,10 +164,10 @@ const ConsolePanel = () => {
             }
           </InputGroup>
           <LogLevelCheckboxes filters={typeFilters} toggle={toggle}/>
-        </Flex>
+        </PanelBarMiddle>
 
         {/* utility buttons */}
-        <Flex dir="row" flex="0 1 auto" justifyContent="center">
+        <PanelBarEnd>
           <Checkbox mr={4} size="sm"
             isChecked={autoscroll}
             onChange={e => setAutoscroll(e.target.checked)}
@@ -187,7 +188,7 @@ const ConsolePanel = () => {
           >
             Clear
           </Button>
-        </Flex>
+        </PanelBarEnd>
       </PanelBar>
     </Panel>
   )
