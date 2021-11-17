@@ -43,13 +43,10 @@ interface CodeEditorProps {
     onEditorCodeChange: (idx: number, code: string, filename: string) => void,
     createNewFile: () => void,
     deleteFile: (idx: number) => void,
-    onTabDoubleClick: (idx: number) => void
-    onFinishEditingTab: () => void,
-    onTabNameChanged: (ev: React.ChangeEvent<HTMLInputElement>, idx: number) => void,
     setCurrentFile: React.Dispatch<React.SetStateAction<number>>,
 }
 
-const EditorPanel = (props: CodeEditorProps) => {
+const EditorPanel: React.FC<CodeEditorProps> = (props: CodeEditorProps) => {
 
     const {colorMode, toggleColorMode} = useColorMode()
 
@@ -143,9 +140,7 @@ const EditorPanel = (props: CodeEditorProps) => {
                     </Button>
                 </PanelBarEnd>
             </PanelBar>
-        </Panel>
-        
-                            
+        </Panel>                
     )
 }
 

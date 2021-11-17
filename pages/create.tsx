@@ -8,7 +8,7 @@ import {
 import Scaffold from '../src/components/scaffold'
 import SplitPane from 'react-split-pane'
 
-import CanvasPanel from '../src/components/panels/viewPanel'
+import ViewportPanel from '../src/components/panels/viewPanel'
 import ParamPanel from '../src/components/panels/paramPanel'
 import ConsolePanel from '../src/components/panels/consolePanel'
 import EditorPanel from '../src/components/panels/editorPanel'
@@ -17,6 +17,7 @@ import WorkingProject from '../src/gpu/project'
 import {ParamDesc} from '../src/gpu/params'
 import { FaBorderNone } from 'react-icons/fa'
 import { BsFillFileEarmarkCodeFill, BsFillFileSpreadsheetFill, BsTerminalFill } from 'react-icons/bs'
+import usePanels, {PanelDescriptor} from '../src/components/panels/panelHook'
 
 //import basicShader from '../shaders/basicShader.wgsl'
 
@@ -33,11 +34,12 @@ export interface ProjectStatus {
 
 export type CodeFiles = CodeFile[]
 
-export interface PanelDescriptor {
-    index: number
-    name: string,
-    icon: React.ReactElement<any>,
-}
+const panelDesc: PanelDescriptor[] = [
+    {index: 0, name: 'Viewport', icon: <FaBorderNone/>, component: ViewportPanel},
+    {index: 1, name: 'Params', icon: <BsFillFileSpreadsheetFill/>, component: ParamPanel},
+    {index: 2, name: 'Editor', icon: <BsFillFileEarmarkCodeFill/>, component: EditorPanel},
+    {index: 3, name: 'Console', icon: <BsTerminalFill/>, component: ConsolePanel}
+]
 
 const Create = () => {
 
@@ -55,7 +57,7 @@ const Create = () => {
         time: "--",
     })
 
-    const [panelTree, setPanelTree] = React.useState(construct({
+    const [panelTree, panelProps] = usePanels(panelDesc, {
         type: 'vertical',
         left: {
             type: 'horizontal',
@@ -72,7 +74,7 @@ const Create = () => {
             type: 'leaf',
             index: 2
         }
-    }))  
+    })
 
     /**
      * Canvas init
@@ -91,7 +93,7 @@ const Create = () => {
      * On param state change
      */
     useEffect(() => {
-        WorkingProject.setParams(params, true)
+        //WorkingProject.setParams(params, true)
     }, [params])
 
     /**
@@ -138,7 +140,7 @@ const Create = () => {
      * Local storage file saving
      */
     useEffect(() => {
-        window.localStorage.setItem('files', JSON.stringify(codeFiles))
+       window.localStorage.setItem('files', JSON.stringify(codeFiles))
     }, [codeFiles])
 
     const setParamAtIndex = (p: ParamDesc, idx: number, changedType: boolean) => {
@@ -210,33 +212,8 @@ const Create = () => {
         })
     }
 
-    const onTabDoubleClick = (idx: number) => setEditedTab(idx)
-    const onFinishedEditingTab = () => setEditedTab(-1)
-    const onTabNameChanged = (ev, idx: number) => {
-        setCodeFiles(prevCode => {
-            let updated = [...prevCode]
-            updated[idx].filename = ev.target.value
-            return updated
-        })
-    }
-
-    const onSplit = (path: string, direction: 'horizontal' | 'vertical') => {
-        console.log("splitting", path, direction)
-    }
-    const onCombine= (path: string) => {
-        console.log('combining', path)
-    }
-
-
-
-    const forceUpdate = () => {
-        setPanelTree(panelTree.clone())
-    }
-
-    
-
     const panels = [
-        <CanvasPanel
+        <ViewportPanel
             onRequestStart={() => {
                 if (dirty) {
                     WorkingProject.setShaderSrc(codeFiles[currentFile].file)
@@ -263,90 +240,19 @@ const Create = () => {
             onEditorCodeChange={onEditorCodeChange}
             createNewFile={createNewFile}
             deleteFile={deleteFile}
-            onTabDoubleClick={onTabDoubleClick}
-            onFinishEditingTab={onFinishedEditingTab}
-            onTabNameChanged={onTabNameChanged}
             setCurrentFile={setCurrentFile}
         />,
         <ConsolePanel/>
     ]
 
-    const panelDesc: PanelDescriptor[] = [
-        {index: 0, name: 'Viewport', icon: <FaBorderNone/>},
-        {index: 1, name: 'Params', icon: <BsFillFileSpreadsheetFill/>},
-        {index: 2, name: 'Editor', icon: <BsFillFileEarmarkCodeFill/>},
-        {index: 3, name: 'Console', icon: <BsTerminalFill/>}
-    ]
-
-    console.log(panelDesc)
-
     return (
         <Scaffold>
         {
-            panelTree.render(panels, '', 
-                {
-                    onSplit: onSplit,
-                    onCombine: onCombine,
-                    panelDesc: panelDesc,
-                }
-            )
+            panelTree.render(panels, '', {...panelProps, panelDesc})
         }
-            {/* <Button position='absolute' left='500px' top='500px' onClick={onSplit}>
-                Test
-            </Button> */}
         </Scaffold>
     )
 }
+
 export default Create;
-
-type TreeType = 'vertical' | 'horizontal' | 'leaf'
-const err1 = () => <Box width="100%" height="100%" backgroundColor="orange"/>
-const err2 = () => <Box width="100%" height="100%" backgroundColor="red"/>
-class Tree {
-    type: TreeType
-    index: number
-    left?: Tree
-    right?: Tree
-
-    constructor(type: TreeType, index: number = -1) {
-        this.type = type
-        this.index = index
-    }
-
-    render(panels: JSX.Element[], path: string, props: any): React.ReactElement<any> {
-        if (this.type == 'leaf')
-            return panels.length <= this.index ? <err1/>: 
-                React.cloneElement(
-                    panels[this.index], 
-                    {...props, path: path, panelIndex: this.index}
-                )
-        else if (this.left && this.right)
-            return React.createElement(
-                SplitPane,
-                {
-                    split: this.type, 
-                    defaultSize: "60%", 
-                    style: path=='' ? {
-                        flex: '1 1 auto',
-                        position: 'relative'
-                    } : {}
-                },
-                [this.left.render(panels, path.concat('l'), props), this.right.render(panels, path.concat('r'), props)]
-            )
-        else 
-            return <err2/>
-    }
-
-    clone(): Tree {
-        return Object.assign(Object.create(Object.getPrototypeOf(this)), this)
-    }
-}
-
-const construct = (obj: any): Tree => {
-    let ret
-    ret = new Tree(obj['type'], obj['index'])
-    ret.left = 'left' in obj ? construct(obj['left']) : undefined
-    ret.right = 'right' in obj ? construct(obj['right']) : undefined
-    return ret
-}
 

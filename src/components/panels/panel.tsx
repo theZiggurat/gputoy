@@ -14,11 +14,12 @@ import {
   PopoverHeader,
   Text,
   Portal,
-  Stack
+  Stack,
+  HStack,
+  Divider
 } from '@chakra-ui/react'
-import {FaBorderNone, FaTerminal} from 'react-icons/fa'
-import {BsTerminalFill, BsFillFileSpreadsheetFill} from 'react-icons/bs'
-import {RiSplitCellsHorizontal, RiSplitCellsVertical, RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
+import {RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
+import {VscSplitHorizontal, VscSplitVertical, VscClose} from 'react-icons/vsc'
 import {PanelDescriptor} from '../../../pages/create'
 
 interface PanelContentProps {
@@ -38,23 +39,56 @@ export const PanelContent = (props: PanelContentProps) => {
 interface PaneSelectorButtonProps {
   icon: React.ReactElement,
   title: string,
+  onHandleSplitHorizontal: () => void,
+  onHandleSplitVertical: () => void,
+  onSwitch: () => void,
+  last: boolean
 }
 
 const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
-  return <Button 
-    //display="flex"
-    //justifyContent="center"
-    //alignItems="center"
-    size="sm"
-    leftIcon={props.icon}
-    variant="outline"
-    border="none"
-    justifyContent="left"
-    iconSpacing="4"
-  >
-    <Text fontSize="xs" fontWeight="thin">{props.title}</Text>
-  </Button>
 
+  return (
+    <>
+      <Flex justifyContent="end">
+        <Button 
+          flex="1 1 auto"
+          size="sm"
+          //minW="100"
+          leftIcon={props.icon}
+          variant="outline"
+          border="none"
+          justifyContent="left"
+          iconSpacing="4"
+          onClick={props.onSwitch}
+          borderEndRadius="0%"
+        >
+        <Text fontSize="xs" fontWeight="thin">{props.title}</Text>
+        </Button>
+        <IconButton 
+          variant="outline"
+          size="sm"
+          icon={<VscSplitHorizontal/>} 
+          aria-label="Split panel horizontally"
+          title="Split panel horizontally"
+          borderRadius="0"
+          border="0"
+          onClick={props.onHandleSplitHorizontal}
+        />
+        <IconButton 
+          //outline="0"
+          variant="outline"
+          size="sm"
+          icon={<VscSplitVertical/>} 
+          aria-label="Split panel vertically"
+          title="Split panel vertically"
+          borderStartRadius="0%"
+          border="0"
+          onClick={props.onHandleSplitVertical}
+        />
+      </Flex>
+      {!props.last && <Divider/>}
+    </>
+  )
 }
 
 export const PanelBarMiddle = (props: {children: ReactNode}) => {
@@ -78,15 +112,20 @@ interface PanelBarProps {
   location?: BarLocation,
   onChangeLocation?: () => void,
   path: string,
-  onSplit: (path: string, dir: 'vertical' | 'horizontal') => void,
-  onCombine: (path: string) => void,
+  onSplitPanel: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
+  onCombinePanel: (path: string) => void,
+  onSwitchPanel: (path: string, panelIndex: number) => void,
   panelIndex: number,
   panelDesc: PanelDescriptor[],
 }
-export class PanelBar extends React.Component<PanelBarProps, {}> {
+export const PanelBar = (props: PanelBarProps) => {
 
-  render(){
-    const {children, location, onChangeLocation, ...barProps} = this.props
+    const onHandleSplitVertical = (idx: number) => props.onSplitPanel(props.path, 'horizontal', idx)
+    const onHandleSplitHorizontal = (idx: number) => props.onSplitPanel(props.path, 'vertical', idx)
+    const onHandleCombine = () => props.onCombinePanel(props.path)
+    const onHandleSwitch = (index: number) => props.onSwitchPanel(props.path, index) 
+
+    const {children, location, onChangeLocation, ...barProps} = props
     return (
       <Flex 
         maxHeight={12}
@@ -120,14 +159,11 @@ export class PanelBar extends React.Component<PanelBarProps, {}> {
             placement='top-end'
             gutter={15}
             preventOverflow
-            // onOpen={onOpen}
-            // onClose={onClose}
-            // isOpen={isOpen}
           >
             <PopoverTrigger>
               <IconButton 
                 size="sm"
-                icon={this.props.panelDesc[this.props.panelIndex].icon} 
+                icon={props.panelDesc[props.panelIndex].icon} 
                 variant="solid"  
                 aria-label="Choose panel"
                 title="Choose panel"
@@ -143,46 +179,40 @@ export class PanelBar extends React.Component<PanelBarProps, {}> {
                 borderColor="blackAlpha.100"
               >
                 <PopoverArrow backgroundColor="gray.900"/>
-                <Stack>
+                <Flex direction="column">
                   {
-                    this.props.panelDesc.map(desc => 
+                    props.panelDesc.map((desc, idx) => 
                     <PanelSelectorButton 
                       icon={desc.icon} 
                       title={desc.name}
+                      onSwitch={() => onHandleSwitch(desc.index)}
+                      onHandleSplitHorizontal={() => onHandleSplitHorizontal(idx)}
+                      onHandleSplitVertical={() => onHandleSplitVertical(idx)}
+                      last={idx==props.panelDesc.length-1}
                     />)
                   }                  
-                </Stack>
+                </Flex>
               </PopoverContent>
             </Portal>
           </Popover>
           <IconButton 
             size="sm"
-            icon={<RiSplitCellsHorizontal/>} 
+            icon={<VscClose/>} 
             variant="solid"  
-            aria-label="Split panel horizontally"
-            title="Split panel horizontally"
-            borderRadius="0%"
-            onClick={() => this.props.onSplit(this.props.path, 'horizontal')}
-            />
-          <IconButton 
-            size="sm"
-            icon={<RiSplitCellsVertical/>} 
-            variant="solid"  
-            aria-label="Split panel vertically"
-            title="Split panel vertically"
+            aria-label="Close Panel"
+            title="Close Panel"
             borderEndRadius="25%"
             borderStartRadius="0%"
             borderLeft="1px"
             borderColor="blackAlpha.300"
-            onClick={() => this.props.onSplit(this.props.path, 'vertical')}
+            onClick={onHandleCombine}
+            disabled={props.path==''}
           />
-      </Flex>
+        </Flex>
         {children}
-
-        
       </Flex>
     )
-  }
+  
 }
 
 type BarLocation = 'top' | 'bottom'
@@ -192,56 +222,45 @@ interface PanelProps {
   path: string,
   panelIndex: number,
   panelDesc: PanelDescriptor[],
-  onSplit: (path: string, dir: 'vertical' | 'horizontal') => void,
-  onCombine: (path: string) => void,
+  onSplitPanel: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
+  onCombinePanel: (path: string) => void,
+  onSwitchPanel: (path: string, panelIndex: number) => void,
 }
-interface PanelState {
-  barLocation: BarLocation
-}
+const Panel = (props: PanelProps) => {
 
-export default class Panel extends React.Component<PanelProps, PanelState> {
+  const [barLocation, setBarLocation] = React.useState('bottom')
 
-  constructor(props: PanelProps) {
-    super(props)
-    this.state = {
-      barLocation: 'bottom'
-    }
-    console.log(this.props)
+  const onChangeLocation = () => {
+    setBarLocation(barLocation == 'top' ? 'bottom': 'top')
   }
 
-  onChangeLocation = () => {
-    this.setState(oldState => {
-      return {...oldState, barLocation: oldState.barLocation == 'top' ? 'bottom': 'top'}
-    })
-  }
-
-  render() {
-    const {children, ...paneProps} = this.props 
+  const {children, ...paneProps} = props 
     
-    return (
-      <Flex 
-        height="100%" 
-        width="100%"
-        flexDir={this.state.barLocation == 'top' ? 'column-reverse':'column'}
-        flexBasis="fill"
-        {...paneProps}
-      >
-        {React.Children.map(this.props.children, (elem: ReactElement<any>) => {
-          if (elem.type.name == 'PanelBar')
-            return React.cloneElement(elem, {
-              location: this.state.barLocation, 
-              onChangeLocation: this.onChangeLocation,
-              path: this.props.path,
-              onSplit: this.props.onSplit,
-              onCombine: this.props.onCombine,
-              panelDesc: this.props.panelDesc,
-              panelIndex: this.props.panelIndex,
-            })
-          else
-            return elem
-        })}
-      </Flex>
-    )
-  }
-
+  return (
+    <Flex 
+      height="100%" 
+      width="100%"
+      flexDir={barLocation == 'top' ? 'column-reverse':'column'}
+      flexBasis="fill"
+      {...paneProps}
+    >
+      {React.Children.map(props.children, (elem: ReactElement<any>) => {
+        if (elem.type.name == 'PanelBar')
+          return React.cloneElement(elem, {
+            location: barLocation, 
+            onChangeLocation: onChangeLocation,
+            path: props.path,
+            onSplitPanel: props.onSplitPanel,
+            onCombinePanel: props.onCombinePanel,
+            onSwitchPanel: props.onSwitchPanel,
+            panelDesc: props.panelDesc,
+            panelIndex: props.panelIndex,
+          })
+        else
+          return elem
+      })}
+    </Flex>
+  )
 }
+
+export default Panel

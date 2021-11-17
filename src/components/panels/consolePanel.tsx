@@ -60,7 +60,7 @@ const LogLevelCheckboxes = (props: {filters: boolean[], toggle: (idx: number, va
   </>
 )
 
-const ConsolePanel = (props: any) => {
+const ConsolePanel: React.FC<{}> = (props: any) => {
 
   const [text, setText] = React.useState(Console.getBuffer())
 

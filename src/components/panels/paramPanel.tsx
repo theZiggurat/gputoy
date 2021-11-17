@@ -172,7 +172,7 @@ interface ParamPanelProps {
   params: ParamDesc[],
 }
 
-const ParamPanel = (props: ParamPanelProps) => {
+const ParamPanel: React.FC<ParamPanelProps> = (props: ParamPanelProps) => {
   return (
     <Panel {...props}>
         <PanelContent>

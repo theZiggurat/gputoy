@@ -36,12 +36,14 @@ const StatusInfo = (props: {text: string, textColor?: string}) => (
 )
 
 
-export default function CanvasPanel(props: CanvasProps) {
+const ViewportPanel: React.FC<CanvasProps> = (props: CanvasProps) => {
 
     return (
         <Panel {...props}>
             <PanelContent backgroundColor="black">
-                <canvas id='canvas' style={{width: '100%', height:'100%'}}/>
+                <canvas id='canvas' 
+                // style={{width: '100%', height:'100%'}}
+                />
             </PanelContent>
             <PanelBar>
                 <PanelBarMiddle>
@@ -71,3 +73,5 @@ export default function CanvasPanel(props: CanvasProps) {
         </Panel>
     )
 }
+
+export default ViewportPanel
