@@ -232,17 +232,17 @@ class Project {
       .concat(this.params.getShaderDecl())
       .concat(this.userSrc)
 
-    // let src = this.included.getShaderDecl().concat(this.params.getShaderDecl()).concat(this.vertexDecl).concat(`
-    // [[stage(fragment)]]
-    // fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    let src = this.included.getShaderDecl().concat(this.params.getShaderDecl()).concat(this.vertexDecl).concat(`
+    [[stage(fragment)]]
+    fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
         
-    //   let col = 0.5 * cos(in.uv.xyx + i.time * p.speed + vec3<f32>(0., 2., 4.)) + 0.5;
-    //   return vec4<f32>(col, 1.0);
+      let col = 0.5 * cos(in.uv.xyx + i.time * p.speed + vec3<f32>(0., 2., 4.)) + 0.5;
+      return vec4<f32>(col, 1.0);
 
-    // }
-    // `)
+    }
+    `)
     //Console.log("source", this.shaderSrc)
-    let module = Compiler.compileWGSL!(GPU.device, this.shaderSrc)
+    let module = Compiler.compileWGSL!(GPU.device, src)
     if (!module)
       return false
     this.shaderModule = module

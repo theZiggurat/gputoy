@@ -27,7 +27,8 @@ import {
   } from "@chakra-ui/react"
 import {FaMinus} from 'react-icons/fa'
 import { HexColorPicker } from "react-colorful";
-import {ParamType, ParamDesc, encode, decode} from '../../../gpu/params'
+import {ParamType, ParamDesc, encode, decode} from '../../gpu/params'
+import Panel, { PanelBar, PanelContent } from '../panel';
 
 
 interface TableRowProps {
@@ -173,35 +174,44 @@ interface ParamPanelProps {
 
 const ParamPanel = (props: ParamPanelProps) => {
   return (
-    <Table variant="simple" overflowY="auto" maxHeight="100%" size={'sm'}>
-        <Thead>
-            <Tr>
-                <Th>Variable name</Th>
-                <Th>Type</Th>
-                <Th>Value</Th>
-                <Th>Min</Th>
-                <Th>Max</Th>
-                <Th></Th>
-            </Tr>
-        </Thead>
-        <Tbody>
-        {
-            props.params.map((p: ParamDesc, idx: number) => 
-                <TableRow
-                    key={idx}
-                    idx={idx}
-                    param={encode(p.param, p.paramType)}
-                    paramType={p.paramType}
-                    paramName={p.paramName}
-                    onParamChange={(val: string) => props.setParamAtIndex({...p, param: decode(val, p.paramType)}, idx, false)}
-                    onParamNameChange={(paramName: string) => props.setParamAtIndex({...p, paramName}, idx, false)}
-                    onParamTypeChange={(paramType: ParamType) => props.setParamAtIndex({...p, paramType}, idx, true)}
-                    onParamDelete={props.deleteParam}
-                />
-            )
-        }
-        </Tbody>
-    </Table>
+    <Panel>
+        <PanelContent>
+        <Table variant="simple" overflowY="auto" maxHeight="100%" size={'sm'}>
+            <Thead>
+                <Tr>
+                    <Th>Variable name</Th>
+                    <Th>Type</Th>
+                    <Th>Value</Th>
+                    <Th>Min</Th>
+                    <Th>Max</Th>
+                    <Th></Th>
+                </Tr>
+            </Thead>
+            <Tbody>
+            {
+                props.params.map((p: ParamDesc, idx: number) => 
+                    <TableRow
+                        key={idx}
+                        idx={idx}
+                        param={encode(p.param, p.paramType)}
+                        paramType={p.paramType}
+                        paramName={p.paramName}
+                        onParamChange={(val: string) => props.setParamAtIndex({...p, param: decode(val, p.paramType)}, idx, false)}
+                        onParamNameChange={(paramName: string) => props.setParamAtIndex({...p, paramName}, idx, false)}
+                        onParamTypeChange={(paramType: ParamType) => props.setParamAtIndex({...p, paramType}, idx, true)}
+                        onParamDelete={props.deleteParam}
+                    />
+                )
+            }
+            </Tbody>
+        </Table>
+        </PanelContent>
+        <PanelBar>
+
+        </PanelBar>
+    </Panel>
+    
+    
   )
 }
 

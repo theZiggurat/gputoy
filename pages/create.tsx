@@ -193,11 +193,8 @@ const Create = () => {
         <Scaffold>
             <SplitPane split="vertical" minSize='50%' defaultSize='60%' 
                 className="createWindow" maxSize="100%">
-                <SplitPane split="horizontal" defaultSize="50%">
-                    <chakra.div height="100%" width="100%">
-                        <Canvas></Canvas>
-                    </chakra.div>
-                    <MultiPanel
+                <SplitPane split="horizontal" defaultSize="60%">
+                    <Canvas
                         onRequestStart={() => {
                             if (dirty) {
                                 WorkingProject.setShaderSrc(codeFiles[currentFile].file)
@@ -207,13 +204,15 @@ const Create = () => {
                         }}
                         onRequestPause={WorkingProject.pause}
                         onRequestStop={WorkingProject.stop}
+                        projectStatus={projectStatus}
+                        disabled={!ready}
+                    />
+                    <MultiPanel
                         onParamChange={WorkingProject.setParams}
                         params={params}
                         setParamAtIndex={setParamAtIndex}
                         addNewParam={addNewParam}
                         deleteParam={deleteParam}
-                        projectStatus={projectStatus}
-                        disabled={!ready}
                     />
                 </SplitPane>
                     <CodeEditor 

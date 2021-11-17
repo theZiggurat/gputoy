@@ -18,7 +18,9 @@ import {
 } from "@chakra-ui/react";
 import {FaRegClipboard, FaRegTrashAlt, FaSearch} from 'react-icons/fa'
 import {CloseIcon} from '@chakra-ui/icons'
-import Console, {Message, MessageType} from '../../../gpu/console'
+import Console, {Message, MessageType} from '../../gpu/console'
+
+import Panel, { PanelContent, PanelBar } from '../panel';
 
 const colors = [
   "green",
@@ -115,36 +117,19 @@ const ConsolePanel = () => {
   }
 
   return(
-
-
-    <Flex 
-      height="100%" 
-      maxH="100%" 
-      overflowY="hidden" 
-      flexDir="column" 
-      justify="space-between" 
-      flexBasis="fill"
-    >
-      <Box 
+    <Panel>
+      <PanelContent 
         fontFamily='"Fira code", "Fira Mono", monospace' 
         fontSize="sm" 
-        display="flex" 
-        flexDirection="column" 
-        overflowY="overlay"
-        flex="1 1 auto"
-        width="100%"
       >
         {text.map((message: Message, idx) => 
-          <Flex 
-            borderBottom="1px 
-            solid" borderColor="whiteAlpha.200" 
-            key={idx} 
-            backgroundColor={idx%2==0?'':'blackAlpha.100'}
-            dir="row"
-          >
-            <Divider orientation="vertical"/>
             <Box 
-              p={1} flex="1 1 auto" whiteSpace="pre-wrap">
+              key={idx}
+              backgroundColor={idx%2==0?'':'blackAlpha.100'}
+              p={1} 
+              flex="0 0 auto" 
+              whiteSpace="pre-wrap"
+            >
               <Text ml={1}>
                 <chakra.span fontWeight="hairline">
                 {formatTime(message.time)}&nbsp;&nbsp;
@@ -155,28 +140,13 @@ const ConsolePanel = () => {
                 {message.body}
               </Text>
             </Box>
-          </Flex>
         )}
-        <Box id="bottom" ref={bottom}></Box>
-      </Box>
-
-
-      <Flex 
-        maxHeight={12}
-        backgroundColor={useColorModeValue('gray.150', 'gray.850')}
-        direction="row"
-        alignItems="center"
-        flex="0 0 auto"
-        justify="space-between"
-        borderTop="1px"
-        borderColor="whiteAlpha.100"
-        overflow="hidden"
-        pt={2}
-        pb={2}
-      >
-        <Button/>
+        <div ref={bottom}></div>
+      </PanelContent>
+      <PanelBar>
+        {/* search & type filters */}
         <Flex dir="row" flex="1 0 auto" justifyContent="center">
-          <InputGroup ml={2} size="sm" variant="filled" width={500}>
+          <InputGroup ml={2} size="sm" variant="filled" maxWidth="500" minWidth="100">
             <InputLeftElement
               children={<FaSearch/>}
             />
@@ -194,6 +164,8 @@ const ConsolePanel = () => {
           </InputGroup>
           <LogLevelCheckboxes filters={typeFilters} toggle={toggle}/>
         </Flex>
+
+        {/* utility buttons */}
         <Flex dir="row" flex="0 1 auto" justifyContent="center">
           <Checkbox mr={4} size="sm"
             isChecked={autoscroll}
@@ -216,9 +188,8 @@ const ConsolePanel = () => {
             Clear
           </Button>
         </Flex>
-        
-      </Flex>
-    </Flex>
+      </PanelBar>
+    </Panel>
   )
 }
 export default ConsolePanel
