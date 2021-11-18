@@ -1,17 +1,19 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useCallback } from 'react'
 import { 
     Flex, 
     Box, 
     IconButton, 
     Center,
     Text,
-    useColorModeValue 
+    useColorModeValue,
+    Fade
 } from '@chakra-ui/react';
 import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
 
 import WorkingProject from '../../gpu/project';
 import { ProjectStatus } from '../../../pages/create';
 import Panel, {PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd} from './panel'
+import { useResizeDetector } from 'react-resize-detector'
 
 
 interface CanvasProps {
@@ -19,7 +21,6 @@ interface CanvasProps {
     onRequestPause: () => void,
     onRequestStop: () => void,
     projectStatus: ProjectStatus,
-    disabled: boolean
 }
 
 const StatusInfo = (props: {text: string, textColor?: string}) => (
@@ -38,12 +39,59 @@ const StatusInfo = (props: {text: string, textColor?: string}) => (
 
 const ViewportPanel: React.FC<CanvasProps> = (props: CanvasProps) => {
 
+    const [showResolution, setShowResolution] = React.useState(false)
+    const [ready, setReady] = React.useState(false)
+
+     useEffect(() => {
+        const initCanvas = async () => {
+            await WorkingProject.attachCanvas('canvas')
+            let status = WorkingProject.status
+            if (status === 'Ok')
+                setReady(true)
+        }
+        initCanvas()
+    }, [])
+
+    const onResize = () => {
+        setShowResolution(true)
+    }
+
+    const { width, height, ref } = useResizeDetector({
+        refreshMode: "debounce",
+        refreshRate: 10,
+        onResize: onResize,
+        refreshOptions: {
+            leading: true,
+            trailing: true
+        }
+    })
+
+    useEffect(() => {
+        const handle = setTimeout(() => setShowResolution(false), 2000)
+        return () => clearTimeout(handle)
+    }, [width, height])
+
     return (
         <Panel {...props}>
-            <PanelContent backgroundColor="black">
-                <canvas id='canvas' 
-                // style={{width: '100%', height:'100%'}}
-                />
+            <PanelContent>
+                <Box bg="black" width="100%" height="100%" ref={ref} overflow="hidden">
+                    <Fade in={showResolution}>
+                        <Box 
+                            position="absolute" 
+                            left="20px" top="20px" 
+                            bg="blackAlpha.600" 
+                            borderRadius="lg" 
+                            width="fit-content" 
+                            p={3}
+                        >
+                            {`Resolution: ${width} x ${height}`}
+                        </Box>
+                    </Fade>
+                    <canvas id='canvas' style={{
+                        width: width,
+                        height: height
+                    }}/>
+                </Box>
             </PanelContent>
             <PanelBar>
                 <PanelBarMiddle>
@@ -58,7 +106,7 @@ const ViewportPanel: React.FC<CanvasProps> = (props: CanvasProps) => {
                         marginRight={3}
                         icon={WorkingProject.shaderDirty ? <FaUpload/> : WorkingProject.running ? <FaPause/>:<FaPlay/>} 
                         onClick={WorkingProject.running ? props.onRequestPause : props.onRequestStart}
-                        disabled={props.disabled}
+                        disabled={!ready}
                     />
                     <IconButton 
                         size="sm"
@@ -66,7 +114,7 @@ const ViewportPanel: React.FC<CanvasProps> = (props: CanvasProps) => {
                         marginRight={3}
                         icon={<FaStop/>} 
                         onClick={props.onRequestStop}
-                        disabled={props.disabled}
+                        disabled={!ready}
                     />
                 </PanelBarEnd>
             </PanelBar>

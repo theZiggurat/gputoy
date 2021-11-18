@@ -86,7 +86,6 @@ export class Tree {
     }
 
     render(panelDesc: PanelDescriptor[], dynPropTable: PanelDynProps, props: any): React.ReactElement<any> {
-        console.log(dynPropTable)
         return this.root.render(panelDesc, dynPropTable, '', props)
     }
 }
@@ -118,9 +117,6 @@ class TreeNode {
     }
 
     render(panelDesc: PanelDescriptor[], dynPropTable: PanelDynProps, path: string, props: any): React.ReactElement<any> {
-
-        if (path in dynPropTable)
-            console.log(dynPropTable[path])
 
         if (this.type == 'leaf')
             return panelDesc.length <= this.index ? <div className="ERRORDIV"/>: 

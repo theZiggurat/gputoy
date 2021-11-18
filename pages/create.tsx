@@ -95,7 +95,6 @@ const Create = () => {
                 onRequestPause: WorkingProject.pause,
                 onRequestStop: WorkingProject.stop,
                 projectStatus: projectStatus,
-                disabled: !ready
             },
             defaultDynProps: {}
         },
@@ -149,19 +148,6 @@ const Create = () => {
             index: 2
         }
     })
-
-    /**
-     * Canvas init
-     */
-    useEffect(() => {
-        const initCanvas = async () => {
-            await WorkingProject.attachCanvas('canvas')
-            let status = WorkingProject.status
-            if (status === 'Ok')
-                setReady(true)
-        }
-        initCanvas()
-    }, [])
 
     /**
      * On param state change

@@ -1,4 +1,4 @@
-import React, { ReactElement, ReactNode } from 'react'
+import React, { ReactElement, ReactNode, useEffect } from 'react'
 import { 
   Flex, 
   Box, 
@@ -21,19 +21,23 @@ import {
 import {RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
 import {VscSplitHorizontal, VscSplitVertical, VscClose} from 'react-icons/vsc'
 import {PanelDescriptor} from './panelHook'
+import useHorizontalScroll from '../../utils/scrollHook'
 
 interface PanelContentProps {
   children: ReactNode
 }
 export const PanelContent = (props: PanelContentProps) => {
   const {children, ...contentProps} = props
-  return <Box 
-    flex="1 1 auto"
-    overflowY="overlay"
-    {...contentProps}
-  >
-    {props.children}
-  </Box>
+  return (
+    <Box 
+      flex="1 1 auto"
+      overflowY="auto"
+      {...contentProps}
+    >
+      {props.children}
+    </Box>
+  )
+  
 }
 
 interface PaneSelectorButtonProps {
@@ -42,8 +46,8 @@ interface PaneSelectorButtonProps {
   onHandleSplitHorizontal: () => void,
   onHandleSplitVertical: () => void,
   onSwitch: () => void,
-  last: boolean
-  first: boolean
+  last: boolean,
+  first: boolean,
 }
 
 const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
@@ -63,6 +67,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           borderStartRadius={props.first?"":"0"}
           borderBottomRadius="0"
           onClick={props.onSwitch}
+          pl={2}
         >
           <Text fontSize="xs" fontWeight="thin">{props.title}</Text>
         </Button>
@@ -94,7 +99,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
   )
 }
 
-export const PanelBarMiddle = (props: {children: ReactNode} | any) => {
+export const PanelBarMiddle = (props: {children: ReactElement} | any) => {
   const {children, ...flexprops} = props
   return (
     <Flex dir="row" flex="0 0 auto" justifyContent="center" {...flexprops}>
@@ -103,16 +108,16 @@ export const PanelBarMiddle = (props: {children: ReactNode} | any) => {
   )
 }
 
-export const PanelBarEnd = (props: {children: ReactNode}) => {
+export const PanelBarEnd = (props: {children: ReactElement}) => {
   return (
-    <Flex dir="row" flex="1 1 auto" justifyContent="right">
+    <Flex dir="row" flex="1 0 auto" justifyContent="end" mr={2} ml={2}>
       {props.children}
     </Flex>
   )
 }
 
 interface PanelBarProps {
-  children: ReactNode,
+  children: ReactElement<any>,
   location?: BarLocation,
   onChangeLocation?: () => void,
   path: string,
@@ -121,15 +126,18 @@ interface PanelBarProps {
   onSwitchPanel: (path: string, panelIndex: number) => void,
   panelIndex: number,
   panelDesc: PanelDescriptor[],
+  clippingBoundary: HTMLDivElement
+  preventScroll?: boolean
 }
 export const PanelBar = (props: PanelBarProps) => {
 
+    const scrollRef = useHorizontalScroll(Boolean(props.preventScroll))
     const onHandleSplitVertical = (idx: number) => props.onSplitPanel(props.path, 'horizontal', idx)
     const onHandleSplitHorizontal = (idx: number) => props.onSplitPanel(props.path, 'vertical', idx)
     const onHandleCombine = () => props.onCombinePanel(props.path)
     const onHandleSwitch = (index: number) => props.onSwitchPanel(props.path, index) 
-
     const {children, location, onChangeLocation, ...barProps} = props
+
     return (
       <Flex 
         maxHeight={12}
@@ -138,16 +146,13 @@ export const PanelBar = (props: PanelBarProps) => {
         alignItems="center"
         flex="0 0 auto"
         justify="space-between"
-        justifyContent="center"
-        borderTop={location == 'bottom' ? '1px':'0'}
-        borderBottom={location == 'top' ? '1px':'0'}
-        borderColor="blackAlpha.400"
-        overflow="hidden"
+        overflowX="hidden"
         pt={1}
         pb={1}
+        ref={scrollRef}
         {...barProps}
       >
-        <Flex ml={2} mr={2} flex="1 1 auto">
+        <Flex dir="row" flex="1 0 auto" ml={2} mr={2} >
           <IconButton
             aria-label="Swap bar position"
             size="sm"
@@ -159,10 +164,18 @@ export const PanelBar = (props: PanelBarProps) => {
             borderColor="blackAlpha.300"
           />
           <Popover 
-            computePositionOnMount 
+            //computePositionOnMount 
             placement='top-start'
             gutter={0}
-            preventOverflow
+            boundary={props.clippingBoundary}
+            modifiers={[
+              {
+                name: 'preventOverflow',
+                options: {
+                  tether: false,
+                }
+              }
+            ]}
           >
             <PopoverTrigger>
               <IconButton 
@@ -239,6 +252,7 @@ const Panel = (props: PanelProps) => {
   }
 
   const {children, ...paneProps} = props 
+  const bounds = React.useRef<HTMLDivElement>()
     
   return (
     <Flex 
@@ -247,9 +261,11 @@ const Panel = (props: PanelProps) => {
       flexDir={barLocation == 'top' ? 'column-reverse':'column'}
       flexBasis="fill"
       {...paneProps}
+      ref={bounds}
     >
-      {React.Children.map(props.children, (elem: ReactElement<any>) => {
-        if (elem.type.name == 'PanelBar')
+      {
+        React.Children.map(props.children, (elem: ReactElement<any>) => {
+        if (elem.type === PanelBar)
           return React.cloneElement(elem, {
             location: barLocation, 
             onChangeLocation: onChangeLocation,
@@ -259,6 +275,7 @@ const Panel = (props: PanelProps) => {
             onSwitchPanel: props.onSwitchPanel,
             panelDesc: props.panelDesc,
             panelIndex: props.panelIndex,
+            clippingBoundary: bounds.current
           })
         else
           return elem

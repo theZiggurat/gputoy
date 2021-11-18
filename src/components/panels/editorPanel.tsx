@@ -15,6 +15,7 @@ import {
     PopoverContent,
     Portal,
     Flex,
+    Box,
 } from '@chakra-ui/react'
 
 import { CloseIcon } from '@chakra-ui/icons';
@@ -66,20 +67,11 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
     const {colorMode, toggleColorMode} = useColorMode()
     const [popoverWidth, setPopoverWidth] = React.useState(200)
 
-    const [isOpen, setIsOpen] = React.useState(false)
-    const open = () => setIsOpen(isopen => !isopen)
-    const close = () => setIsOpen(false)
+    const [isFileDrawerOpen, setFileDrawerOpen] = React.useState(false)
+    const toggleDrawer = () => setFileDrawerOpen(isopen => !isopen)
+    const closeDrawer = () => setFileDrawerOpen(false)
 
     const currentFile = props.files[currentFileIndex]
-
-    const middle = React.useRef(null)
-
-    // useEffect(() => {
-    //     if (middle.current){
-    //         console.log(middle.current.offsetWidth)
-    //         setPopoverWidth(middle.current.offsetWidth)
-    //     }
-    // }, [middle])
 
     const onHandleFilenameChange = (ev) => props.onEditFileName(currentFileIndex, ev.target.value)
     const onHandleAddFile = () => {
@@ -97,6 +89,7 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
     return (
         <Panel {...props}>
             <PanelContent>
+                <Box width="100%" height="100%">
                 {
                     currentFileIndex < props.files.length && currentFileIndex >= 0 &&
                     <Editor
@@ -105,33 +98,40 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
                         value={props.files[currentFileIndex].file}
                         onValueChange={code => props.onEditCode(currentFileIndex, code)}
                         highlight={code => hightlightWithLineNumbers(code, languages.rust)}
-                        padding={10}
+                        padding={20}
                         style={{
                             fontFamily: '"Fira code", "Fira Mono", monospace',
                             fontSize: 13,
-                            width: '100%',
-                            height: '100%',
                         }}
                     />
                 }
+                </Box>
             </PanelContent>
-            <PanelBar>
-                <PanelBarMiddle ref={middle} zIndex="20">
+            <PanelBar preventScroll={isFileDrawerOpen}>
+                <PanelBarMiddle zIndex="20">
                     <IconButton
                         aria-label="Browse files"
                         title="Browse files"
                         size="sm"
                         borderEndRadius="0"
-                        icon={isOpen ? <RiArrowDropDownLine size={17}/> : <RiArrowDropUpLine size={17}/>}
-                        onClick={() => open()}
+                        icon={isFileDrawerOpen ? <RiArrowDropDownLine size={17}/> : <RiArrowDropUpLine size={17}/>}
+                        onClick={toggleDrawer}
                     />
                     <Popover
                         placement='top-start'
                         gutter={0}
                         preventOverflow
-                        isOpen={isOpen}
-                        onClose={close}
-                        //closeOnBlur={false}
+                        boundary={props.boundary}
+                        isOpen={isFileDrawerOpen}
+                        onClose={closeDrawer}
+                        modifiers={[
+                            {
+                                name: 'preventOverflow',
+                                options: {
+                                    tether: false,
+                                }
+                            }
+                        ]}
                     >
                         <PopoverTrigger>
                             <Input
@@ -158,11 +158,11 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
                                     props.files.map((file, idx) => 
                                         <Button
                                             size="sm"
-                                            backgroundColor="whiteAlpha.50"
+                                            backgroundColor={idx == currentFileIndex ? "whiteAlpha.300": "whiteAlpha.50"}
                                             borderBottom="1px"
                                             borderBottomRadius="0"
                                             borderTopRadius={idx!=0 ? "inherit" : ""}
-                                            borderColor={idx == currentFileIndex ? "whiteAlpha.300": "whiteAlpha.100"}
+                                            borderColor="whiteAlpha.200"
                                             fontWeight="light"
                                             onClick={() => onHandleSelectFile(idx)}
                                             justifyContent="start"
@@ -231,7 +231,6 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
 export const useEditor = (): EditorProps => {
 
     const [files, setFiles] = React.useState<CodeFile[]>(() =>{
-        console.log('im really here')
         return [{filename: 'test', file: 'aaa', lang: 'wgsl'}]
     })
 
