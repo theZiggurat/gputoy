@@ -20,7 +20,7 @@ import {
 } from '@chakra-ui/react'
 import {RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
 import {VscSplitHorizontal, VscSplitVertical, VscClose} from 'react-icons/vsc'
-import {PanelDescriptor} from '../../../pages/create'
+import {PanelDescriptor} from './panelHook'
 
 interface PanelContentProps {
   children: ReactNode
@@ -43,6 +43,7 @@ interface PaneSelectorButtonProps {
   onHandleSplitVertical: () => void,
   onSwitch: () => void,
   last: boolean
+  first: boolean
 }
 
 const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
@@ -52,20 +53,21 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
       <Flex justifyContent="end">
         <Button 
           flex="1 1 auto"
+          backgroundColor="whiteAlpha.100"
           size="sm"
-          //minW="100"
           leftIcon={props.icon}
-          variant="outline"
           border="none"
           justifyContent="left"
           iconSpacing="4"
-          onClick={props.onSwitch}
           borderEndRadius="0%"
+          borderStartRadius={props.first?"":"0"}
+          borderBottomRadius="0"
+          onClick={props.onSwitch}
         >
-        <Text fontSize="xs" fontWeight="thin">{props.title}</Text>
+          <Text fontSize="xs" fontWeight="thin">{props.title}</Text>
         </Button>
         <IconButton 
-          variant="outline"
+          backgroundColor="whiteAlpha.100"
           size="sm"
           icon={<VscSplitHorizontal/>} 
           aria-label="Split panel horizontally"
@@ -75,14 +77,15 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           onClick={props.onHandleSplitHorizontal}
         />
         <IconButton 
-          //outline="0"
-          variant="outline"
+          backgroundColor="whiteAlpha.100"
           size="sm"
           icon={<VscSplitVertical/>} 
           aria-label="Split panel vertically"
           title="Split panel vertically"
-          borderStartRadius="0%"
           border="0"
+          borderStartRadius="0%"
+          borderEndRadius={props.first?"":"0"}
+          borderBottomRightRadius={props.last?"":"0"}
           onClick={props.onHandleSplitVertical}
         />
       </Flex>
@@ -91,9 +94,10 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
   )
 }
 
-export const PanelBarMiddle = (props: {children: ReactNode}) => {
+export const PanelBarMiddle = (props: {children: ReactNode} | any) => {
+  const {children, ...flexprops} = props
   return (
-    <Flex dir="row" flex="0 0 auto" justifyContent="center">
+    <Flex dir="row" flex="0 0 auto" justifyContent="center" {...flexprops}>
       {props.children}
     </Flex>
   )
@@ -156,8 +160,8 @@ export const PanelBar = (props: PanelBarProps) => {
           />
           <Popover 
             computePositionOnMount 
-            placement='top-end'
-            gutter={15}
+            placement='top-start'
+            gutter={0}
             preventOverflow
           >
             <PopoverTrigger>
@@ -175,10 +179,9 @@ export const PanelBar = (props: PanelBarProps) => {
             <Portal>
               <PopoverContent 
                 width="fit-content"
-                backgroundColor="gray.900"
+                backgroundColor="gray.850"
                 borderColor="blackAlpha.100"
               >
-                <PopoverArrow backgroundColor="gray.900"/>
                 <Flex direction="column">
                   {
                     props.panelDesc.map((desc, idx) => 
@@ -189,6 +192,7 @@ export const PanelBar = (props: PanelBarProps) => {
                       onHandleSplitHorizontal={() => onHandleSplitHorizontal(idx)}
                       onHandleSplitVertical={() => onHandleSplitVertical(idx)}
                       last={idx==props.panelDesc.length-1}
+                      first={idx==0}
                     />)
                   }                  
                 </Flex>
@@ -217,7 +221,7 @@ export const PanelBar = (props: PanelBarProps) => {
 
 type BarLocation = 'top' | 'bottom'
 
-interface PanelProps {
+export interface PanelProps {
   children: ReactElement[],
   path: string,
   panelIndex: number,

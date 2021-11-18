@@ -5,16 +5,26 @@ export interface PanelDescriptor {
   index: number
   name: string,
   icon: React.ReactElement<any>,
+  component: React.FC<any>,
+  staticProps: any,
+  defaultDynProps: any,
 }
 
-export interface OutProps {
+export interface PanelDynProps {
+    [key: string]: any
+}
+
+export interface PanelOutProps {
     onSplitPanel: (path: string, direction: 'horizontal' | 'vertical', panelIndex: number) => void,
     onCombinePanel: (path: string) => void,
     onSwitchPanel: (path: string, panelIndex: number) => void,
 }
 
-export const usePanels = (panels: PanelDescriptor[], initial: any): [Tree, OutProps] => {
-    const [panelTree, setPanelTree] = React.useState(new Tree(initial))
+export const usePanels = (panelDesc: PanelDescriptor[], initial: any): [Tree, PanelDynProps, PanelOutProps] => {
+    const [dynProps, setDynProps] = React.useState<PanelDynProps>({
+        'r': panelDesc[2].defaultDynProps
+    })
+    const [panelTree, setPanelTree] = React.useState(new Tree(initial, panelDesc))
 
     const onSplit = (path: string, direction: 'horizontal' | 'vertical', panelIndex: number) => {
         if (panelTree.walk(path, node => {
@@ -50,7 +60,7 @@ export const usePanels = (panels: PanelDescriptor[], initial: any): [Tree, OutPr
     }
     const forceUpdate = () => setPanelTree(panelTree.clone())
 
-    return [panelTree, {
+    return [panelTree, dynProps, {
         onCombinePanel: onCombine,
         onSplitPanel: onSplit,
         onSwitchPanel: onSwitch
@@ -61,10 +71,9 @@ export default usePanels
 
 type TreeType = 'vertical' | 'horizontal' | 'leaf'
 export class Tree {
-
     root: TreeNode
 
-    constructor(obj: any){
+    constructor(obj: any, panelDesc: PanelDescriptor[]){
         this.root = new TreeNode(obj)
     }
     
@@ -76,8 +85,9 @@ export class Tree {
         return Object.assign(Object.create(Object.getPrototypeOf(this)), this)
     }
 
-    render(panels: JSX.Element[], path: string, props: any): React.ReactElement<any> {
-        return this.root.render(panels, path, props)
+    render(panelDesc: PanelDescriptor[], dynPropTable: PanelDynProps, props: any): React.ReactElement<any> {
+        console.log(dynPropTable)
+        return this.root.render(panelDesc, dynPropTable, '', props)
     }
 }
 
@@ -107,12 +117,18 @@ class TreeNode {
         }
     }
 
-    render(panels: JSX.Element[], path: string, props: any): React.ReactElement<any> {
+    render(panelDesc: PanelDescriptor[], dynPropTable: PanelDynProps, path: string, props: any): React.ReactElement<any> {
+
+        if (path in dynPropTable)
+            console.log(dynPropTable[path])
+
         if (this.type == 'leaf')
-            return panels.length <= this.index ? <div className="ERRORDIV"/>: 
-                React.cloneElement(
-                    panels[this.index], 
-                    {...props, 
+            return panelDesc.length <= this.index ? <div className="ERRORDIV"/>: 
+                React.createElement(
+                    panelDesc[this.index].component, 
+                    {   ...props, 
+                        ...panelDesc[this.index].staticProps,
+                        ...dynPropTable[path],
                         path: path, 
                         panelIndex: this.index, 
                         style: path=='' ? {
@@ -133,8 +149,8 @@ class TreeNode {
                     } : {}
                 },
                 [
-                    this.left.render(panels, path.concat('l'), props), 
-                    this.right.render(panels, path.concat('r'), props)
+                    this.left.render(panelDesc, dynPropTable, path.concat('l'), props), 
+                    this.right.render(panelDesc, dynPropTable, path.concat('r'), props)
                 ]
             )
         else 
