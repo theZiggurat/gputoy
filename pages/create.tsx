@@ -9,9 +9,9 @@ import Scaffold from '../src/components/scaffold'
 import SplitPane from 'react-split-pane'
 
 import ViewportPanel from '../src/components/panels/viewPanel'
-import ParamPanel from '../src/components/panels/paramPanel'
+import ParamPanel, { useParamsPanel } from '../src/components/panels/paramPanel'
 import ConsolePanel from '../src/components/panels/consolePanel'
-import EditorPanel, {useEditor} from '../src/components/panels/editorPanel'
+import EditorPanel, { useEditorPanel } from '../src/components/panels/editorPanel'
 
 import WorkingProject from '../src/gpu/project'
 import {ParamDesc} from '../src/gpu/params'
@@ -34,55 +34,17 @@ const Create = () => {
 
     const [editedTab, setEditedTab] = React.useState(-1)
 
-    const [params, setParams] = React.useState<ParamDesc[]>([])
+    
     const [projectStatus, setProjectStatus] = React.useState<ProjectStatus>({
         gpustatus: "",
         fps: "--",
         time: "--",
     })
 
-    const editorProps = useEditor()
+    const editorProps = useEditorPanel()
+    const paramProps = useParamsPanel()
 
-    const setParamAtIndex = (p: ParamDesc, idx: number, changedType: boolean) => {
-
-        if (changedType) {
-            if (p.paramType === 'color') {
-                p.param = [1, 0, 0]
-            } else {
-                p.param = [0]
-            }
-        }
-
-        setParams(oldParams => {
-            let newParams = [...oldParams]
-            newParams[idx] = p
-            window.localStorage.setItem('params', JSON.stringify(newParams))
-            return newParams
-        })
-    }
-
-    const addNewParam = () => {
-        setParams(oldParams => {
-            let newParams = [...oldParams]
-            newParams.push({
-                paramName: `param${newParams.length}`,
-                paramType: 'int',
-                param: [0]
-            })
-            window.localStorage.setItem('params', JSON.stringify(newParams))
-            return newParams
-        })
-        
-    }
-
-    const deleteParam = (idx: number) => {
-        setParams(oldParams => {
-            let newParams = [...oldParams]
-            newParams.splice(idx, 1)
-            window.localStorage.setItem('params', JSON.stringify(newParams))
-            return newParams
-        })
-    }
+    
 
     const panelDesc: PanelDescriptor[] = [
         {
@@ -103,13 +65,7 @@ const Create = () => {
             name: 'Params', 
             icon: <BsFillFileSpreadsheetFill/>, 
             component: ParamPanel, 
-            staticProps: {
-                onParamChange: WorkingProject.setParams,
-                params: params,
-                setParamAtIndex: setParamAtIndex,
-                addNewParam: addNewParam,
-                deleteParam: deleteParam
-            },
+            staticProps: paramProps,
             defaultDynProps: {}
         },
         {
@@ -150,13 +106,6 @@ const Create = () => {
     })
 
     /**
-     * On param state change
-     */
-    useEffect(() => {
-        //WorkingProject.setParams(params, true)
-    }, [params])
-
-    /**
      * Status panel periodic update
      */
     useEffect(() => {
@@ -178,15 +127,6 @@ const Create = () => {
         // return () => clearInterval(id)
     },[])
 
-    /**
-     * Local storage param loading
-     */
-    useEffect(() => {
-        let params = window.localStorage.getItem('params')
-        if (params) 
-            setParams(JSON.parse(params))
-    }, [])
-    
 
     return (
         <Scaffold>

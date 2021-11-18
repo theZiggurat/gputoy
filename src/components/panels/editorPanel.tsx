@@ -228,7 +228,7 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
     )
 }
 
-export const useEditor = (): EditorProps => {
+export const useEditorPanel = (): EditorProps => {
 
     const [files, setFiles] = React.useState<CodeFile[]>(() =>{
         return [{filename: 'test', file: 'aaa', lang: 'wgsl'}]

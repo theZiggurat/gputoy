@@ -196,7 +196,7 @@ class Project {
     ], GPU.device) || this.shaderDirty
   }
 
-  setParams = (params: ParamDesc[], _updateDesc: boolean) => {
+  setParams = (params: ParamDesc[]) => {
     let updateDesc = this.params.set(params, GPU.device)
     if (updateDesc) {
       this.shaderDirty = true

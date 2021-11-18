@@ -58,7 +58,7 @@ const ViewportPanel: React.FC<CanvasProps> = (props: CanvasProps) => {
 
     const { width, height, ref } = useResizeDetector({
         refreshMode: "debounce",
-        refreshRate: 10,
+        refreshRate: 100,
         onResize: onResize,
         refreshOptions: {
             leading: true,

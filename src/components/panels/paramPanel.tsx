@@ -29,6 +29,7 @@ import {FaMinus} from 'react-icons/fa'
 import { HexColorPicker } from "react-colorful";
 import {ParamType, ParamDesc, encode, decode} from '../../gpu/params'
 import Panel, { PanelBar, PanelContent } from './panel';
+import WorkingProject from '../../gpu/project';
 
 
 interface TableRowProps {
@@ -167,9 +168,10 @@ const TableRow = (props: TableRowProps) => {
 }
 
 interface ParamPanelProps {
-  setParamAtIndex: (p: ParamDesc, idx: number, changedType: boolean) => void,
-  deleteParam: (idx: number) => void,
-  params: ParamDesc[],
+    params: ParamDesc[],
+    addParam: () => void,
+    deleteParam: (idx: number) => void,
+    setParamAtIndex: (p: ParamDesc, idx: number, changedType: boolean) => void,
 }
 
 const ParamPanel: React.FC<ParamPanelProps> = (props: ParamPanelProps) => {
@@ -214,5 +216,61 @@ const ParamPanel: React.FC<ParamPanelProps> = (props: ParamPanelProps) => {
     
   )
 }
-
 export default ParamPanel
+
+export const useParamsPanel = (): ParamPanelProps => {
+    const [params, setParams] = React.useState<ParamDesc[]>([])
+
+    useEffect(() => {
+        WorkingProject.setParams(params)
+    }, [params])
+
+    useEffect(() => {
+        let params = window.localStorage.getItem('params')
+        if (params) 
+            setParams(JSON.parse(params))
+    }, [])
+
+    const addParam = () => {
+        setParams(oldParams => {
+            let newParams = [...oldParams]
+            newParams.push({
+                paramName: `param${newParams.length}`,
+                paramType: 'int',
+                param: [0]
+            })
+            window.localStorage.setItem('params', JSON.stringify(newParams))
+            return newParams
+        })
+        
+    }
+
+    const deleteParam = (idx: number) => {
+        setParams(oldParams => {
+            let newParams = [...oldParams]
+            newParams.splice(idx, 1)
+            window.localStorage.setItem('params', JSON.stringify(newParams))
+            return newParams
+        })
+    }
+
+    const setParamAtIndex = (p: ParamDesc, idx: number, changedType: boolean) => {
+
+        if (changedType) {
+            if (p.paramType === 'color') {
+                p.param = [1, 0, 0]
+            } else {
+                p.param = [0]
+            }
+        }
+
+        setParams(oldParams => {
+            let newParams = [...oldParams]
+            newParams[idx] = p
+            window.localStorage.setItem('params', JSON.stringify(newParams))
+            return newParams
+        })
+    }
+
+    return { params, addParam, deleteParam, setParamAtIndex }
+}
