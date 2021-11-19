@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { 
     IconButton, 
     Input, 
@@ -14,39 +14,45 @@ import {
     PopoverContent,
     PopoverBody,
     PopoverArrow,
+    Flex,
+    Text,
+    Box,
+    Grid,
+    GridItem,
+    InputGroup,
+    InputLeftElement,
+    InputRightElement,
+    Select
 } from '@chakra-ui/react'
 
-import {
-    Table,
-    Thead,
-    Tbody,
-    Tr,
-    Th,
-    Td,
-    Select,
-  } from "@chakra-ui/react"
-import {FaMinus} from 'react-icons/fa'
+import {FaMinus, FaSearch} from 'react-icons/fa'
 import { HexColorPicker } from "react-colorful";
 import {ParamType, ParamDesc, encode, decode} from '../../gpu/params'
-import Panel, { PanelBar, PanelContent } from './panel';
-import WorkingProject from '../../gpu/project';
+import Panel, { PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from './panel'
+import WorkingProject from '../../gpu/project'
+import useHorizontalScroll from '../../utils/scrollHook'
+import { CloseIcon } from '@chakra-ui/icons'
+import { MdAdd, MdSettings } from 'react-icons/md'
+import { Set } from 'immutable'
+import { useDebounce } from '../../utils/lodashHooks'
+import RowButton from '../reusable/rowButton';
 
+const gridSpacing = [12, 8, 12, 2]
+const totalGridSpace = 35
 
-interface TableRowProps {
+interface ParamRowProps {
     idx: number
     paramName?: string
     paramType: ParamType
     param: string
-    onParamNameChange: (name: string) => void
-    onParamTypeChange: (type: ParamType) => void
+    onParamNameChange: (idx: number, name: string) => void
+    onParamTypeChange: (idx: number, type: ParamType) => void
     onParamChange: (param: string) => void
     onParamDelete: (idx: number) => void
+    isInvalid: boolean
 }
 
-const TableRow = (props: TableRowProps) => {
-
-    const [max, setMax] = React.useState(100)
-    const [min, setMin] = React.useState(0)
+const ParamRow = (props: ParamRowProps) => {
 
     let paramInput = null;
 
@@ -58,16 +64,15 @@ const TableRow = (props: TableRowProps) => {
         >
             <PopoverTrigger>
                 <Button 
-                    bgGradient={`linear(to-r, rgba(0,0,0,0) 30%, ${props.param})`} 
                     width='100%' 
                     height='2rem' 
-                    borderRadius='sm' 
                     justify='flex-end'
                     alignItems='center'
-                    //border={`${useColorModeValue('#EDF2F7', '#232934')} 5px solid`}
                     cursor='pointer'
+                    borderRadius={0}
+                    background='whiteAlpha.50'
                 >
-                    <Input cursor='pointer' isInvalid variant='unstyled' value={props.param} textTransform='uppercase'></Input>
+                    <Input color={props.param} bg="transparent" cursor='pointer' isInvalid variant='unstyled' value={props.param} textTransform='uppercase'></Input>
                 </Button>
             </PopoverTrigger>
             <Portal>
@@ -89,15 +94,14 @@ const TableRow = (props: TableRowProps) => {
         <NumberInput
             value={props.param}
             onChange={(str, num) => props.onParamChange(str)}
-            min={min}
-            max={max}
-            step={props.paramType === 'int' ? 1: (max - min)/100.0}
+            step={props.paramType === 'int' ? 1: 0.05}
             size="sm"
             variant="filled"
             keepWithinRange={false}
             precision={props.paramType==='int'?0:4}
             clampValueOnBlur={false}
             allowMouseWheel
+            borderRadius={0}
         >
             <NumberInputField />
             <NumberInputStepper>
@@ -107,64 +111,47 @@ const TableRow = (props: TableRowProps) => {
         </NumberInput>
     }
 
-    return (<Tr>
-        <Td w="25%">
+    return (
+    <Grid templateColumns={`repeat(${totalGridSpace}, 1fr)`} bg="gray.800" mt={1} mb={1}>
+        <GridItem colSpan={1} bgColor="whiteAlpha.200"/>
+        <GridItem colSpan={gridSpacing[0]}>
             <Input 
                 value={props.paramName}
-                onChange={(ev) => props.onParamNameChange(ev.target.value)}
+                onChange={(ev) => props.onParamNameChange(props.idx, ev.target.value)}
                 variant="filled" 
                 size="sm" 
                 placeholder="variableName" 
+                borderRadius={0}
+                isInvalid={props.isInvalid}
             />
-        </Td>
-        <Td w="20%">
+        </GridItem>
+        <GridItem colSpan={gridSpacing[1]}>
             <Select 
                 value={props.paramType}
-                onChange={(ev) => props.onParamTypeChange(ev.target.value as ParamType)}
+                onChange={(ev) => props.onParamTypeChange(props.idx, ev.target.value as ParamType)}
                 variant="filled" 
-                size="sm" 
+                size="sm"
+                borderRadius={0}
             >
                 <option value="int">Integer</option>
                 <option value="float">Float</option>
                 <option value="color">Color</option>
             </Select>
-        </Td>
-        <Td w="25%">
+        </GridItem>
+        <GridItem colSpan={gridSpacing[2]}>
             {paramInput}
-        </Td>
-        <Td w="5%">
-            <Input
-                value={min}
-                onChange={(ev) => setMin(Number(ev.target.value))}
-                size="sm"
-                variant="filled"
-                type="number"
-                disabled={props.paramType=='color'}
-                readOnly={props.paramType=='color'}
-            />
-        </Td>
-        <Td w="5%">
-            <Input
-                value={max}
-                onChange={(ev) => setMax(Number(ev.target.value))}
-                size="sm"
-                variant="filled"
-                type="number"
-                disabled={props.paramType=='color'}
-                readOnly={props.paramType=='color'}
-            />
-        </Td>
-        <Td w='2%'>
+        </GridItem>
+        <GridItem colSpan={gridSpacing[3]}>
             <IconButton
                 onClick={() => props.onParamDelete(props.idx)}
-                size='xs'
-                variant='unstyled'
+                size='sm'
                 aria-label="Remove"
-                icon={<FaMinus/>}
+                icon={<FaMinus size={10}/>}
+                borderRadius={0}
+                borderEndRadius={500}
             />
-        </Td>
-        
-    </Tr>)
+        </GridItem>
+    </Grid>)
 }
 
 interface ParamPanelProps {
@@ -175,45 +162,103 @@ interface ParamPanelProps {
 }
 
 const ParamPanel: React.FC<ParamPanelProps> = (props: ParamPanelProps) => {
+    
+    const { params, addParam, deleteParam, setParamAtIndex, ...panelProps } = props
+
+    const [keywordFilter, setKeywordFilter] = React.useState('')
+    const [nameErrors, setNameErrors] = React.useState<boolean[]>([])
+
+    const onHandleParamNameChange = (idx: number, paramName: string) => 
+        props.setParamAtIndex({...params[idx], paramName}, idx, false)
+
+    const onHandleParamTypeChange = (idx: number, paramType: ParamType) => 
+        props.setParamAtIndex({...params[idx], paramType}, idx, true)
+
+    useDebounce(() => setNameErrors(params.map(p => !(/^[a-z0-9]+$/i.test(p.paramName)))), 1000, [params])
+    
   return (
-    <Panel {...props}>
+    <Panel {...panelProps}>
         <PanelContent>
-        <Table variant="simple" overflowY="auto" maxHeight="100%" size={'sm'}>
-            <Thead>
-                <Tr>
-                    <Th>Variable name</Th>
-                    <Th>Type</Th>
-                    <Th>Value</Th>
-                    <Th>Min</Th>
-                    <Th>Max</Th>
-                    <Th></Th>
-                </Tr>
-            </Thead>
-            <Tbody>
-            {
-                props.params.map((p: ParamDesc, idx: number) => 
-                    <TableRow
-                        key={idx}
-                        idx={idx}
-                        param={encode(p.param, p.paramType)}
-                        paramType={p.paramType}
-                        paramName={p.paramName}
-                        onParamChange={(val: string) => props.setParamAtIndex({...p, param: decode(val, p.paramType)}, idx, false)}
-                        onParamNameChange={(paramName: string) => props.setParamAtIndex({...p, paramName}, idx, false)}
-                        onParamTypeChange={(paramType: ParamType) => props.setParamAtIndex({...p, paramType}, idx, true)}
-                        onParamDelete={props.deleteParam}
-                    />
-                )
-            }
-            </Tbody>
-        </Table>
+            <Flex direction="column" minWidth={500}>
+                <Grid 
+                    templateColumns={`repeat(${totalGridSpace}, 1fr)`} 
+                    bgColor="gray.800"
+                    position="sticky" 
+                    top={0} 
+                    borderBottom="1px" 
+                    borderColor="whiteAlpha.100" 
+                    pr={5}
+                    pt={1}
+                    zIndex={20}
+                >
+                    <GridItem colSpan={1}/>
+                    <GridItem colSpan={gridSpacing[0]} pl={3}  fontSize="smaller" backgroundColor="gray.800">
+                        Name
+                    </GridItem>
+                    <GridItem colSpan={gridSpacing[1]} pl={3}  fontSize="smaller" bgColor="gray.800">
+                        Type
+                    </GridItem>
+                    <GridItem colSpan={gridSpacing[2]} pl={3}  fontSize="smaller" bgColor="gray.800">
+                        Value
+                    </GridItem>
+                    <GridItem colSpan={gridSpacing[3]} bgColor="gray.800"/>
+                </Grid>
+                <Flex flex="1 0 auto" direction="column" mt="1" pr={5}>
+                {
+                    params.map((p, idx) => 
+                        p.paramName.match(new RegExp(keywordFilter, 'i')) &&
+                        <ParamRow
+                            key={idx}
+                            idx={idx}
+                            param={encode(p.param, p.paramType)}
+                            paramType={p.paramType}
+                            paramName={p.paramName}
+                            onParamChange={(val: string) => props.setParamAtIndex({...p, param: decode(val, p.paramType)}, idx, false)}
+                            onParamNameChange={onHandleParamNameChange}
+                            onParamTypeChange={onHandleParamTypeChange}
+                            onParamDelete={props.deleteParam}
+                            isInvalid={nameErrors[idx]}
+                        />
+                    )
+                }
+                </Flex>
+            </Flex>
         </PanelContent>
         <PanelBar>
-
+            <PanelBarMiddle>
+                <InputGroup size="sm" variant="filled" maxWidth="500" minWidth="100" >
+                    <InputLeftElement
+                        children={<FaSearch/>}
+                    />
+                    <Input
+                        borderRadius="lg"
+                        value={keywordFilter}
+                        onChange={ev => setKeywordFilter(ev.target.value)}
+                    />
+                {
+                    keywordFilter.length > 0 &&
+                    <InputRightElement
+                        children={<CloseIcon size="sm"/>}
+                        onClick={() => setKeywordFilter('')}
+                    />
+                }
+                </InputGroup>
+            </PanelBarMiddle>
+            <PanelBarEnd>
+                <RowButton
+                    purpose="Add param"
+                    onClick={addParam}
+                    icon={<MdAdd size={17}/>}
+                    first
+                />
+                <RowButton
+                    purpose="Options"
+                    icon={<MdSettings size={17}/>}
+                    last
+                />
+            </PanelBarEnd>
         </PanelBar>
     </Panel>
-    
-    
   )
 }
 export default ParamPanel

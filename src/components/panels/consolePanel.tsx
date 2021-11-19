@@ -19,8 +19,10 @@ import {
 import {FaRegClipboard, FaRegTrashAlt, FaSearch} from 'react-icons/fa'
 import {CloseIcon} from '@chakra-ui/icons'
 import Console, {Message, MessageType} from '../../gpu/console'
+import { RowButton, RowToggleButton} from '../reusable/rowButton';
 
 import Panel, { PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd } from './panel';
+import { MdSettings } from 'react-icons/md';
 
 const colors = [
   "green",
@@ -41,22 +43,23 @@ const formatTime = (date: Date) => `${f(date.getHours())}:${f(date.getMinutes())
 
 const LogLevelCheckboxes = (props: {filters: boolean[], toggle: (idx: number, val: boolean) => void}) => (
   <>
-    <Checkbox  ml={3} aria-label="Trace" title="Trace" size="sm"
+    
+    {/* <RowToggleButton  ml={3} aria-label="Trace" title="Trace" size="sm"
       isChecked={props.filters[0]}
       onChange={ev => props.toggle(0, ev.target.checked)}
-    > Trace </Checkbox>
-    <Checkbox ml={3} value="Log" aria-label="Log" title="Log" size="sm"
+    > Trace </RowToggleButton>
+    <RowToggleButton ml={3} value="Log" aria-label="Log" title="Log" size="sm"
       isChecked={props.filters[1]}
       onChange={ev => props.toggle(1, ev.target.checked)}
-    > Log </Checkbox>
-    <Checkbox  ml={3} value="Error" aria-label="Error" title="Error" size="sm"
+    > Log </RowToggleButton>
+    <RowToggleButton  ml={3} value="Error" aria-label="Error" title="Error" size="sm"
       isChecked={props.filters[2]}
       onChange={ev => props.toggle(2, ev.target.checked)}
-    > Error</Checkbox>
-    <Checkbox ml={3} value="Fatal" aria-label="Fatal" title="Fatal" size="sm"
+    > Error</RowToggleButton>
+    <RowToggleButton ml={3} value="Fatal" aria-label="Fatal" title="Fatal" size="sm"
       isChecked={props.filters[3]}
       onChange={ev => props.toggle(3, ev.target.checked)}
-    > Fatal </Checkbox>
+    > Fatal </RowToggleButton> */}
   </>
 )
 
@@ -95,9 +98,9 @@ const ConsolePanel: React.FC<{}> = (props: any) => {
         }
     )}, [text])
 
-  const toggle = (idx: number, val: boolean) => setTypeFilters(old => {
+  const toggle = (idx: number) => setTypeFilters(old => {
     var filters = [...old]
-    filters[idx] = val
+    filters[idx] = !old[idx]
     Console.setTypeFilter(filters)
     return filters
   })
@@ -125,7 +128,7 @@ const ConsolePanel: React.FC<{}> = (props: any) => {
         {text.map((message: Message, idx) => 
             <Box 
               key={idx}
-              backgroundColor={idx%2==0?'':'blackAlpha.100'}
+              //backgroundColor={idx%2==0?'':'blackAlpha.100'}
               p={1} 
               flex="0 0 auto" 
               whiteSpace="pre-wrap"
@@ -146,12 +149,13 @@ const ConsolePanel: React.FC<{}> = (props: any) => {
       <PanelBar>
         {/* search & type filters */}
         <PanelBarMiddle>
-          <InputGroup ml={2} size="sm" variant="filled" maxWidth="500" minWidth="100" >
+          <InputGroup size="sm" variant="filled" maxWidth="500" minWidth="100">
             <InputLeftElement
               children={<FaSearch/>}
             />
             <Input
-              borderRadius="lg"
+              borderEndRadius="0"
+              borderRadius="md"
               value={keywordFilter}
               onChange={ev => setKeywordFilter(ev.target.value)}
             />
@@ -163,31 +167,42 @@ const ConsolePanel: React.FC<{}> = (props: any) => {
               />
             }
           </InputGroup>
-          <LogLevelCheckboxes filters={typeFilters} toggle={toggle}/>
+          {/* <LogLevelCheckboxes filters={typeFilters} toggle={toggle}/> */}
+          <RowToggleButton text="Trace" toggled={typeFilters[0]} onClick={() => toggle(0)}/>
+          <RowToggleButton text="Log"   toggled={typeFilters[1]} onClick={() => toggle(1)}/>
+          <RowToggleButton text="Error" toggled={typeFilters[2]} onClick={() => toggle(2)}/>
+          <RowToggleButton text="Fatal" toggled={typeFilters[3]} onClick={() => toggle(3)} last/>
         </PanelBarMiddle>
 
         {/* utility buttons */}
         <PanelBarEnd>
-          <Checkbox mr={4} size="sm"
+          {/* <Checkbox mr={4} size="sm"
             isChecked={autoscroll}
             onChange={e => setAutoscroll(e.target.checked)}
           >
             Autoscroll
-          </Checkbox>
-          <Button mr={2} variant="solid" size="sm" fontWeight="hairline"
-            leftIcon={<FaRegClipboard/>}
+          </Checkbox> */}
+          <RowButton
+            purpose="Copy console to clipboard"
+            size="sm" 
+            icon={<FaRegClipboard/>}
             onClick={() => writeToClipboard()}
             disabled={text.length == 0}
-          >
-            Copy
-          </Button>
-          <Button mr={2} variant="solid" size="sm" fontWeight="hairline"
-            leftIcon={<FaRegTrashAlt/>}
+            first
+          />
+          <RowButton 
+            purpose="Clear console"
+            size="sm" 
+            icon={<FaRegTrashAlt/>}
             onClick={() => Console.clear()}
             disabled={text.length == 0}
-          >
-            Clear
-          </Button>
+          />
+          <RowButton 
+            purpose="Console Settings"
+            size="sm" 
+            icon={<MdSettings/>}
+            last
+          />
         </PanelBarEnd>
       </PanelBar>
     </Panel>

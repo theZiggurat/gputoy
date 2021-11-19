@@ -227,10 +227,10 @@ class Project {
   }
 
   compileShaders = (): boolean => {
-    this.shaderSrc = this.included.getShaderDecl()
-      .concat(this.vertexDecl)
-      .concat(this.params.getShaderDecl())
-      .concat(this.userSrc)
+    // this.shaderSrc = this.included.getShaderDecl()
+    //   .concat(this.vertexDecl)
+    //   .concat(this.params.getShaderDecl())
+    //   .concat(this.userSrc)
 
     let src = this.included.getShaderDecl().concat(this.params.getShaderDecl()).concat(this.vertexDecl).concat(`
     [[stage(fragment)]]

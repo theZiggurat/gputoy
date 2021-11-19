@@ -32,6 +32,7 @@ export const PanelContent = (props: PanelContentProps) => {
     <Box 
       flex="1 1 auto"
       overflowY="auto"
+      overflowX="clip"
       {...contentProps}
     >
       {props.children}
@@ -102,15 +103,15 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
 export const PanelBarMiddle = (props: {children: ReactElement} | any) => {
   const {children, ...flexprops} = props
   return (
-    <Flex dir="row" flex="0 0 auto" justifyContent="center" {...flexprops}>
+    <Flex dir="row" flex="0 0 auto" justifyContent="center" {...flexprops} pr={1} pl={1}>
       {props.children}
     </Flex>
   )
 }
 
-export const PanelBarEnd = (props: {children: ReactElement}) => {
+export const PanelBarEnd = (props: {children: ReactElement[]}) => {
   return (
-    <Flex dir="row" flex="1 0 auto" justifyContent="end" mr={2} ml={2}>
+    <Flex dir="row" flex="1 0 auto" justifyContent="end">
       {props.children}
     </Flex>
   )
@@ -147,24 +148,13 @@ export const PanelBar = (props: PanelBarProps) => {
         flex="0 0 auto"
         justify="space-between"
         overflowX="hidden"
-        pt={1}
-        pb={1}
+        p={1}
         ref={scrollRef}
         {...barProps}
       >
-        <Flex dir="row" flex="1 0 auto" ml={2} mr={2} >
-          <IconButton
-            aria-label="Swap bar position"
-            size="sm"
-            icon={location == 'top' ? <RiArrowDropDownLine size={20}/>: <RiArrowDropUpLine size={20}/>}
-            onClick={onChangeLocation}
-            borderStartRadius="25%"
-            borderEndRadius="0%"
-            borderRight="1px"
-            borderColor="blackAlpha.300"
-          />
+        <Flex dir="row" flex="1 0 auto">
           <Popover 
-            //computePositionOnMount 
+            isLazy
             placement='top-start'
             gutter={0}
             boundary={props.clippingBoundary}
@@ -178,15 +168,18 @@ export const PanelBar = (props: PanelBarProps) => {
             ]}
           >
             <PopoverTrigger>
-              <IconButton 
+              <Button 
                 size="sm"
-                icon={props.panelDesc[props.panelIndex].icon} 
+                width={12}
+                pl={0}
+                pr={1}
+                leftIcon={<RiArrowDropUpLine size={15}/>}
+                rightIcon={props.panelDesc[props.panelIndex].icon} 
+                iconSpacing={0}
                 variant="solid"  
                 aria-label="Choose panel"
                 title="Choose panel"
-                borderRadius="0"
-                borderRight="1px"
-                borderColor="blackAlpha.300"
+                borderEndRadius="0"
               />
             </PopoverTrigger>
             <Portal>
@@ -265,7 +258,7 @@ const Panel = (props: PanelProps) => {
     >
       {
         React.Children.map(props.children, (elem: ReactElement<any>) => {
-        if (elem.type === PanelBar)
+        //if (elem.type === PanelBar)
           return React.cloneElement(elem, {
             location: barLocation, 
             onChangeLocation: onChangeLocation,
@@ -277,8 +270,8 @@ const Panel = (props: PanelProps) => {
             panelIndex: props.panelIndex,
             clippingBoundary: bounds.current
           })
-        else
-          return elem
+        //else
+          //return elem
       })}
     </Flex>
   )
