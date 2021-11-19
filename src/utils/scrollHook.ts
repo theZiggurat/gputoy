@@ -6,12 +6,10 @@ const useHorizontalScroll = (prevent: boolean = false): MutableRefObject<HTMLDiv
   useEffect(() => {
     
     const el = elRef.current
-    console.log(el)
     if (el) {
       const onWheel = (e: WheelEvent) => {
         if (!e || prevent) return;
         e.preventDefault()
-        console.log(el.scrollLeft)
         el.scrollTo({
           left: el.scrollLeft + e.deltaY,
           behavior: "smooth"

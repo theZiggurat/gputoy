@@ -35,7 +35,7 @@ import { CloseIcon } from '@chakra-ui/icons'
 import { MdAdd, MdSettings } from 'react-icons/md'
 import { Set } from 'immutable'
 import { useDebounce } from '../../utils/lodashHooks'
-import RowButton from '../reusable/rowButton';
+import { RowButton } from '../reusable/rowButton';
 
 const gridSpacing = [12, 8, 12, 2]
 const totalGridSpace = 35

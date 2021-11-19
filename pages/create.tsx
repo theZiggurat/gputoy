@@ -86,7 +86,7 @@ const Create = () => {
         }
     ]
 
-    const [panelTree, dynPropTable, panelProps] = usePanels(panelDesc, {
+    const [panelTree, panelProps] = usePanels(panelDesc, {
         type: 'vertical',
         left: {
             type: 'horizontal',
@@ -131,7 +131,7 @@ const Create = () => {
     return (
         <Scaffold>
         {
-            panelTree.render(panelDesc, dynPropTable, {...panelProps, panelDesc})
+            panelTree.render(panelDesc, {...panelProps, panelDesc})
         }
         </Scaffold>
     )
