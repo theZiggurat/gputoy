@@ -27,15 +27,16 @@ import {
 
 import {FaMinus, FaSearch} from 'react-icons/fa'
 import { HexColorPicker } from "react-colorful";
-import {ParamType, ParamDesc, encode, decode} from '../../gpu/params'
-import Panel, { PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from './panel'
-import WorkingProject from '../../gpu/project'
-import useHorizontalScroll from '../../utils/scrollHook'
+import {ParamType, ParamDesc, encode, decode} from '../../../gpu/params'
+import Panel, { PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel'
+import WorkingProject from '../../../gpu/project'
 import { CloseIcon } from '@chakra-ui/icons'
 import { MdAdd, MdSettings } from 'react-icons/md'
-import { Set } from 'immutable'
-import { useDebounce } from '../../utils/lodashHooks'
-import { RowButton } from '../reusable/rowButton';
+import { useDebounce } from '../../../utils/lodashHooks'
+import { RowButton } from '../../reusable/rowButton';
+import useInstance, { ParamInstanceState } from '../instance';
+import { useSetRecoilState } from 'recoil';
+import { layoutState } from '../../../recoil/atoms';
 
 const gridSpacing = [12, 8, 12, 2]
 const totalGridSpace = 35
@@ -163,10 +164,14 @@ interface ParamPanelProps {
 
 const ParamPanel: React.FC<ParamPanelProps> = (props: ParamPanelProps) => {
     
+    const setf = useSetRecoilState(layoutState)
+
     const { params, addParam, deleteParam, setParamAtIndex, ...panelProps } = props
 
-    const [keywordFilter, setKeywordFilter] = React.useState('')
-    const [nameErrors, setNameErrors] = React.useState<boolean[]>([])
+    const [instanceState, setInstanceState] = useInstance<ParamInstanceState>(props)
+
+    const setKeywordFilter = (filter: string) => setInstanceState({...instanceState, keywordFilter: filter})
+    const setNameErrors = (errors: boolean[]) => setInstanceState({...instanceState, nameErrors: errors})
 
     const onHandleParamNameChange = (idx: number, paramName: string) => 
         props.setParamAtIndex({...params[idx], paramName}, idx, false)
@@ -206,7 +211,7 @@ const ParamPanel: React.FC<ParamPanelProps> = (props: ParamPanelProps) => {
                 <Flex flex="1 0 auto" direction="column" mt="1" pr={5}>
                 {
                     params.map((p, idx) => 
-                        p.paramName.match(new RegExp(keywordFilter, 'i')) &&
+                        p.paramName.match(new RegExp(instanceState.keywordFilter, 'i')) &&
                         <ParamRow
                             key={idx}
                             idx={idx}
@@ -217,7 +222,7 @@ const ParamPanel: React.FC<ParamPanelProps> = (props: ParamPanelProps) => {
                             onParamNameChange={onHandleParamNameChange}
                             onParamTypeChange={onHandleParamTypeChange}
                             onParamDelete={props.deleteParam}
-                            isInvalid={nameErrors[idx]}
+                            isInvalid={instanceState.nameErrors[idx]}
                         />
                     )
                 }
@@ -232,11 +237,11 @@ const ParamPanel: React.FC<ParamPanelProps> = (props: ParamPanelProps) => {
                     />
                     <Input
                         borderRadius="lg"
-                        value={keywordFilter}
+                        value={instanceState.keywordFilter}
                         onChange={ev => setKeywordFilter(ev.target.value)}
                     />
                 {
-                    keywordFilter.length > 0 &&
+                    instanceState.keywordFilter.length > 0 &&
                     <InputRightElement
                         children={<CloseIcon size="sm"/>}
                         onClick={() => setKeywordFilter('')}
@@ -255,6 +260,7 @@ const ParamPanel: React.FC<ParamPanelProps> = (props: ParamPanelProps) => {
                     purpose="Options"
                     icon={<MdSettings size={17}/>}
                     last
+                    onClick={() => setf({})}
                 />
             </PanelBarEnd>
         </PanelBar>

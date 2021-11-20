@@ -1,23 +1,16 @@
-import React, { useEffect } from 'react'
-import { 
-    chakra, 
-    Box,
-    Button,
-} from '@chakra-ui/react'
+import React, { useEffect, useState } from 'react'
 
 import Scaffold from '../src/components/scaffold'
-import SplitPane from 'react-split-pane'
 
-import ViewportPanel from '../src/components/panels/viewPanel'
-import ParamPanel, { useParamsPanel } from '../src/components/panels/paramPanel'
-import ConsolePanel from '../src/components/panels/consolePanel'
-import EditorPanel, { useEditorPanel } from '../src/components/panels/editorPanel'
+import ViewportPanel from '../src/components/panels/impls/viewPanel'
+import ParamPanel, { useParamsPanel } from '../src/components/panels/impls/paramPanel'
+import ConsolePanel from '../src/components/panels/impls/consolePanel'
+import EditorPanel, { useEditorPanel } from '../src/components/panels/impls/editorPanel'
 
 import WorkingProject from '../src/gpu/project'
-import {ParamDesc} from '../src/gpu/params'
 import { FaBorderNone } from 'react-icons/fa'
 import { BsFillFileEarmarkCodeFill, BsFillFileSpreadsheetFill, BsTerminalFill } from 'react-icons/bs'
-import usePanels, {PanelDescriptor} from '../src/components/panels/panelHook'
+import {Panels, usePanels, PanelDescriptor } from '../src/components/panels/panelHook'
 
 
 export interface ProjectStatus {
@@ -27,13 +20,6 @@ export interface ProjectStatus {
 }
 
 const Create = () => {
-
-    const [ready, setReady] = React.useState(false)
-    const [dirty, setDirty] = React.useState(true)
-
-
-    const [editedTab, setEditedTab] = React.useState(-1)
-
     
     const [projectStatus, setProjectStatus] = React.useState<ProjectStatus>({
         gpustatus: "",
@@ -58,7 +44,6 @@ const Create = () => {
                 onRequestStop: WorkingProject.stop,
                 projectStatus: projectStatus,
             },
-            defaultDynProps: {}
         },
         {
             index: 1, 
@@ -66,7 +51,6 @@ const Create = () => {
             icon: <BsFillFileSpreadsheetFill/>, 
             component: ParamPanel, 
             staticProps: paramProps,
-            defaultDynProps: {}
         },
         {
             index: 2, 
@@ -74,7 +58,6 @@ const Create = () => {
             icon: <BsFillFileEarmarkCodeFill/>, 
             component: EditorPanel, 
             staticProps: editorProps,
-            defaultDynProps: {workspace: [], currentFile: -1}
         },
         {
             index: 3, 
@@ -82,28 +65,10 @@ const Create = () => {
             icon: <BsTerminalFill/>, 
             component: ConsolePanel, 
             staticProps: {},
-            defaultDynProps: {}
         }
     ]
-
-    const [panelTree, panelProps] = usePanels(panelDesc, {
-        type: 'vertical',
-        left: {
-            type: 'horizontal',
-            left: {
-                type: 'leaf',
-                index: 0
-            },
-            right: {
-                type: 'leaf',
-                index: 3
-            }
-        },
-        right: {
-            type: 'leaf',
-            index: 2
-        }
-    })
+    
+    const props = usePanels()
 
     /**
      * Status panel periodic update
@@ -127,14 +92,11 @@ const Create = () => {
         // return () => clearInterval(id)
     },[])
 
-
     return (
         <Scaffold>
-        {
-            panelTree.render(panelDesc, {...panelProps, panelDesc})
-        }
+            <Panels {...props} descriptors={panelDesc}/>
         </Scaffold>
     )
 }
 
-export default Create;
+export default Create

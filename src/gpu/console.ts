@@ -17,9 +17,6 @@ class _Console {
   private buffer: Message[] = []
   private onMessage: () => void = () => {}
 
-  private keywordFilter: string = ""
-  private typeFilter: boolean[] = [true, true, true, true]
-
 
   constructor() {
 
@@ -70,15 +67,13 @@ class _Console {
     this.onMessage()
   }
 
-  getFiltered = (): Message[] => this.buffer.filter(line => 
-    this.typeFilter[line.type] && (
-      line.header.match(new RegExp(this.keywordFilter, 'i')) || 
-      line.body.match(new RegExp(this.keywordFilter, 'i')))
+  getFiltered = (typeFilter: boolean[], keywordFilter: string): Message[] => this.buffer.filter(line => 
+    typeFilter[line.type] && (
+      line.header.match(new RegExp(keywordFilter, 'i')) || 
+      line.body.match(new RegExp(keywordFilter, 'i')))
   )
   getBuffer = (): Message[] => this.buffer
   setOnMessage = (onMsg: () => void) => this.onMessage = onMsg
-  setKeywordFilter = (filter: string) => this.keywordFilter = filter
-  setTypeFilter = (filter: boolean[]) => this.typeFilter = filter
 
 }
 

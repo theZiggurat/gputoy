@@ -23,6 +23,8 @@ import { useRouter } from 'next/router';
 import { MdNightlight, MdWbSunny} from 'react-icons/md'
 
 import dynamic from 'next/dynamic'
+import { useResetRecoilState } from 'recoil';
+import { layoutState } from '../recoil/atoms';
 
 //const MenuButton = dynamic(() => import('@chakra-ui/menu'), {ssr: false})
 
@@ -56,6 +58,10 @@ export default function Nav() {
   const router = useRouter();
   const isActive = router.pathname == '/'; 
 
+  const resetLayout = useResetRecoilState(layoutState)
+
+  const onReset = () => resetLayout()
+
   return (
       <Box bg={useColorModeValue('gray.200', 'gray.900')} px={4} flex="0 0 auto" shadow="inner">
         <Flex h={16} alignItems={'center'} justifyContent='space-between' >
@@ -72,6 +78,7 @@ export default function Nav() {
             <NavLink href="/browse" text="Browse" currentPath={router.pathname}/>
             <NavLink href="/create" text="Create" currentPath={router.pathname}/>
             <NavLink href="/projects" text="Projects" currentPath={router.pathname}/>
+            <Button onClick={onReset}>Reset</Button>
           </HStack>
         
           <Flex alignItems={'center'}>

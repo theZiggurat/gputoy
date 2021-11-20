@@ -10,10 +10,12 @@ import {
 } from '@chakra-ui/react';
 import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
 
-import WorkingProject from '../../gpu/project';
-import { ProjectStatus } from '../../../pages/create';
-import Panel, {PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd} from './panel'
+import WorkingProject from '../../../gpu/project';
+import { ProjectStatus } from '../../../../pages/create';
+import Panel, {PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd, DynamicPanelProps} from '../panel'
 import { useResizeDetector } from 'react-resize-detector'
+import { RowButton } from '../../reusable/rowButton';
+import { MdSettings } from 'react-icons/md';
 
 
 interface CanvasProps {
@@ -23,21 +25,26 @@ interface CanvasProps {
     projectStatus: ProjectStatus,
 }
 
-const StatusInfo = (props: {text: string, textColor?: string}) => (
+const StatusInfo = (props: {text: string, textColor?: string, first?: boolean, last?: boolean}) => (
     <Center 
         p={1.5}
-        mr={3} 
         backgroundColor={useColorModeValue('gray.100', 'whiteAlpha.200')} 
         fontFamily='"Fira code", "Fira Mono", monospace'
-        borderRadius={2}
         userSelect="none"
+        borderRadius="md"
+        borderStartRadius={props.first?"":"0"}
+        borderEndRadius={props.last?"":"0"}
+        borderLeft={props.first?"0px":"1px"}
+        borderColor="blackAlpha.300"
     >
         <Text pl={2} pr={2} fontSize={12} color={props.textColor}>{props.text}</Text>
     </Center>
 )
 
 
-const ViewportPanel: React.FC<CanvasProps> = (props: CanvasProps) => {
+const ViewportPanel: React.FC<CanvasProps & DynamicPanelProps> = (allprops: CanvasProps & DynamicPanelProps) => {
+
+    const {onRequestStart, onRequestPause, onRequestStop, projectStatus, instanceID, ...props} = allprops
 
     const [showResolution, setShowResolution] = React.useState(false)
     const [ready, setReady] = React.useState(false)
@@ -95,26 +102,27 @@ const ViewportPanel: React.FC<CanvasProps> = (props: CanvasProps) => {
             </PanelContent>
             <PanelBar>
                 <PanelBarMiddle>
-                    <StatusInfo text={`FPS: ${props.projectStatus.fps}`}/>
-                    <StatusInfo text={`Duration: ${props.projectStatus.time}s`}/>
-                    <StatusInfo text={`Status: ${props.projectStatus.gpustatus}`}/>
+                    <StatusInfo text={`FPS: ${projectStatus.fps}`} first/>
+                    <StatusInfo text={`Duration: ${projectStatus.time}s`}/>
+                    <StatusInfo text={`Status: ${projectStatus.gpustatus}`} last/>
                 </PanelBarMiddle>
                 <PanelBarEnd>
-                    <IconButton 
-                        size="sm"
-                        aria-label="Play"
-                        marginRight={3}
+                    <RowButton 
+                        purpose="Play"
                         icon={WorkingProject.shaderDirty ? <FaUpload/> : WorkingProject.running ? <FaPause/>:<FaPlay/>} 
-                        onClick={WorkingProject.running ? props.onRequestPause : props.onRequestStart}
+                        onClick={WorkingProject.running ? onRequestPause : onRequestStart}
                         disabled={!ready}
+                        first
                     />
-                    <IconButton 
-                        size="sm"
-                        aria-label="Stop"
-                        marginRight={3}
+                    <RowButton 
+                        purpose="Stop"
                         icon={<FaStop/>} 
-                        onClick={props.onRequestStop}
-                        disabled={!ready}
+                        onClick={onRequestStop}
+                    />
+                    <RowButton 
+                        purpose="Viewport Settings"
+                        icon={<MdSettings/>}
+                        last
                     />
                 </PanelBarEnd>
             </PanelBar>

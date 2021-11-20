@@ -4,18 +4,11 @@ import {
   Box, 
   IconButton, 
   Button,
-  useColorModeValue,
   Popover,
-  PopoverArrow,
   PopoverTrigger,
   PopoverContent,
-  PopoverCloseButton,
-  PopoverBody,
-  PopoverHeader,
   Text,
   Portal,
-  Stack,
-  HStack,
   Divider
 } from '@chakra-ui/react'
 import {RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
@@ -26,7 +19,7 @@ import useHorizontalScroll from '../../utils/scrollHook'
 interface PanelContentProps {
   children: ReactNode
 }
-export const PanelContent = (props: PanelContentProps) => {
+export const PanelContent = (props: PanelContentProps & any) => {
   const {children, ...contentProps} = props
   return (
     <Box 
@@ -118,25 +111,25 @@ export const PanelBarEnd = (props: {children: ReactElement[]}) => {
 }
 
 interface PanelBarProps {
-  children: ReactElement<any>,
+  children?: ReactElement<any>[],
   location?: BarLocation,
   onChangeLocation?: () => void,
-  path: string,
-  onSplitPanel: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
-  onCombinePanel: (path: string) => void,
-  onSwitchPanel: (path: string, panelIndex: number) => void,
-  panelIndex: number,
-  panelDesc: PanelDescriptor[],
-  clippingBoundary: HTMLDivElement
+  path?: string,
+  onSplitPanel?: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
+  onCombinePanel?: (path: string) => void,
+  onSwitchPanel?: (path: string, panelIndex: number) => void,
+  panelIndex?: number,
+  panelDesc?: PanelDescriptor[],
+  clippingBoundary?: HTMLDivElement
   preventScroll?: boolean
 }
 export const PanelBar = (props: PanelBarProps) => {
 
     const scrollRef = useHorizontalScroll(Boolean(props.preventScroll))
-    const onHandleSplitVertical = (idx: number) => props.onSplitPanel(props.path, 'horizontal', idx)
-    const onHandleSplitHorizontal = (idx: number) => props.onSplitPanel(props.path, 'vertical', idx)
-    const onHandleCombine = () => props.onCombinePanel(props.path)
-    const onHandleSwitch = (index: number) => props.onSwitchPanel(props.path, index) 
+    const onHandleSplitVertical = (idx: number) => props.onSplitPanel!(props.path!, 'horizontal', idx)
+    const onHandleSplitHorizontal = (idx: number) => props.onSplitPanel!(props.path!, 'vertical', idx)
+    const onHandleCombine = () => props.onCombinePanel!(props.path!)
+    const onHandleSwitch = (index: number) => props.onSwitchPanel!(props.path!, index)
     const {children, location, onChangeLocation, ...barProps} = props
 
     return (
@@ -174,7 +167,7 @@ export const PanelBar = (props: PanelBarProps) => {
                 pl={0}
                 pr={1}
                 leftIcon={<RiArrowDropUpLine size={15}/>}
-                rightIcon={props.panelDesc[props.panelIndex].icon} 
+                rightIcon={props.panelDesc![props.panelIndex!].icon} 
                 iconSpacing={0}
                 variant="solid"  
                 aria-label="Choose panel"
@@ -190,14 +183,14 @@ export const PanelBar = (props: PanelBarProps) => {
               >
                 <Flex direction="column">
                   {
-                    props.panelDesc.map((desc, idx) => 
+                    props.panelDesc!.map((desc, idx) => 
                     <PanelSelectorButton 
                       icon={desc.icon} 
                       title={desc.name}
                       onSwitch={() => onHandleSwitch(desc.index)}
                       onHandleSplitHorizontal={() => onHandleSplitHorizontal(idx)}
                       onHandleSplitVertical={() => onHandleSplitVertical(idx)}
-                      last={idx==props.panelDesc.length-1}
+                      last={idx==props.panelDesc!.length-1}
                       first={idx==0}
                     />)
                   }                  
@@ -229,12 +222,16 @@ type BarLocation = 'top' | 'bottom'
 
 export interface PanelProps {
   children: ReactElement[],
-  path: string,
-  panelIndex: number,
-  panelDesc: PanelDescriptor[],
-  onSplitPanel: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
-  onCombinePanel: (path: string) => void,
-  onSwitchPanel: (path: string, panelIndex: number) => void,
+  path?: string,
+  panelIndex?: number,
+  panelDesc?: PanelDescriptor[],
+  onSplitPanel?: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
+  onCombinePanel?: (path: string) => void,
+  onSwitchPanel?: (path: string, panelIndex: number) => void,
+}
+
+export interface DynamicPanelProps {
+  instanceID: number
 }
 const Panel = (props: PanelProps) => {
 

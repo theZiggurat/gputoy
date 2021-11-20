@@ -1,16 +1,9 @@
 import React, { useEffect } from 'react'
 import { 
-    useColorMode,
     Input,
     IconButton,
-    Tabs,
-    TabList,
-    Tab,
-    TabPanel,
-    TabPanels,
     Button,
     Popover,
-    PopoverArrow,
     PopoverTrigger,
     PopoverContent,
     Portal,
@@ -18,20 +11,20 @@ import {
     Box,
 } from '@chakra-ui/react'
 
-import { CloseIcon } from '@chakra-ui/icons';
-
 import Editor from 'react-simple-code-editor'
 
 import "prismjs";
 import { highlight, languages } from "prismjs/components/prism-core";
 import "prismjs/components/prism-rust";
 
-import Panel, {PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd, PanelProps} from './panel'
+import Panel, {PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd, PanelProps, DynamicPanelProps} from '../panel'
 import {RiArrowDropUpLine, RiArrowDropDownLine} from 'react-icons/ri'
 import {FaQuestion} from 'react-icons/fa'
 import {FaRegClipboard, FaRegTrashAlt, FaSearch} from 'react-icons/fa'
-import {HiDocumentAdd} from 'react-icons/hi'
-import { MdAdd, MdClose } from 'react-icons/md';
+import { HiDocumentAdd } from 'react-icons/hi'
+import { MdAdd, MdClose, MdCode, MdSettings } from 'react-icons/md'
+import useInstance, { EditorInstanceState } from '../instance'
+import { RowButton } from '../../reusable/rowButton';
 
 const hightlightWithLineNumbers = (input, language) =>
   highlight(input, language)
@@ -55,25 +48,23 @@ interface EditorProps {
     files: CodeFile[],
 }
 
-interface EditorDynProps {
-    workspace: number[]
-    currentFile: number,
-}
+const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
-const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
+    const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
  
     const [workspace, setWorkspace] = React.useState<number[]>([])
-    const [currentFileIndex, setCurrentFileIndex] = React.useState(-1)
-    const {colorMode, toggleColorMode} = useColorMode()
-    const [popoverWidth, setPopoverWidth] = React.useState(200)
+
+    const setCurrentFileIndex = (index: number) => {
+        setInstanceState({...instanceState, currentFileIndex: index})
+    }
 
     const [isFileDrawerOpen, setFileDrawerOpen] = React.useState(false)
     const toggleDrawer = () => setFileDrawerOpen(isopen => !isopen)
     const closeDrawer = () => setFileDrawerOpen(false)
 
-    const currentFile = props.files[currentFileIndex]
+    const currentFile = props.files[instanceState.currentFileIndex]
 
-    const onHandleFilenameChange = (ev) => props.onEditFileName(currentFileIndex, ev.target.value)
+    const onHandleFilenameChange = (ev) => props.onEditFileName(instanceState.currentFileIndex, ev.target.value)
     const onHandleAddFile = () => {
         let newIdx = props.onCreateFile('wgsl')
         setCurrentFileIndex(newIdx)
@@ -83,7 +74,7 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
         setCurrentFileIndex(idx)
         if (idx !in workspace)
             setWorkspace(prev => [...prev, idx])
-        close()
+        closeDrawer()
     }
 
     return (
@@ -91,12 +82,12 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
             <PanelContent>
                 <Box width="100%" height="100%">
                 {
-                    currentFileIndex < props.files.length && currentFileIndex >= 0 &&
+                    currentFile &&
                     <Editor
                         className="editor"
                         textareaId="codeArea"
-                        value={props.files[currentFileIndex].file}
-                        onValueChange={code => props.onEditCode(currentFileIndex, code)}
+                        value={currentFile.file}
+                        onValueChange={code => props.onEditCode(instanceState.currentFileIndex, code)}
                         highlight={code => hightlightWithLineNumbers(code, languages.rust)}
                         padding={20}
                         style={{
@@ -121,7 +112,6 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
                         placement='top-start'
                         gutter={0}
                         preventOverflow
-                        boundary={props.boundary}
                         isOpen={isFileDrawerOpen}
                         onClose={closeDrawer}
                         modifiers={[
@@ -158,7 +148,7 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
                                     props.files.map((file, idx) => 
                                         <Button
                                             size="sm"
-                                            backgroundColor={idx == currentFileIndex ? "whiteAlpha.300": "whiteAlpha.50"}
+                                            backgroundColor={idx==instanceState.currentFileIndex ? "whiteAlpha.300": "whiteAlpha.50"}
                                             borderBottom="1px"
                                             borderBottomRadius="0"
                                             borderTopRadius={idx!=0 ? "inherit" : ""}
@@ -193,35 +183,21 @@ const EditorPanel = (props: EditorProps & EditorDynProps & PanelProps) => {
                     />
                 </PanelBarMiddle>
                 <PanelBarEnd>
-                    <IconButton
+                    <RowButton
+                        purpose="Check code"
                         size="sm"
-                        icon={<FaQuestion/>}
-                        borderStartRadius="25%"
-                        borderEndRadius="0%"
-                        borderRight="1px"
-                        borderColor="blackAlpha.300"
+                        icon={<MdCode/>}
+                        first
                     />
-                    <Button
-                        fontWeight='thin'
-                        size="sm"
-                        leftIcon={<HiDocumentAdd/>}
-                        borderRight="1px"
-                        borderColor="blackAlpha.300"
-                        borderRadius={0}
-                    >
-                        Add
-                    </Button>
-                    <Button
-                        fontWeight='thin'
-                        size="sm"
-                        leftIcon={<FaRegTrashAlt/>}
-                        mr={2}
-                        borderColor="blackAlpha.300"
-                        borderStartRadius="0%"
-                        borderEndRadius="6px"
-                    >
-                        Delete
-                    </Button>
+                    <RowButton
+                        purpose="Delete file"
+                        icon={<FaRegTrashAlt/>}
+                    />
+                    <RowButton
+                        purpose="Settings"
+                        icon={<MdSettings/>}
+                        last
+                    />
                 </PanelBarEnd>
             </PanelBar>
         </Panel>                

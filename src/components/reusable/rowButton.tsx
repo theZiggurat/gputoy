@@ -36,6 +36,7 @@ export const RowToggleButton = (props: RowToggleButtonProps) => {
   return (
     <Center 
       p={2}
+      cursor="pointer"
       fontWeight="hairline"
       fontSize="smaller"
       textAlign="center"

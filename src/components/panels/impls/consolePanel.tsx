@@ -2,13 +2,6 @@ import React, { useEffect } from 'react'
 import { 
   chakra, 
   Box, Text, 
-  Flex, 
-  useColorModeValue, 
-  Divider, 
-  IconButton,
-  Checkbox,
-  CheckboxGroup,
-  useCheckboxGroup,
   Input,
   InputGroup,
   InputLeftElement,
@@ -18,11 +11,14 @@ import {
 } from "@chakra-ui/react";
 import {FaRegClipboard, FaRegTrashAlt, FaSearch} from 'react-icons/fa'
 import {CloseIcon} from '@chakra-ui/icons'
-import Console, {Message, MessageType} from '../../gpu/console'
-import { RowButton, RowToggleButton} from '../reusable/rowButton';
+import Console, {Message, MessageType} from '../../../gpu/console'
+import { RowButton, RowToggleButton} from '../../reusable/rowButton';
 
-import Panel, { PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd } from './panel';
+import Panel, { PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd, DynamicPanelProps } from '../panel';
 import { MdSettings } from 'react-icons/md';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import useInstance, { ConsoleInstanceState, panelInstanceState } from '../instance';
+import { layoutState } from '../../../recoil/atoms';
 
 const colors = [
   "green",
@@ -41,49 +37,23 @@ const prehead = [
 const f = (n: number) => ('0' + n).slice(-2)
 const formatTime = (date: Date) => `${f(date.getHours())}:${f(date.getMinutes())}:${f(date.getSeconds())}`
 
-const LogLevelCheckboxes = (props: {filters: boolean[], toggle: (idx: number, val: boolean) => void}) => (
-  <>
-    
-    {/* <RowToggleButton  ml={3} aria-label="Trace" title="Trace" size="sm"
-      isChecked={props.filters[0]}
-      onChange={ev => props.toggle(0, ev.target.checked)}
-    > Trace </RowToggleButton>
-    <RowToggleButton ml={3} value="Log" aria-label="Log" title="Log" size="sm"
-      isChecked={props.filters[1]}
-      onChange={ev => props.toggle(1, ev.target.checked)}
-    > Log </RowToggleButton>
-    <RowToggleButton  ml={3} value="Error" aria-label="Error" title="Error" size="sm"
-      isChecked={props.filters[2]}
-      onChange={ev => props.toggle(2, ev.target.checked)}
-    > Error</RowToggleButton>
-    <RowToggleButton ml={3} value="Fatal" aria-label="Fatal" title="Fatal" size="sm"
-      isChecked={props.filters[3]}
-      onChange={ev => props.toggle(3, ev.target.checked)}
-    > Fatal </RowToggleButton> */}
-  </>
-)
+const ConsolePanel: React.FC<{}> = (props: DynamicPanelProps & any) => {
 
-const ConsolePanel: React.FC<{}> = (props: any) => {
+  const [instanceState, setInstanceState] = useInstance<ConsoleInstanceState>(props)
 
   const [text, setText] = React.useState(Console.getBuffer())
 
-  const [typeFilters, setTypeFilters] = React.useState([true, true, true, true])
-  const [keywordFilter, setKeywordFilter] = React.useState('')
-  
+  const setKeywordFilter = (filter: string) => setInstanceState({...instanceState, keywordFilter: filter})
+  const setTypeFilters = (filter: boolean[]) => setInstanceState({...instanceState, typeFilters: filter})
+
   const [autoscroll, setAutoscroll] = React.useState(true)
   const bottom = React.useRef<HTMLDivElement>(null)
 
   const toast = useToast()
 
-  useEffect(() => Console.setOnMessage(() => {
-    setText([...Console.getFiltered()])
-  }), [])
-
   useEffect(() => {
-    Console.setKeywordFilter(keywordFilter)
-    Console.setTypeFilter(typeFilters)
-    setText([...Console.getFiltered()])
-  }, [typeFilters, keywordFilter])
+    setText([...Console.getFiltered(instanceState.typeFilters, instanceState.keywordFilter)])
+  }, [instanceState])
 
   /**
    * Automatic scrolling to bottom
@@ -98,12 +68,11 @@ const ConsolePanel: React.FC<{}> = (props: any) => {
         }
     )}, [text])
 
-  const toggle = (idx: number) => setTypeFilters(old => {
-    var filters = [...old]
-    filters[idx] = !old[idx]
-    Console.setTypeFilter(filters)
-    return filters
-  })
+  const toggle = (idx: number) => {
+    var filters = [...instanceState.typeFilters]
+    filters[idx] = !instanceState.typeFilters[idx]
+    setTypeFilters(filters)
+  }
 
   const writeToClipboard = () => {
     navigator.clipboard.writeText(
@@ -156,11 +125,11 @@ const ConsolePanel: React.FC<{}> = (props: any) => {
             <Input
               borderEndRadius="0"
               borderRadius="md"
-              value={keywordFilter}
+              value={instanceState.keywordFilter}
               onChange={ev => setKeywordFilter(ev.target.value)}
             />
             {
-              keywordFilter.length > 0 &&
+              instanceState.keywordFilter.length > 0 &&
               <InputRightElement
                 children={<CloseIcon size="sm"/>}
                 onClick={() => setKeywordFilter('')}
@@ -168,23 +137,15 @@ const ConsolePanel: React.FC<{}> = (props: any) => {
             }
           </InputGroup>
           {/* <LogLevelCheckboxes filters={typeFilters} toggle={toggle}/> */}
-          <RowToggleButton text="Trace" toggled={typeFilters[0]} onClick={() => toggle(0)}/>
-          <RowToggleButton text="Log"   toggled={typeFilters[1]} onClick={() => toggle(1)}/>
-          <RowToggleButton text="Error" toggled={typeFilters[2]} onClick={() => toggle(2)}/>
-          <RowToggleButton text="Fatal" toggled={typeFilters[3]} onClick={() => toggle(3)} last/>
+          <RowToggleButton text="Trace" toggled={instanceState.typeFilters[0]} onClick={() => toggle(0)}/>
+          <RowToggleButton text="Log"   toggled={instanceState.typeFilters[1]} onClick={() => toggle(1)}/>
+          <RowToggleButton text="Error" toggled={instanceState.typeFilters[2]} onClick={() => toggle(2)}/>
+          <RowToggleButton text="Fatal" toggled={instanceState.typeFilters[3]} onClick={() => toggle(3)} last/>
         </PanelBarMiddle>
 
-        {/* utility buttons */}
         <PanelBarEnd>
-          {/* <Checkbox mr={4} size="sm"
-            isChecked={autoscroll}
-            onChange={e => setAutoscroll(e.target.checked)}
-          >
-            Autoscroll
-          </Checkbox> */}
           <RowButton
             purpose="Copy console to clipboard"
-            size="sm" 
             icon={<FaRegClipboard/>}
             onClick={() => writeToClipboard()}
             disabled={text.length == 0}
@@ -192,14 +153,12 @@ const ConsolePanel: React.FC<{}> = (props: any) => {
           />
           <RowButton 
             purpose="Clear console"
-            size="sm" 
             icon={<FaRegTrashAlt/>}
             onClick={() => Console.clear()}
             disabled={text.length == 0}
           />
           <RowButton 
             purpose="Console Settings"
-            size="sm" 
             icon={<MdSettings/>}
             last
           />
