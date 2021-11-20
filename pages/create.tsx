@@ -1,16 +1,14 @@
-import React, { useEffect, useState } from 'react'
-
+import React from 'react'
+import { Panels, usePanels, PanelDescriptor } from '../src/components/panels/panel'
 import Scaffold from '../src/components/scaffold'
 
-import ViewportPanel from '../src/components/panels/impls/viewPanel'
+import ViewportPanel, { useViewportPanel } from '../src/components/panels/impls/viewPanel'
 import ParamPanel, { useParamsPanel } from '../src/components/panels/impls/paramPanel'
-import ConsolePanel from '../src/components/panels/impls/consolePanel'
 import EditorPanel, { useEditorPanel } from '../src/components/panels/impls/editorPanel'
+import ConsolePanel from '../src/components/panels/impls/consolePanel'
 
-import WorkingProject from '../src/gpu/project'
 import { FaBorderNone } from 'react-icons/fa'
 import { BsFillFileEarmarkCodeFill, BsFillFileSpreadsheetFill, BsTerminalFill } from 'react-icons/bs'
-import {Panels, usePanels, PanelDescriptor } from '../src/components/panels/panelHook'
 
 
 export interface ProjectStatus {
@@ -21,16 +19,11 @@ export interface ProjectStatus {
 
 const Create = () => {
     
-    const [projectStatus, setProjectStatus] = React.useState<ProjectStatus>({
-        gpustatus: "",
-        fps: "--",
-        time: "--",
-    })
-
     const editorProps = useEditorPanel()
     const paramProps = useParamsPanel()
+    const viewportProps = useViewportPanel()
 
-    
+    const props = usePanels()
 
     const panelDesc: PanelDescriptor[] = [
         {
@@ -38,12 +31,7 @@ const Create = () => {
             name: 'Viewport', 
             icon: <FaBorderNone/>, 
             component: ViewportPanel, 
-            staticProps: {
-                onRequestStart: () => {WorkingProject.run()},
-                onRequestPause: WorkingProject.pause,
-                onRequestStop: WorkingProject.stop,
-                projectStatus: projectStatus,
-            },
+            staticProps: viewportProps,
         },
         {
             index: 1, 
@@ -68,30 +56,6 @@ const Create = () => {
         }
     ]
     
-    const props = usePanels()
-
-    /**
-     * Status panel periodic update
-     */
-    useEffect(() => {
-        // const id = setInterval(() => {
-        //     let fps = '--'
-        //     if (WorkingProject.dt != 0) {
-        //         fps = (1 / WorkingProject.dt * 1000).toFixed(2).toString()
-        //     }
-
-        //     setProjectStatus(oldStatus => {
-        //         let newStatus = {
-        //             gpustatus: WorkingProject.status,
-        //             fps: fps,
-        //             time: (WorkingProject.runDuration).toFixed(1).toString()
-        //         }
-        //         return newStatus
-        //     })
-        // },(100))
-        // return () => clearInterval(id)
-    },[])
-
     return (
         <Scaffold>
             <Panels {...props} descriptors={panelDesc}/>

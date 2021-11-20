@@ -17,11 +17,9 @@ import "prismjs";
 import { highlight, languages } from "prismjs/components/prism-core";
 import "prismjs/components/prism-rust";
 
-import Panel, {PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd, PanelProps, DynamicPanelProps} from '../panel'
-import {RiArrowDropUpLine, RiArrowDropDownLine} from 'react-icons/ri'
-import {FaQuestion} from 'react-icons/fa'
-import {FaRegClipboard, FaRegTrashAlt, FaSearch} from 'react-icons/fa'
-import { HiDocumentAdd } from 'react-icons/hi'
+import { Panel, PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd, PanelProps, DynamicPanelProps} from '../panel'
+import { RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
+import { FaRegTrashAlt} from 'react-icons/fa'
 import { MdAdd, MdClose, MdCode, MdSettings } from 'react-icons/md'
 import useInstance, { EditorInstanceState } from '../instance'
 import { RowButton } from '../../reusable/rowButton';

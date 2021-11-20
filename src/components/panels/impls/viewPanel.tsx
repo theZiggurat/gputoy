@@ -1,24 +1,29 @@
 import React, { useEffect, useCallback } from 'react'
+import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
+import WorkingProject from '../../../gpu/project';
+import { ProjectStatus } from '../../../../pages/create';
+import { useResizeDetector } from 'react-resize-detector'
+import { RowButton } from '../../reusable/rowButton';
+import { MdSettings } from 'react-icons/md';
 import { 
-    Flex, 
     Box, 
-    IconButton, 
     Center,
     Text,
     useColorModeValue,
     Fade
 } from '@chakra-ui/react';
-import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
+import { 
+    Panel, 
+    PanelBar, 
+    PanelContent, 
+    PanelBarMiddle, 
+    PanelBarEnd, 
+    DynamicPanelProps
+} from '../panel'
 
-import WorkingProject from '../../../gpu/project';
-import { ProjectStatus } from '../../../../pages/create';
-import Panel, {PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd, DynamicPanelProps} from '../panel'
-import { useResizeDetector } from 'react-resize-detector'
-import { RowButton } from '../../reusable/rowButton';
-import { MdSettings } from 'react-icons/md';
 
 
-interface CanvasProps {
+interface ViewportProps {
     onRequestStart: () => void,
     onRequestPause: () => void,
     onRequestStop: () => void,
@@ -41,8 +46,7 @@ const StatusInfo = (props: {text: string, textColor?: string, first?: boolean, l
     </Center>
 )
 
-
-const ViewportPanel: React.FC<CanvasProps & DynamicPanelProps> = (allprops: CanvasProps & DynamicPanelProps) => {
+const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
 
     const {onRequestStart, onRequestPause, onRequestStop, projectStatus, instanceID, ...props} = allprops
 
@@ -128,6 +132,44 @@ const ViewportPanel: React.FC<CanvasProps & DynamicPanelProps> = (allprops: Canv
             </PanelBar>
         </Panel>
     )
+}
+
+export const useViewportPanel = (): ViewportProps => {
+    const [projectStatus, setProjectStatus] = React.useState<ProjectStatus>({
+        gpustatus: "",
+        fps: "--",
+        time: "--",
+    })
+
+    useEffect(() => {
+        const id = setInterval(() => {
+            let fps = '--'
+            if (WorkingProject.dt != 0) {
+                fps = (1 / WorkingProject.dt * 1000).toFixed(2).toString()
+            }
+
+            setProjectStatus(oldStatus => {
+                let newStatus = {
+                    gpustatus: WorkingProject.status,
+                    fps: fps,
+                    time: (WorkingProject.runDuration).toFixed(1).toString()
+                }
+                return newStatus
+            })
+        },(100))
+        return () => clearInterval(id)
+    },[])
+
+    const onRequestStart = () => WorkingProject.run()
+    const onRequestPause = () =>  WorkingProject.pause()
+    const onRequestStop = () => WorkingProject.stop()
+
+    return {
+        projectStatus,
+        onRequestStart,
+        onRequestPause,
+        onRequestStop
+    }
 }
 
 export default ViewportPanel

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { 
     IconButton, 
     Input, 
@@ -15,8 +15,6 @@ import {
     PopoverBody,
     PopoverArrow,
     Flex,
-    Text,
-    Box,
     Grid,
     GridItem,
     InputGroup,
@@ -28,7 +26,7 @@ import {
 import {FaMinus, FaSearch} from 'react-icons/fa'
 import { HexColorPicker } from "react-colorful";
 import {ParamType, ParamDesc, encode, decode} from '../../../gpu/params'
-import Panel, { PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel'
+import { Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel'
 import WorkingProject from '../../../gpu/project'
 import { CloseIcon } from '@chakra-ui/icons'
 import { MdAdd, MdSettings } from 'react-icons/md'
@@ -162,7 +160,7 @@ interface ParamPanelProps {
     setParamAtIndex: (p: ParamDesc, idx: number, changedType: boolean) => void,
 }
 
-const ParamPanel: React.FC<ParamPanelProps> = (props: ParamPanelProps) => {
+const ParamPanel = (props: ParamPanelProps) => {
     
     const setf = useSetRecoilState(layoutState)
 

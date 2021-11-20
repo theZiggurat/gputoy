@@ -9,16 +9,15 @@ import {
   Button,
   useToast
 } from "@chakra-ui/react";
-import {FaRegClipboard, FaRegTrashAlt, FaSearch} from 'react-icons/fa'
-import {CloseIcon} from '@chakra-ui/icons'
-import Console, {Message, MessageType} from '../../../gpu/console'
-import { RowButton, RowToggleButton} from '../../reusable/rowButton';
 
-import Panel, { PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd, DynamicPanelProps } from '../panel';
+import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa'
+import { CloseIcon } from '@chakra-ui/icons'
+import Console, { Message } from '../../../gpu/console'
 import { MdSettings } from 'react-icons/md';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import useInstance, { ConsoleInstanceState, panelInstanceState } from '../instance';
-import { layoutState } from '../../../recoil/atoms';
+
+import { Panel, PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd, DynamicPanelProps } from '../panel';
+import useInstance, { ConsoleInstanceState } from '../instance';
+import { RowButton, RowToggleButton} from '../../reusable/rowButton';
 
 const colors = [
   "green",
@@ -37,7 +36,7 @@ const prehead = [
 const f = (n: number) => ('0' + n).slice(-2)
 const formatTime = (date: Date) => `${f(date.getHours())}:${f(date.getMinutes())}:${f(date.getSeconds())}`
 
-const ConsolePanel: React.FC<{}> = (props: DynamicPanelProps & any) => {
+const ConsolePanel = (props: DynamicPanelProps & any) => {
 
   const [instanceState, setInstanceState] = useInstance<ConsoleInstanceState>(props)
 
