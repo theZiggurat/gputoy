@@ -1,6 +1,7 @@
 import Params, {ParamDesc, ParamType} from './params'
 import GPU from './gpu'
 import Console from './console'
+import Compiler from './compiler'
 
 interface ProjcetSerializable {
 
@@ -94,14 +95,23 @@ class Project {
     if (!(this.render) || this.running || !GPU.isInitialized()) 
       return
 
-    Console.clear()
+    if (!Compiler.isReady()) {
+      Console.err('Compiler', 'Compiler module not ready')
+      return
+    }
 
     this.updateDefaultParams()
     if (!this.params.isEmpty() && !this.params.isBuilt())
       this.params.updateDesc(GPU.device)
 
-    if (this.shaderDirty) 
-      this.compile()
+    if (this.shaderDirty) {
+      Console.trace('Project', 'Compiling..')
+      if (!this.compileShaders())
+        return
+    }
+
+    this.initPipeline()
+    this.shaderDirty = false
 
     this.lastStartTime = performance.now()
 
@@ -164,12 +174,10 @@ class Project {
     this.status = "Error"
   }
 
-  compile() {
-    Console.trace('Project', 'Compiling..')
+  initPipeline = () => {
+    Console.trace('Project', 'Creating Pipeline..')
     this.mapBuffers()
-    this.compileShaders()
     this.createPipeline()
-    this.shaderDirty = false
   }
 
   updateDefaultParams = () => {
@@ -188,7 +196,7 @@ class Project {
     ], GPU.device) || this.shaderDirty
   }
 
-  setParams = (params: ParamDesc[], _updateDesc: boolean) => {
+  setParams = (params: ParamDesc[]) => {
     let updateDesc = this.params.set(params, GPU.device)
     if (updateDesc) {
       this.shaderDirty = true
@@ -218,14 +226,27 @@ class Project {
     );
   }
 
-  compileShaders = () => {
-    this.shaderSrc = this.included.getShaderDecl()
-      .concat(this.vertexDecl)
-      .concat(this.params.getShaderDecl())
-      .concat(this.userSrc)
-    this.shaderModule = GPU.device.createShaderModule({
-      code: this.shaderSrc
-    })
+  compileShaders = (): boolean => {
+    // this.shaderSrc = this.included.getShaderDecl()
+    //   .concat(this.vertexDecl)
+    //   .concat(this.params.getShaderDecl())
+    //   .concat(this.userSrc)
+
+    let src = this.included.getShaderDecl().concat(this.params.getShaderDecl()).concat(this.vertexDecl).concat(`
+    [[stage(fragment)]]
+    fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+        
+      let col = 0.5 * cos(in.uv.xyx + i.time  + vec3<f32>(0., 2., 4.)) + 0.5;
+      return vec4<f32>(col, 1.0);
+
+    }
+    `)
+    //Console.log("source", this.shaderSrc)
+    let module = Compiler.compileWGSL!(GPU.device, src)
+    if (!module)
+      return false
+    this.shaderModule = module
+    return true
   }
 
   createPipeline = () => {

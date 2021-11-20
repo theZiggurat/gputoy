@@ -50,8 +50,6 @@ export const decode = (val: string, type: ParamType): number[] => {
   }
 }
 
-
-
 class Params {
 
   private name: string
@@ -103,7 +101,7 @@ class Params {
     }
       
 
-    this.uploadToGPU(device)
+    //this.uploadToGPU(device)
     return needRecompile
   }
 

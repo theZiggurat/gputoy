@@ -66,69 +66,14 @@
   padding-left: 60px !important;
 }
 
-.Pane {
-  overflow: hidden;
-}
-
 .editor .editorLineNumber {
   position: absolute;
   left: 0px;
   color: #cccccc;
-  text-align: right;
-  width: 40px;
+  text-align: end;
+  width: 35px;
   font-weight: 100;
-}
-
-#tabContainer {
-  max-height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.tabList {
-
-  margin: 0 0 0px 10px;
-  padding: 0;
-  max-width: 100%;
-  white-space: nowrap;
-}
-
-/* .tabList::-webkit-scrollbar {
-  width: 0px !important;
-  height: 0px;
-} */
-
-.tab {
-  user-select: none;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-weight: light;
-  font-size: 14px;
-  display: inline-block;
-  position: relative;
-  list-style: none;
-  padding: 5px 7px 6px 7px;
-  cursor: pointer;
-  box-sizing: border-box;
-  border-radius: 0 0 10px 10px;
-}
-
-.tabDark--selected {
-  font-weight: bold;
-  border-bottom: 2px #2D3748 solid;
-  background-color: #171923 !important;
-  /* border-radius: 0px 0px 5px 5px; */
-}
-
-.tabLight--selected {
-  font-weight: bold;
-  border-bottom: 2px #CBD5E0 solid;
-  background-color: #E2E8F0 !important;
-  /* border-radius: 0px 0px 5px 5px; */
-}
-
-.tabDark {
-  background-color: #1A202C;
+  padding-left: 10px;
 }
 
 /* .tabLight {
@@ -137,8 +82,18 @@
 
 /* ENSURES NAVBAR DOESN'T OVERLAP SPLITPANE CONTENT IN CREATE SCREEN */
 
-.createWindow {
+/* .createWindow {
   flex: 0 0 auto;
   position: relative !important;
+} */
+
+/* ENSURES BOTTOM PANEL BAR DOES NOT GO BENEATH SCREEN */
+.SplitPane {
+  min-height: 0% !important;
+}
+
+/* STOPS PANEL CONTENT FROM PUSHING BAR DOWN */
+.Pane {
+  overflow: hidden;
 }
 
