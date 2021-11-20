@@ -1,4 +1,4 @@
-import React, { ReactElement, ReactNode, useEffect } from 'react'
+import React, { LegacyRef, ReactElement, ReactNode, useEffect } from 'react'
 import { 
   Flex, 
   Box, 
@@ -142,7 +142,7 @@ export const PanelBar = (props: PanelBarProps) => {
         justify="space-between"
         overflowX="hidden"
         p={1}
-        ref={scrollRef}
+        ref={scrollRef  as LegacyRef<HTMLDivElement>}
         {...barProps}
       >
         <Flex dir="row" flex="1 0 auto">
@@ -251,7 +251,7 @@ const Panel = (props: PanelProps) => {
       flexDir={barLocation == 'top' ? 'column-reverse':'column'}
       flexBasis="fill"
       {...paneProps}
-      ref={bounds}
+      ref={bounds as LegacyRef<HTMLDivElement>}
     >
       {
         React.Children.map(props.children, (elem: ReactElement<any>) => {
