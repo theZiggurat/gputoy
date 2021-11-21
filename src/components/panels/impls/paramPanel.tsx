@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { 
     IconButton, 
     Input, 
@@ -33,8 +33,9 @@ import { MdAdd, MdSettings } from 'react-icons/md'
 import { useDebounce } from '../../../utils/lodashHooks'
 import { RowButton } from '../../reusable/rowButton';
 import useInstance, { ParamInstanceState } from '../instance';
-import { useSetRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import { layoutState } from '../../../recoil/atoms';
+import { params } from '../../../recoil/project';
 
 const gridSpacing = [12, 8, 12, 2]
 const totalGridSpace = 35
@@ -164,7 +165,9 @@ const ParamPanel = (props: ParamPanelProps) => {
     
     const setf = useSetRecoilState(layoutState)
 
-    const { params, addParam, deleteParam, setParamAtIndex, ...panelProps } = props
+    const { params, addParam, deleteParam, setParamAtIndex } = useParamsPanel()
+
+    const { ...panelProps } = props
 
     const [instanceState, setInstanceState] = useInstance<ParamInstanceState>(props)
 
@@ -172,12 +175,12 @@ const ParamPanel = (props: ParamPanelProps) => {
     const setNameErrors = (errors: boolean[]) => setInstanceState({...instanceState, nameErrors: errors})
 
     const onHandleParamNameChange = (idx: number, paramName: string) => 
-        props.setParamAtIndex({...params[idx], paramName}, idx, false)
+        setParamAtIndex({...params[idx], paramName}, idx, false)
 
     const onHandleParamTypeChange = (idx: number, paramType: ParamType) => 
-        props.setParamAtIndex({...params[idx], paramType}, idx, true)
+        setParamAtIndex({...params[idx], paramType}, idx, true)
 
-    useDebounce(() => setNameErrors(params.map(p => !(/^[a-z0-9]+$/i.test(p.paramName)))), 1000, [params])
+    useDebounce(() => setNameErrors(params.map(p => !(/^[a-z0-9]+$/i.test(p.paramName)))), 500, [params])
     
   return (
     <Panel {...panelProps}>
@@ -216,10 +219,10 @@ const ParamPanel = (props: ParamPanelProps) => {
                             param={encode(p.param, p.paramType)}
                             paramType={p.paramType}
                             paramName={p.paramName}
-                            onParamChange={(val: string) => props.setParamAtIndex({...p, param: decode(val, p.paramType)}, idx, false)}
+                            onParamChange={(val: string) => setParamAtIndex({...p, param: decode(val, p.paramType)}, idx, false)}
                             onParamNameChange={onHandleParamNameChange}
                             onParamTypeChange={onHandleParamTypeChange}
-                            onParamDelete={props.deleteParam}
+                            onParamDelete={deleteParam}
                             isInvalid={instanceState.nameErrors[idx]}
                         />
                     )
@@ -268,11 +271,12 @@ const ParamPanel = (props: ParamPanelProps) => {
 export default ParamPanel
 
 export const useParamsPanel = (): ParamPanelProps => {
-    const [params, setParams] = React.useState<ParamDesc[]>([])
+    
+    const [paramsState, setParams] = useRecoilState<ParamDesc[]>(params)
 
     useEffect(() => {
-        WorkingProject.setParams(params)
-    }, [params])
+        WorkingProject.setParams(paramsState)
+    }, [paramsState])
 
     useEffect(() => {
         let params = window.localStorage.getItem('params')
@@ -280,7 +284,7 @@ export const useParamsPanel = (): ParamPanelProps => {
             setParams(JSON.parse(params))
     }, [])
 
-    const addParam = () => {
+    const addParam = useCallback(() => {
         setParams(oldParams => {
             let newParams = [...oldParams]
             newParams.push({
@@ -292,18 +296,18 @@ export const useParamsPanel = (): ParamPanelProps => {
             return newParams
         })
         
-    }
+    }, [paramsState])
 
-    const deleteParam = (idx: number) => {
+    const deleteParam = useCallback((idx: number) => {
         setParams(oldParams => {
             let newParams = [...oldParams]
             newParams.splice(idx, 1)
             window.localStorage.setItem('params', JSON.stringify(newParams))
             return newParams
         })
-    }
+    }, [paramsState])
 
-    const setParamAtIndex = (p: ParamDesc, idx: number, changedType: boolean) => {
+    const setParamAtIndex = useCallback((p: ParamDesc, idx: number, changedType: boolean) => {
 
         if (changedType) {
             if (p.paramType === 'color') {
@@ -319,7 +323,7 @@ export const useParamsPanel = (): ParamPanelProps => {
             window.localStorage.setItem('params', JSON.stringify(newParams))
             return newParams
         })
-    }
+    }, [paramsState])
 
-    return { params, addParam, deleteParam, setParamAtIndex }
+    return { params: paramsState, addParam, deleteParam, setParamAtIndex }
 }

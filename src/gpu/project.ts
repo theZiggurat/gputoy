@@ -7,7 +7,7 @@ interface ProjcetSerializable {
 
 }
 
-class Project {
+export class Project {
 
   // run state
   lastStartTime: number = 0

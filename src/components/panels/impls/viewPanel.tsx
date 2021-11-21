@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useLayoutEffect, useState, useRef } from 'react'
 import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
 import WorkingProject from '../../../gpu/project';
 import { ProjectStatus } from '../../../../pages/create';
@@ -20,6 +20,8 @@ import {
     PanelBarEnd, 
     DynamicPanelProps
 } from '../panel'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { projectRunning, projectStatus } from '../../../recoil/project';
 
 
 
@@ -46,22 +48,56 @@ const StatusInfo = (props: {text: string, textColor?: string, first?: boolean, l
     </Center>
 )
 
+const ViewportPanelBarEnd = () => {
+
+    const [onHandlePlayPause, onHandleStop] = useViewportPanel()
+    const projectStatusState = useRecoilValue(projectStatus)
+
+    return <>
+        <RowButton 
+            purpose="Play"
+            icon={ projectStatusState.running ? <FaPause/>:<FaPlay/>} 
+            onClick={onHandlePlayPause}
+            first
+        />
+        <RowButton 
+            purpose="Stop"
+            icon={<FaStop/>} 
+            onClick={onHandleStop}
+        />
+        <RowButton 
+            purpose="Viewport Settings"
+            icon={<MdSettings/>}
+            last
+        />
+    </>
+}
+
+const RandomBox = () => {
+
+    const projectStatusState = useRecoilValue(projectStatus)
+
+    return <Box 
+        position="absolute" 
+        left="800px" top="20px" 
+        bg="blackAlpha.600" 
+        borderRadius="lg" 
+        width="fit-content" 
+        p={3}
+    >
+        <Text whiteSpace="pre-wrap">
+            {JSON.stringify(projectStatusState, null, 2)}
+        </Text>
+        
+    </Box>
+}
+
+// const StatusInfoGroup = ()
+
 const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
 
-    const {onRequestStart, onRequestPause, onRequestStop, projectStatus, instanceID, ...props} = allprops
-
+    const {instanceID, ...props} = allprops
     const [showResolution, setShowResolution] = React.useState(false)
-    const [ready, setReady] = React.useState(false)
-
-     useEffect(() => {
-        const initCanvas = async () => {
-            await WorkingProject.attachCanvas('canvas')
-            let status = WorkingProject.status
-            if (status === 'Ok')
-                setReady(true)
-        }
-        initCanvas()
-    }, [])
 
     const onResize = () => {
         setShowResolution(true)
@@ -98,7 +134,8 @@ const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
                             {`Resolution: ${width} x ${height}`}
                         </Box>
                     </Fade>
-                    <canvas id='canvas' style={{
+                    <RandomBox/>
+                    <canvas id={`canvas_${instanceID}`} style={{
                         width: width,
                         height: height
                     }}/>
@@ -106,70 +143,114 @@ const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
             </PanelContent>
             <PanelBar>
                 <PanelBarMiddle>
-                    <StatusInfo text={`FPS: ${projectStatus.fps}`} first/>
-                    <StatusInfo text={`Duration: ${projectStatus.time}s`}/>
-                    <StatusInfo text={`Status: ${projectStatus.gpustatus}`} last/>
+                    {/* <StatusInfo text={`FPS: ${(1 / projectStatus.dt * 1000).toFixed(0)}`} first/>
+                    <StatusInfo text={`Duration: ${projectStatus.runDuration.toFixed(3)}s`}/>
+                    <StatusInfo text={`Framenum: ${projectStatus.frameNum}`} last/> */}
                 </PanelBarMiddle>
                 <PanelBarEnd>
-                    <RowButton 
-                        purpose="Play"
-                        icon={WorkingProject.shaderDirty ? <FaUpload/> : WorkingProject.running ? <FaPause/>:<FaPlay/>} 
-                        onClick={WorkingProject.running ? onRequestPause : onRequestStart}
-                        disabled={!ready}
-                        first
-                    />
-                    <RowButton 
-                        purpose="Stop"
-                        icon={<FaStop/>} 
-                        onClick={onRequestStop}
-                    />
-                    <RowButton 
-                        purpose="Viewport Settings"
-                        icon={<MdSettings/>}
-                        last
-                    />
+                    <ViewportPanelBarEnd/>
                 </PanelBarEnd>
             </PanelBar>
         </Panel>
     )
 }
 
-export const useViewportPanel = (): ViewportProps => {
-    const [projectStatus, setProjectStatus] = React.useState<ProjectStatus>({
-        gpustatus: "",
-        fps: "--",
-        time: "--",
-    })
+// export const useViewportPanel = (): ViewportProps => {
+//     const [projectStatus, setProjectStatus] = React.useState<ProjectStatus>({
+//         gpustatus: "",
+//         fps: "--",
+//         time: "--",
+//     })
 
-    useEffect(() => {
-        const id = setInterval(() => {
-            let fps = '--'
-            if (WorkingProject.dt != 0) {
-                fps = (1 / WorkingProject.dt * 1000).toFixed(2).toString()
-            }
+//     useEffect(() => {
+//         const id = setInterval(() => {
+//             let fps = '--'
+//             if (WorkingProject.dt != 0) {
+//                 fps = (1 / WorkingProject.dt * 1000).toFixed(2).toString()
+//             }
 
-            setProjectStatus(oldStatus => {
-                let newStatus = {
-                    gpustatus: WorkingProject.status,
-                    fps: fps,
-                    time: (WorkingProject.runDuration).toFixed(1).toString()
-                }
-                return newStatus
-            })
-        },(100))
-        return () => clearInterval(id)
-    },[])
+//             setProjectStatus(oldStatus => {
+//                 let newStatus = {
+//                     gpustatus: WorkingProject.status,
+//                     fps: fps,
+//                     time: (WorkingProject.runDuration).toFixed(1).toString()
+//                 }
+//                 return newStatus
+//             })
+//         },(100))
+//         return () => clearInterval(id)
+//     },[])
 
-    const onRequestStart = () => WorkingProject.run()
-    const onRequestPause = () =>  WorkingProject.pause()
-    const onRequestStop = () => WorkingProject.stop()
+//     const onRequestStart = () => WorkingProject.run()
+//     const onRequestPause = () =>  WorkingProject.pause()
+//     const onRequestStop = () => WorkingProject.stop()
 
-    return {
-        projectStatus,
-        onRequestStart,
-        onRequestPause,
-        onRequestStop
+//     return {
+//         projectStatus,
+//         onRequestStart,
+//         onRequestPause,
+//         onRequestStop
+//     }
+// }
+
+const useViewportPanel = () => {
+    const setProjectStatus = useSetRecoilState(projectStatus)
+    //const [isProjectRunning, setProjectRunning]= useState({running: false})
+
+    const onHandlePlayPause = () => {
+        // if (!isProjectRunning.running) {
+        //     setProjectStatus(old => { return {
+        //         ...old,
+        //         lastStartTime: performance.now(),
+        //         status: 'Running',
+        //     }})
+        // } else {
+        //     setProjectStatus(old => { return {
+        //         ...old,
+        //         status: 'Paused',
+        //         prevDuration: old.runDuration
+        //     }})
+        // }
+        setProjectStatus(old => {return {...old, running: !old.running}})
     }
+
+    const onHandleStop = () => {
+        // setProjectStatus(old => { 
+        //     return {
+        //     ...old,
+        //     status: 'Ok',
+        //     frameNum: 0,
+        //     runDuration: 0,
+        //     prevDuration: 0,
+        // }})
+        //setProjectRunning({running: false})
+        setProjectStatus(old => {return {...old, running: false}})
+    }
+
+    // useLayoutEffect(() => {
+    //     if (isProjectRunning.running) {
+    
+    //       const f = () => {
+    //         setProjectStatus(old => { 
+    //             let now = performance.now()
+    //             return {
+    //           ...old,
+    //           runDuration: (now - old.lastStartTime) / 1000 + old.prevDuration,
+    //           lastFrameRendered: now,
+    //           dt: now - old.lastFrameRendered,
+    //           frameNum: old.frameNum + 1
+    //         }})
+
+    //         if (isProjectRunning.running)
+    //             frameHandle.current = requestAnimationFrame(f)
+    //       }
+    
+    //       frameHandle.current = requestAnimationFrame(f)
+    //     }
+    //     return () => cancelAnimationFrame(frameHandle.current)
+    // }, [isProjectRunning])
+
+    return [onHandlePlayPause, onHandleStop]
 }
 
 export default ViewportPanel

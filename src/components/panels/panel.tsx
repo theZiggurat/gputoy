@@ -1,4 +1,4 @@
-import React, { LegacyRef, ReactElement, ReactNode, useEffect } from 'react'
+import React, { LegacyRef, ReactElement, ReactNode, useCallback, useEffect, useRef } from 'react'
 import SplitPane from 'react-split-pane'
 import { useRecoilState } from 'recoil'
 import { layoutState } from '../../recoil/atoms'
@@ -29,7 +29,6 @@ export interface PanelDescriptor {
   name: string,
   icon: React.ReactElement<any>,
   component: React.FC<any>,
-  staticProps: any
 }
 
 export interface DynamicPanelProps {
@@ -318,6 +317,12 @@ export const Panels = (props: PanelProps & PanelDescriptorProps) => {
 
     const { descriptors, ...panelProps } = props
     const { panelLayout, ...rest } = panelProps
+
+    //useTraceUpdate(props)
+
+    //console.log(props)
+
+    //const renderCallback = useCallback(() => , [props])
 
     return render(panelLayout, descriptors, rest as PanelProps)
 }

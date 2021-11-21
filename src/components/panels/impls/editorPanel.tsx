@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { 
     Input,
     IconButton,
@@ -23,6 +23,8 @@ import { FaRegTrashAlt} from 'react-icons/fa'
 import { MdAdd, MdClose, MdCode, MdSettings } from 'react-icons/md'
 import useInstance, { EditorInstanceState } from '../instance'
 import { RowButton } from '../../reusable/rowButton';
+import { codeFiles } from '../../../recoil/project';
+import { useRecoilState } from 'recoil';
 
 const hightlightWithLineNumbers = (input, language) =>
   highlight(input, language)
@@ -48,7 +50,8 @@ interface EditorProps {
 
 const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
-    const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
+    const [ instanceState, setInstanceState ] = useInstance<EditorInstanceState>(props)
+    const { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName } = useEditorPanel()
  
     const [workspace, setWorkspace] = React.useState<number[]>([])
 
@@ -60,11 +63,11 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
     const toggleDrawer = () => setFileDrawerOpen(isopen => !isopen)
     const closeDrawer = () => setFileDrawerOpen(false)
 
-    const currentFile = props.files[instanceState.currentFileIndex]
+    const currentFile = files[instanceState.currentFileIndex]
 
-    const onHandleFilenameChange = (ev) => props.onEditFileName(instanceState.currentFileIndex, ev.target.value)
+    const onHandleFilenameChange = (ev) => onEditFileName(instanceState.currentFileIndex, ev.target.value)
     const onHandleAddFile = () => {
-        let newIdx = props.onCreateFile('wgsl')
+        let newIdx = onCreateFile('wgsl')
         setCurrentFileIndex(newIdx)
     }
 
@@ -85,7 +88,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                         className="editor"
                         textareaId="codeArea"
                         value={currentFile.file}
-                        onValueChange={code => props.onEditCode(instanceState.currentFileIndex, code)}
+                        onValueChange={code => onEditCode(instanceState.currentFileIndex, code)}
                         highlight={code => hightlightWithLineNumbers(code, languages.rust)}
                         padding={20}
                         style={{
@@ -143,7 +146,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                             >
                                 <Flex direction="column" width="200px" backgroundColor="gray.850">
                                 {
-                                    props.files.map((file, idx) => 
+                                    files.map((file, idx) => 
                                         <Button
                                             size="sm"
                                             backgroundColor={idx==instanceState.currentFileIndex ? "whiteAlpha.300": "whiteAlpha.50"}
@@ -204,30 +207,28 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
 export const useEditorPanel = (): EditorProps => {
 
-    const [files, setFiles] = React.useState<CodeFile[]>(() =>{
-        return [{filename: 'test', file: 'aaa', lang: 'wgsl'}]
-    })
+    const [filesState, setFiles] = useRecoilState<CodeFile[]>(codeFiles)
 
-    // file loading
-    useEffect(() => {
-        let storedFiles = window.localStorage.getItem('files');
-        if (storedFiles) {
-            let files = JSON.parse(storedFiles)
-            if (files.length > 0){
-                setFiles(files)
-                return
-            }
-        } 
-        setFiles([{filename: 'test', file: 'aaa', lang: 'wgsl'}])
-    }, [])
+    // // file loading
+    // useEffect(() => {
+    //     let storedFiles = window.localStorage.getItem('files');
+    //     if (storedFiles) {
+    //         let files = JSON.parse(storedFiles)
+    //         if (files.length > 0){
+    //             setFiles(files)
+    //             return
+    //         }
+    //     } 
+    //     setFiles([{filename: 'test', file: 'aaa', lang: 'wgsl'}])
+    // }, [])
 
-    // file saving
-    useEffect(() => {
-        window.localStorage.setItem('files', JSON.stringify(files))
-     }, [files])
+    // // file saving
+    // useEffect(() => {
+    //     window.localStorage.setItem('files', JSON.stringify(files))
+    //  }, [files])
 
 
-    const onEditCode = (idx: number, code: string) => {
+    const onEditCode = useCallback((idx: number, code: string) => {
         setFiles(prevCode => {
             let updated = [...prevCode]
             updated[idx] = {
@@ -236,11 +237,11 @@ export const useEditorPanel = (): EditorProps => {
             }
             return updated
         })
-    }
+    }, [filesState])
 
-    const onCreateFile = (lang: Lang): number => {
+    const onCreateFile = useCallback((lang: Lang): number => {
         let idx = 0
-        let len = files.length
+        let len = filesState.length
         while (files.map((c) => c.filename).includes(`shader${idx}`)) 
             ++idx
         setFiles(prevCode => [...prevCode, {
@@ -249,25 +250,25 @@ export const useEditorPanel = (): EditorProps => {
             lang: lang
         }])
         return len
-    }
+    }, [filesState])
 
-    const onDeleteFile = (idx: number) => {
+    const onDeleteFile = useCallback((idx: number) => {
         setFiles(prevCode => {
             let updated = [...prevCode]
             updated.splice(idx, 1)
             return updated
         })
-    }
+    }, [filesState])
 
-    const onEditFileName = (idx: number, filename: string) => {
+    const onEditFileName = useCallback((idx: number, filename: string) => {
         setFiles(prevCode => {
             let updated = [...prevCode]
             updated[idx].filename = filename
             return updated
         })
-    }
+    }, [filesState])
 
-    return { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName }
+    return { files: filesState, onEditCode, onCreateFile, onDeleteFile, onEditFileName }
 }
 
 export default EditorPanel;

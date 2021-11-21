@@ -1,63 +1,68 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Panels, usePanels, PanelDescriptor } from '../src/components/panels/panel'
 import Scaffold from '../src/components/scaffold'
 
-import ViewportPanel, { useViewportPanel } from '../src/components/panels/impls/viewPanel'
-import ParamPanel, { useParamsPanel } from '../src/components/panels/impls/paramPanel'
-import EditorPanel, { useEditorPanel } from '../src/components/panels/impls/editorPanel'
+import ViewportPanel from '../src/components/panels/impls/viewPanel'
+import ParamPanel from '../src/components/panels/impls/paramPanel'
+import EditorPanel from '../src/components/panels/impls/editorPanel'
 import ConsolePanel from '../src/components/panels/impls/consolePanel'
 
 import { FaBorderNone } from 'react-icons/fa'
 import { BsFillFileEarmarkCodeFill, BsFillFileSpreadsheetFill, BsTerminalFill } from 'react-icons/bs'
+import { Project } from '../src/gpu/project'
+import ProjectManager from '../src/components/projectManager'
 
 
-export interface ProjectStatus {
-    gpustatus: string,
-    fps: string,
-    time: string,
-}
+// function useTraceUpdate(props) {
+//     const prev = useRef(props);
+//     useEffect(() => {
+//       const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
+//         if (prev.current[k] !== v) {
+//           ps[k] = [prev.current[k], v];
+//         }
+//         return ps;
+//       }, {});
+//       if (Object.keys(changedProps).length > 0) {
+//         console.log('Changed props:', changedProps);
+//       }
+//       prev.current = props;
+//     });
+// }
+
+const panelDesc: PanelDescriptor[] = [
+    {
+        index: 0, 
+        name: 'Viewport', 
+        icon: <FaBorderNone/>, 
+        component: ViewportPanel, 
+    },
+    {
+        index: 1, 
+        name: 'Params', 
+        icon: <BsFillFileSpreadsheetFill/>, 
+        component: ParamPanel, 
+    },
+    {
+        index: 2, 
+        name: 'Editor', 
+        icon: <BsFillFileEarmarkCodeFill/>, 
+        component: EditorPanel, 
+    },
+    {
+        index: 3, 
+        name: 'Console', 
+        icon: <BsTerminalFill/>, 
+        component: ConsolePanel, 
+    }
+]
 
 const Create = () => {
-    
-    const editorProps = useEditorPanel()
-    const paramProps = useParamsPanel()
-    const viewportProps = useViewportPanel()
 
     const props = usePanels()
-
-    const panelDesc: PanelDescriptor[] = [
-        {
-            index: 0, 
-            name: 'Viewport', 
-            icon: <FaBorderNone/>, 
-            component: ViewportPanel, 
-            staticProps: viewportProps,
-        },
-        {
-            index: 1, 
-            name: 'Params', 
-            icon: <BsFillFileSpreadsheetFill/>, 
-            component: ParamPanel, 
-            staticProps: paramProps,
-        },
-        {
-            index: 2, 
-            name: 'Editor', 
-            icon: <BsFillFileEarmarkCodeFill/>, 
-            component: EditorPanel, 
-            staticProps: editorProps,
-        },
-        {
-            index: 3, 
-            name: 'Console', 
-            icon: <BsTerminalFill/>, 
-            component: ConsolePanel, 
-            staticProps: {},
-        }
-    ]
     
     return (
         <Scaffold>
+            <ProjectManager/>
             <Panels {...props} descriptors={panelDesc}/>
         </Scaffold>
     )
