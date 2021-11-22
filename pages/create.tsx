@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
 import { Panels, usePanels, PanelDescriptor } from '../src/components/panels/panel'
 import Scaffold from '../src/components/scaffold'
 
@@ -9,25 +9,6 @@ import ConsolePanel from '../src/components/panels/impls/consolePanel'
 
 import { FaBorderNone } from 'react-icons/fa'
 import { BsFillFileEarmarkCodeFill, BsFillFileSpreadsheetFill, BsTerminalFill } from 'react-icons/bs'
-import { Project } from '../src/gpu/project'
-import ProjectManager from '../src/components/projectManager'
-
-
-// function useTraceUpdate(props) {
-//     const prev = useRef(props);
-//     useEffect(() => {
-//       const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
-//         if (prev.current[k] !== v) {
-//           ps[k] = [prev.current[k], v];
-//         }
-//         return ps;
-//       }, {});
-//       if (Object.keys(changedProps).length > 0) {
-//         console.log('Changed props:', changedProps);
-//       }
-//       prev.current = props;
-//     });
-// }
 
 const panelDesc: PanelDescriptor[] = [
     {
