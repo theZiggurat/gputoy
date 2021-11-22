@@ -1,9 +1,8 @@
 import  { atom, atomFamily, selector, useRecoilCallback } from 'recoil'
 import { CodeFile } from '../components/panels/impls/editorPanel'
-import Console from './console'
 import { ParamDesc } from '../gpu/params'
 import { Project } from '../gpu/project'
-import localStorageEffect, { canvasSync } from './localstorage'
+import localStorageEffect, { canvasSync, consoleLogEffect } from './effects'
 
 type ProjectStatus = {
   lastStartTime: number
@@ -25,7 +24,6 @@ export const projectStatus = atom<ProjectStatus>({
     runDuration:  0,
     prevDuration: 0,
     running: false,
-
   } 
 })
 
@@ -50,12 +48,25 @@ type MousePos = {
   y: number
 }
 
+type Resolution = {
+  width: number,
+  height: number,
+}
+
 export const mousePos = atom<MousePos>({
   key: 'mousepos',
   default: {
     x: 0,
     y: 0
-  }
+  },
+})
+
+export const resolution = atom<Resolution>({
+  key: 'resolution',
+  default: {
+    width: 0,
+    height: 0,
+  },
 })
 
 export type CanvasStatus = {
@@ -75,29 +86,36 @@ export type CanvasStatus = {
 //   })
 // }
 
-export const canvasStatus = atom<CanvasStatus>({
-  key: 'canvasStatus',
-  default: {
-    id: '',
-    attached: false
-  },
-  effects_UNSTABLE: [
-    canvasSync
-  ]
-})
+// export const canvasStatus = atom<CanvasStatus>({
+//   key: 'canvasStatus',
+//   default: {
+//     id: '',
+//     attached: false
+//   },
+//   effects_UNSTABLE: [
+//     canvasSync
+//   ]
+// })
 
 
 
-export const defaultParams = atom<ParamDesc[]>({
+export const defaultParams = selector<ParamDesc[]>({
   key: 'defaultParams',
-  default: [
-    {paramName: 'time', paramType: 'float', param: [0]},
-    {paramName: 'dt',   paramType: 'float', param: [0]},
-    {paramName: 'mouseNorm', paramType: 'vec2f', param: [0, 0]},
-    {paramName: 'aspectRatio', paramType: 'float', param: [0]},
-    {paramName: 'res', paramType: 'vec2i', param: [0, 0]},
-    {paramName: 'frame', paramType: 'int', param: [0]},
-    {paramName: 'mouse', paramType: 'vec2i', param: [0, 0]},
-  ]
+  get: ({get}) => {
+
+    const mouse = get(mousePos)
+    const res = get(resolution)
+    const status = get(projectStatus)
+
+    return [
+      {paramName: 'time', paramType: 'float', param: [status.runDuration]},
+      {paramName: 'dt',   paramType: 'float', param: [status.dt]},
+      {paramName: 'frame', paramType: 'int', param: [status.frameNum]},
+      {paramName: 'mouseNorm', paramType: 'vec2f', param: [mouse.x / res.width, mouse.y / res.height]},
+      {paramName: 'aspectRatio', paramType: 'float', param: [res.width / res.height]},
+      {paramName: 'res', paramType: 'vec2i', param: [res.width, res.height]},
+      {paramName: 'mouse', paramType: 'vec2i', param: [mouse.x, mouse.y]},
+    ]
+  }
 })
 

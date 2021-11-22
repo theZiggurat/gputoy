@@ -12,7 +12,7 @@ import {
 
 import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa'
 import { CloseIcon } from '@chakra-ui/icons'
-import Console, { Message, useConsole } from '../../../recoil/console'
+import Console, { clearConsole, Message, useConsole } from '../../../recoil/console'
 import { MdSettings } from 'react-icons/md';
 
 import { Panel, PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd, DynamicPanelProps } from '../panel';
@@ -40,8 +40,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
 
   const [instanceState, setInstanceState] = useInstance<ConsoleInstanceState>(props)
   const console = useConsole(instanceState.typeFilters, instanceState.keywordFilter)
-
-  //const [text, setText] = React.useState(Console.getBuffer())
+  const clear = clearConsole()
 
   const setKeywordFilter = (filter: string) => setInstanceState({...instanceState, keywordFilter: filter})
   const setTypeFilters = (filter: boolean[]) => setInstanceState({...instanceState, typeFilters: filter})
@@ -50,10 +49,6 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
   const bottom = React.useRef<HTMLDivElement>(null)
 
   const toast = useToast()
-
-  // useEffect(() => {
-  //   setText([...Console.getFiltered(instanceState.typeFilters, instanceState.keywordFilter)])
-  // }, [])
 
   /**
    * Automatic scrolling to bottom
@@ -154,7 +149,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
           <RowButton 
             purpose="Clear console"
             icon={<FaRegTrashAlt/>}
-            //onClick={() => Console.clear()}
+            onClick={clear}
             disabled={console.length == 0}
           />
           <RowButton 

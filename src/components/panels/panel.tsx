@@ -424,8 +424,7 @@ const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, pa
             React.createElement(
                 descriptors[obj['index']].component, 
                 {   
-                    ...props, 
-                    ...descriptors[obj['index']].staticProps,
+                    ...props,
                     panelDesc: descriptors,
                     path: path, 
                     panelIndex: obj['index'], 

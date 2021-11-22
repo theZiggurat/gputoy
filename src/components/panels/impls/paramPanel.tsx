@@ -275,7 +275,7 @@ export const useParamsPanel = (): ParamPanelProps => {
     const [paramsState, setParams] = useRecoilState<ParamDesc[]>(params)
 
     useEffect(() => {
-        WorkingProject.setParams(paramsState)
+        //WorkingProject.setParams(paramsState)
     }, [paramsState])
 
     useEffect(() => {

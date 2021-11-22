@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useLayoutEffect, useState, useRef } from 'react'
+import React, { useEffect, useCallback, useLayoutEffect, useState, useRef, MutableRefObject } from 'react'
 import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
 import WorkingProject, { Project } from '../../../gpu/project';
 import { ProjectStatus } from '../../../../pages/create';
@@ -21,7 +21,7 @@ import {
     DynamicPanelProps
 } from '../panel'
 import { DefaultValue, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { canvasStatus, projectRunning, projectStatus } from '../../../recoil/project';
+import { canvasStatus, mousePos, projectStatus, resolution } from '../../../recoil/project';
 import { useLogger } from '../../../recoil/console';
 import useInstance from '../../../recoil/instance';
 
@@ -56,14 +56,14 @@ const StatusInfoGroup = () => {
 
     return <>
         <StatusInfo text={`FPS: ${(1 / projectStatusValue.dt * 1000).toFixed(0)}`} first/>
-        <StatusInfo text={`Duration: ${projectStatusValue.runDuration.toFixed(3)}s`}/>
+        <StatusInfo text={`Duration: ${projectStatusValue.runDuration.toFixed(2)}s`}/>
         <StatusInfo text={`Framenum: ${projectStatusValue.frameNum}`} last/>
     </>
 }
 
 const ViewportPanelBarEnd = () => {
 
-    const [onHandlePlayPause, onHandleStop] = useViewportPanel()
+    const [onHandlePlayPause, onHandleStop] = useViewportPanelControls()
     const projectStatusState = useRecoilValue(projectStatus)
 
     return <>
@@ -110,6 +110,7 @@ const RandomBox = () => {
 const ViewportPanel = (props: ViewportProps & DynamicPanelProps) => {
 
     const [showResolution, setShowResolution] = React.useState(false)
+    const setResolution = useSetRecoilState(resolution)
     const [_ ,showExist] = useInstance(props)
 
     const onResize = () => {
@@ -127,18 +128,14 @@ const ViewportPanel = (props: ViewportProps & DynamicPanelProps) => {
     })
 
     useEffect(() => {
+        if (width && height)
+            setResolution({width, height})
         const handle = setTimeout(() => setShowResolution(false), 2000)
         return () => clearTimeout(handle)
     }, [width, height])
 
     useEffect(() => {
-        showExist(prev => {
-            if (prev instanceof DefaultValue)
-                console.log('it was default')
-            else
-                console.log('not default')
-            return {}
-        })
+        showExist({})
     }, [])
 
     return (
@@ -176,20 +173,27 @@ const ViewportPanel = (props: ViewportProps & DynamicPanelProps) => {
 
 const ViewportCanvas = (props: {instanceID: number, width?: number, height?: number}) => {
 
-    const setCanvasStatus = useSetRecoilState(canvasStatus)
+    //const setCanvasStatus = useSetRecoilState(canvasStatus)
+    const setMousePos = useSetRecoilState(mousePos)
+    const canvasRef = useRef<MutableRefObject<HTMLCanvasElement>>()
     const logger = useLogger()
     const id = `canvas_${props.instanceID}`
 
-    useEffect(() => {
-        // setCanvasStatus({
-        //     id: id,
-        //     attached: false
-        // })
-        logger.log('test', 'running')
-        Project.instance().attachCanvas(id, logger)
-    }, [props])
+    const onHandleMousePos = (evt) => {
+        if (canvasRef.current) {
+            const rect = canvasRef.current.getBoundingClientRect()
+            setMousePos({
+                x: Math.floor(evt.clientX - rect.left),
+                y: Math.floor(evt.clientY - rect.top)
+            })
+        }
+    }
 
-    return <canvas id={id} style={{
+    useEffect(() => {
+        Project.instance().attachCanvas(id, logger)
+    }, [])
+
+    return <canvas id={id} ref={canvasRef} onMouseMove={onHandleMousePos} style={{
         width: props.width,
         height: props.height
     }}/>
@@ -197,62 +201,36 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
     
 }
 
-const useViewportPanel = () => {
+const useViewportPanelControls = () => {
     const setProjectStatus = useSetRecoilState(projectStatus)
-    //const [isProjectRunning, setProjectRunning]= useState({running: false})
 
     const onHandlePlayPause = () => {
-        // if (!isProjectRunning.running) {
-        //     setProjectStatus(old => { return {
-        //         ...old,
-        //         lastStartTime: performance.now(),
-        //         status: 'Running',
-        //     }})
-        // } else {
-        //     setProjectStatus(old => { return {
-        //         ...old,
-        //         status: 'Paused',
-        //         prevDuration: old.runDuration
-        //     }})
-        // }
-        setProjectStatus(old => {return {...old, running: !old.running}})
+        setProjectStatus(old => {
+            if (old.running)
+                return {
+                    ...old, 
+                    running: false,
+                    prevDuration: old.runDuration
+                }
+            else 
+                return {
+                    ...old,
+                    running: true,
+                    lastStartTime: performance.now(),
+                }
+        })
     }
 
     const onHandleStop = () => {
-        // setProjectStatus(old => { 
-        //     return {
-        //     ...old,
-        //     status: 'Ok',
-        //     frameNum: 0,
-        //     runDuration: 0,
-        //     prevDuration: 0,
-        // }})
-        //setProjectRunning({running: false})
-        setProjectStatus(old => {return {...old, running: false}})
+        setProjectStatus(old => { 
+            return {
+            ...old,
+            running: false,
+            frameNum: 0,
+            runDuration: 0,
+            prevDuration: 0,
+        }})
     }
-
-    // useLayoutEffect(() => {
-    //     if (isProjectRunning.running) {
-    
-    //       const f = () => {
-    //         setProjectStatus(old => { 
-    //             let now = performance.now()
-    //             return {
-    //           ...old,
-    //           runDuration: (now - old.lastStartTime) / 1000 + old.prevDuration,
-    //           lastFrameRendered: now,
-    //           dt: now - old.lastFrameRendered,
-    //           frameNum: old.frameNum + 1
-    //         }})
-
-    //         if (isProjectRunning.running)
-    //             frameHandle.current = requestAnimationFrame(f)
-    //       }
-    
-    //       frameHandle.current = requestAnimationFrame(f)
-    //     }
-    //     return () => cancelAnimationFrame(frameHandle.current)
-    // }, [isProjectRunning])
 
     return [onHandlePlayPause, onHandleStop]
 }

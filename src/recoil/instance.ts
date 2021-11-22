@@ -1,6 +1,6 @@
 import { memoize } from "lodash"
 import { atom, atomFamily, DefaultValue, Resetter, selectorFamily, SetterOrUpdater, useRecoilState, useResetRecoilState } from "recoil"
-import localStorageEffect from "./localstorage"
+import localStorageEffect from "./effects"
 
 export interface ConsoleInstanceState {
   typeFilters: boolean[]

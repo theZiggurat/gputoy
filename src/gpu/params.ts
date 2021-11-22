@@ -101,7 +101,7 @@ class Params {
     }
       
 
-    //this.uploadToGPU(device)
+    this.uploadToGPU(device)
     return needRecompile
   }
 

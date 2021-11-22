@@ -1,5 +1,5 @@
 import {atom} from 'recoil'
-import localStorageEffect from './localstorage'
+import localStorageEffect from './effects'
 
 export const layoutState = atom<any>({
   key: 'layout',

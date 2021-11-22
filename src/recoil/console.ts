@@ -1,4 +1,4 @@
-import { atom, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import { atom, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil"
 
 export interface Message {
   time: Date,
@@ -59,4 +59,9 @@ export const useConsole = (levels: boolean[], keywordFilter: string): Message[] 
       msg.header.match(new RegExp(keywordFilter, 'i')) || 
       msg.body.match(new RegExp(keywordFilter, 'i'))
     )
+}
+
+export const clearConsole = () => {
+  const clear = useResetRecoilState(_console)
+  return clear
 }

@@ -20,4 +20,15 @@ const localStorageEffect = (key: string) => ({setSelf, onSet}) => {
   })
 }
 
+export const consoleLogEffect = (key: string) => ({setSelf, onSet}) => {
+
+  setSelf(() => new DefaultValue)
+
+  onSet((newValue, _, isReset) => {
+    isReset
+      ? console.log(key, 'Reset')
+      : console.log(key, 'set to', newValue)
+  })
+}
+
 export default localStorageEffect
