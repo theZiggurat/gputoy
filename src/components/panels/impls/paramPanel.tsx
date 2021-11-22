@@ -32,7 +32,7 @@ import { CloseIcon } from '@chakra-ui/icons'
 import { MdAdd, MdSettings } from 'react-icons/md'
 import { useDebounce } from '../../../utils/lodashHooks'
 import { RowButton } from '../../reusable/rowButton';
-import useInstance, { ParamInstanceState } from '../instance';
+import useInstance, { ParamInstanceState } from '../../../recoil/instance';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { layoutState } from '../../../recoil/atoms';
 import { params } from '../../../recoil/project';

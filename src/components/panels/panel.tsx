@@ -1,6 +1,6 @@
 import React, { LegacyRef, ReactElement, ReactNode, useCallback, useEffect, useRef } from 'react'
 import SplitPane from 'react-split-pane'
-import { useRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 import { layoutState } from '../../recoil/atoms'
 import { set } from 'lodash/fp'
 import { get } from 'lodash'
@@ -20,6 +20,7 @@ import {
   Portal,
   Divider
 } from '@chakra-ui/react'
+import { clearInstance, panelInstances } from '../../recoil/instance'
 
 
 // --------- CUSTOM PANEL INTERFACES  --------------
@@ -29,6 +30,7 @@ export interface PanelDescriptor {
   name: string,
   icon: React.ReactElement<any>,
   component: React.FC<any>,
+  single?: boolean
 }
 
 export interface DynamicPanelProps {
@@ -45,6 +47,7 @@ export interface PanelInProps {
   onSplitPanel?: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
   onCombinePanel?: (path: string) => void,
   onSwitchPanel?: (path: string, panelIndex: number) => void,
+  instanceID: string,
 }
 
 export const Panel = (props: PanelInProps) => {
@@ -79,7 +82,8 @@ export const Panel = (props: PanelInProps) => {
             onSwitchPanel: props.onSwitchPanel,
             panelDesc: props.panelDesc,
             panelIndex: props.panelIndex,
-            clippingBoundary: bounds.current
+            clippingBoundary: bounds.current,
+            instanceID: props.instanceID
           })
         //else
           //return elem
@@ -121,14 +125,21 @@ interface PanelBarProps {
   panelIndex?: number,
   panelDesc?: PanelDescriptor[],
   clippingBoundary?: HTMLDivElement
-  preventScroll?: boolean
+  preventScroll?: boolean,
+  instanceID: string,
 }
 export const PanelBar = (props: PanelBarProps) => {
+
+  const resetInstance = clearInstance(props)
+  const instances = useRecoilValue(panelInstances)
 
   const scrollRef = useHorizontalScroll(Boolean(props.preventScroll))
   const onHandleSplitVertical = (idx: number) => props.onSplitPanel!(props.path!, 'horizontal', idx)
   const onHandleSplitHorizontal = (idx: number) => props.onSplitPanel!(props.path!, 'vertical', idx)
-  const onHandleCombine = () => props.onCombinePanel!(props.path!)
+  const onHandleCombine = () => {
+    props.onCombinePanel!(props.path!)
+    resetInstance()
+  }
   const onHandleSwitch = (index: number) => props.onSwitchPanel!(props.path!, index)
   const {children, location, onChangeLocation, ...barProps} = props
 
@@ -192,6 +203,7 @@ export const PanelBar = (props: PanelBarProps) => {
                     onHandleSplitVertical={() => onHandleSplitVertical(idx)}
                     last={idx==props.panelDesc!.length-1}
                     first={idx==0}
+                    disabled={instances.map(sel => sel.index).includes(idx) && desc.single}
                   />)
                 }                  
               </Flex>
@@ -249,6 +261,7 @@ interface PaneSelectorButtonProps {
   onSwitch: () => void,
   last: boolean,
   first: boolean,
+  disabled?: boolean
 }
 
 const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
@@ -269,6 +282,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           borderBottomRadius="0"
           onClick={props.onSwitch}
           pl={2}
+          disabled={props.disabled}
         >
           <Text fontSize="xs" fontWeight="thin">{props.title}</Text>
         </Button>
@@ -281,6 +295,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           borderRadius="0"
           border="0"
           onClick={props.onHandleSplitHorizontal}
+          disabled={props.disabled}
         />
         <IconButton 
           backgroundColor="whiteAlpha.100"
@@ -293,6 +308,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           borderEndRadius={props.first?"":"0"}
           borderBottomRightRadius={props.last?"":"0"}
           onClick={props.onHandleSplitVertical}
+          disabled={props.disabled}
         />
       </Flex>
       {!props.last && <Divider/>}

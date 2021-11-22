@@ -12,6 +12,7 @@ import '../styles/create.css'
 import '../styles/prism-custom.css'
 import 'react-tabs/style/react-tabs.css';
 import dynamic from 'next/dynamic'
+import ProjectManager from '../src/components/projectManager'
 
 
 const theme = extendTheme({
@@ -29,6 +30,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <RecoilRoot>
+      <ProjectManager/>
       <ChakraProvider theme={theme}>
         <ShdrAlert gpuResult={gpuInitResult}/>
         <Component {...pageProps} />

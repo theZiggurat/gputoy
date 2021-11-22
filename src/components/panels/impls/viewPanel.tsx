@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useLayoutEffect, useState, useRef } from 'react'
 import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
-import WorkingProject from '../../../gpu/project';
+import WorkingProject, { Project } from '../../../gpu/project';
 import { ProjectStatus } from '../../../../pages/create';
 import { useResizeDetector } from 'react-resize-detector'
 import { RowButton } from '../../reusable/rowButton';
@@ -20,8 +20,10 @@ import {
     PanelBarEnd, 
     DynamicPanelProps
 } from '../panel'
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { projectRunning, projectStatus } from '../../../recoil/project';
+import { DefaultValue, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { canvasStatus, projectRunning, projectStatus } from '../../../recoil/project';
+import { useLogger } from '../../../recoil/console';
+import useInstance from '../../../recoil/instance';
 
 
 
@@ -47,6 +49,17 @@ const StatusInfo = (props: {text: string, textColor?: string, first?: boolean, l
         <Text pl={2} pr={2} fontSize={12} color={props.textColor}>{props.text}</Text>
     </Center>
 )
+
+const StatusInfoGroup = () => {
+
+    const projectStatusValue = useRecoilValue(projectStatus)
+
+    return <>
+        <StatusInfo text={`FPS: ${(1 / projectStatusValue.dt * 1000).toFixed(0)}`} first/>
+        <StatusInfo text={`Duration: ${projectStatusValue.runDuration.toFixed(3)}s`}/>
+        <StatusInfo text={`Framenum: ${projectStatusValue.frameNum}`} last/>
+    </>
+}
 
 const ViewportPanelBarEnd = () => {
 
@@ -94,10 +107,10 @@ const RandomBox = () => {
 
 // const StatusInfoGroup = ()
 
-const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
+const ViewportPanel = (props: ViewportProps & DynamicPanelProps) => {
 
-    const {instanceID, ...props} = allprops
     const [showResolution, setShowResolution] = React.useState(false)
+    const [_ ,showExist] = useInstance(props)
 
     const onResize = () => {
         setShowResolution(true)
@@ -108,7 +121,7 @@ const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
         refreshRate: 100,
         onResize: onResize,
         refreshOptions: {
-            leading: true,
+            leading: false,
             trailing: true
         }
     })
@@ -117,6 +130,16 @@ const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
         const handle = setTimeout(() => setShowResolution(false), 2000)
         return () => clearTimeout(handle)
     }, [width, height])
+
+    useEffect(() => {
+        showExist(prev => {
+            if (prev instanceof DefaultValue)
+                console.log('it was default')
+            else
+                console.log('not default')
+            return {}
+        })
+    }, [])
 
     return (
         <Panel {...props}>
@@ -134,18 +157,14 @@ const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
                             {`Resolution: ${width} x ${height}`}
                         </Box>
                     </Fade>
-                    <RandomBox/>
-                    <canvas id={`canvas_${instanceID}`} style={{
-                        width: width,
-                        height: height
-                    }}/>
+                    {/* <RandomBox/> */}
+                    <ViewportCanvas instanceID={props.instanceID} width={width} height={height}/>
                 </Box>
             </PanelContent>
             <PanelBar>
                 <PanelBarMiddle>
-                    {/* <StatusInfo text={`FPS: ${(1 / projectStatus.dt * 1000).toFixed(0)}`} first/>
-                    <StatusInfo text={`Duration: ${projectStatus.runDuration.toFixed(3)}s`}/>
-                    <StatusInfo text={`Framenum: ${projectStatus.frameNum}`} last/> */}
+                    <StatusInfoGroup/>
+                    
                 </PanelBarMiddle>
                 <PanelBarEnd>
                     <ViewportPanelBarEnd/>
@@ -155,43 +174,28 @@ const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
     )
 }
 
-// export const useViewportPanel = (): ViewportProps => {
-//     const [projectStatus, setProjectStatus] = React.useState<ProjectStatus>({
-//         gpustatus: "",
-//         fps: "--",
-//         time: "--",
-//     })
+const ViewportCanvas = (props: {instanceID: number, width?: number, height?: number}) => {
 
-//     useEffect(() => {
-//         const id = setInterval(() => {
-//             let fps = '--'
-//             if (WorkingProject.dt != 0) {
-//                 fps = (1 / WorkingProject.dt * 1000).toFixed(2).toString()
-//             }
+    const setCanvasStatus = useSetRecoilState(canvasStatus)
+    const logger = useLogger()
+    const id = `canvas_${props.instanceID}`
 
-//             setProjectStatus(oldStatus => {
-//                 let newStatus = {
-//                     gpustatus: WorkingProject.status,
-//                     fps: fps,
-//                     time: (WorkingProject.runDuration).toFixed(1).toString()
-//                 }
-//                 return newStatus
-//             })
-//         },(100))
-//         return () => clearInterval(id)
-//     },[])
+    useEffect(() => {
+        // setCanvasStatus({
+        //     id: id,
+        //     attached: false
+        // })
+        logger.log('test', 'running')
+        Project.instance().attachCanvas(id, logger)
+    }, [props])
 
-//     const onRequestStart = () => WorkingProject.run()
-//     const onRequestPause = () =>  WorkingProject.pause()
-//     const onRequestStop = () => WorkingProject.stop()
+    return <canvas id={id} style={{
+        width: props.width,
+        height: props.height
+    }}/>
 
-//     return {
-//         projectStatus,
-//         onRequestStart,
-//         onRequestPause,
-//         onRequestStop
-//     }
-// }
+    
+}
 
 const useViewportPanel = () => {
     const setProjectStatus = useSetRecoilState(projectStatus)

@@ -12,11 +12,11 @@ import {
 
 import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa'
 import { CloseIcon } from '@chakra-ui/icons'
-import Console, { Message } from '../../../gpu/console'
+import Console, { Message, useConsole } from '../../../recoil/console'
 import { MdSettings } from 'react-icons/md';
 
 import { Panel, PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd, DynamicPanelProps } from '../panel';
-import useInstance, { ConsoleInstanceState } from '../instance';
+import useInstance, { ConsoleInstanceState } from '../../../recoil/instance';
 import { RowButton, RowToggleButton} from '../../reusable/rowButton';
 
 const colors = [
@@ -39,8 +39,9 @@ const formatTime = (date: Date) => `${f(date.getHours())}:${f(date.getMinutes())
 const ConsolePanel = (props: DynamicPanelProps & any) => {
 
   const [instanceState, setInstanceState] = useInstance<ConsoleInstanceState>(props)
+  const console = useConsole(instanceState.typeFilters, instanceState.keywordFilter)
 
-  const [text, setText] = React.useState(Console.getBuffer())
+  //const [text, setText] = React.useState(Console.getBuffer())
 
   const setKeywordFilter = (filter: string) => setInstanceState({...instanceState, keywordFilter: filter})
   const setTypeFilters = (filter: boolean[]) => setInstanceState({...instanceState, typeFilters: filter})
@@ -50,9 +51,9 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
 
   const toast = useToast()
 
-  useEffect(() => {
-    setText([...Console.getFiltered(instanceState.typeFilters, instanceState.keywordFilter)])
-  }, [instanceState])
+  // useEffect(() => {
+  //   setText([...Console.getFiltered(instanceState.typeFilters, instanceState.keywordFilter)])
+  // }, [])
 
   /**
    * Automatic scrolling to bottom
@@ -65,7 +66,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
           inline: "center",
           behavior: "smooth",
         }
-    )}, [text])
+    )}, [console])
 
   const toggle = (idx: number) => {
     var filters = [...instanceState.typeFilters]
@@ -75,7 +76,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
 
   const writeToClipboard = () => {
     navigator.clipboard.writeText(
-      Console.getBuffer().map(line => 
+      console.map(line => 
         `${formatTime(line.time)}  ${prehead[line.type]} ${line.header}: ${line.body}`
       ).join('\n')
     )
@@ -93,7 +94,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
         fontFamily='"Fira code", "Fira Mono", monospace' 
         fontSize="sm" 
       >
-        {text.map((message: Message, idx) => 
+        {console.map((message: Message, idx) => 
             <Box 
               key={idx}
               //backgroundColor={idx%2==0?'':'blackAlpha.100'}
@@ -147,14 +148,14 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
             purpose="Copy console to clipboard"
             icon={<FaRegClipboard/>}
             onClick={() => writeToClipboard()}
-            disabled={text.length == 0}
+            disabled={console.length == 0}
             first
           />
           <RowButton 
             purpose="Clear console"
             icon={<FaRegTrashAlt/>}
-            onClick={() => Console.clear()}
-            disabled={text.length == 0}
+            //onClick={() => Console.clear()}
+            disabled={console.length == 0}
           />
           <RowButton 
             purpose="Console Settings"

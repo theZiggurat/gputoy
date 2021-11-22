@@ -5,7 +5,7 @@ import init, {
   get_ir,
   get_errors
 } from '../../naga-compiler/pkg/naga_compiler'
-import Console from './console'
+import Console from '../recoil/console'
 
 type ShaderStage = 'vertex' | 'fragment' | 'compute'
 
@@ -27,7 +27,7 @@ class _Compiler {
           })
         }else {
           let errors: string[] = JSON.parse(get_errors())
-          errors.forEach(err => Console.err('NAGA COMPILER', err));
+          //errors.forEach(err => Console.err('NAGA COMPILER', err));
           return null
         }
       }
@@ -41,13 +41,13 @@ class _Compiler {
           })
         } else {
           let errors: string[] = JSON.parse(get_errors())
-          errors.forEach(err => Console.err('NAGA COMPILER', err));
+          //errors.forEach(err => Console.err('NAGA COMPILER', err));
           return null
         }
       }
 
       this.ready = true
-      Console.trace('Compiler', 'Compiler ready')
+      //Console.trace('Compiler', 'Compiler ready')
     })
   }
   isReady = (): boolean => this.ready

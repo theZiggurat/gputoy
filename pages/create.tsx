@@ -35,6 +35,7 @@ const panelDesc: PanelDescriptor[] = [
         name: 'Viewport', 
         icon: <FaBorderNone/>, 
         component: ViewportPanel, 
+        single: true
     },
     {
         index: 1, 
@@ -62,7 +63,6 @@ const Create = () => {
     
     return (
         <Scaffold>
-            <ProjectManager/>
             <Panels {...props} descriptors={panelDesc}/>
         </Scaffold>
     )

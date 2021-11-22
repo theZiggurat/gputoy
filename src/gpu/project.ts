@@ -1,13 +1,19 @@
 import Params, {ParamDesc, ParamType} from './params'
 import GPU from './gpu'
-import Console from './console'
+import { Logger } from '../recoil/console'
 import Compiler from './compiler'
 
-interface ProjcetSerializable {
-
-}
-
 export class Project {
+
+  static _instance: Project
+
+  static instance = (): Project => {
+    if (Project._instance === undefined) 
+      Project._instance = new Project()
+    return Project._instance
+  }
+
+
 
   // run state
   lastStartTime: number = 0
@@ -57,24 +63,28 @@ export class Project {
   shaderDirty = true
   uniformsDirty = true
 
+  constructor(){
+    console.log('constructing project')
+  }
+
   // attaches canvas to current GPU device if there is one
   // if there is no device, it will try to init
   // if browser is incompatable, it will return
-  attachCanvas = async (canvasId: string) => {
+  attachCanvas = async (canvasId: string, logger: Logger): Promise<boolean> => {
 
     // if gpu is not initialized
     // keep trying unless browser is incompatible
     while (!GPU.isInitialized()) {
       this.status = 'Initializing'
-      let status = await GPU.init()
+      let status = await GPU.init(logger)
       if (status === 'incompatible') {
         this.status = 'Browser Incompatible'
-        Console.fatal('Error', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
-        return
+        logger.fatal('Error', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
+        return false
       }
     }
 
-    let status = GPU.attachCanvas(canvasId)
+    let status = GPU.attachCanvas(canvasId, logger)
     this.status = status
 
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
@@ -87,16 +97,16 @@ export class Project {
         ]
       }, false);
 
-    GPU.device.onuncapturederror = this.errorHandler
+    return true
   }
 
   // starts project
-  run = () => {
+  run = (logger: Logger) => {
     if (!(this.render) || this.running || !GPU.isInitialized()) 
       return
 
     if (!Compiler.isReady()) {
-      Console.err('Compiler', 'Compiler module not ready')
+      logger.err('Compiler', 'Compiler module not ready')
       return
     }
 
@@ -105,21 +115,22 @@ export class Project {
       this.params.updateDesc(GPU.device)
 
     if (this.shaderDirty) {
-      Console.trace('Project', 'Compiling..')
+      logger.trace('Project', 'Compiling..')
       if (!this.compileShaders())
         return
+      this.shaderDirty = false
     }
 
+    logger.trace('Project', 'Creating Pipeline..')
     this.initPipeline()
-    this.shaderDirty = false
+    
 
     this.lastStartTime = performance.now()
 
-    //Console.trace("debug output", this.shaderSrc)
+    logger.trace("debug output", this.shaderSrc)
     this.running = true
     this.status = 'Running'
-    Console.trace('Project', 'Running')
-    this.renderInternal()
+    logger.trace('Project', 'Ready')
   }
 
   // runs external render and does record-keeping
@@ -135,12 +146,11 @@ export class Project {
     this.updateDefaultParams()
     this.render()
     
-    window.requestAnimationFrame(this.renderInternal)
   }
 
   // stops render loop without restarting
   pause = () => {
-    Console.trace('Project', 'Pausing')
+    //Console.trace('Project', 'Pausing')
     if (!GPU.isInitialized())
       return
     this.status = 'Paused'
@@ -150,7 +160,7 @@ export class Project {
 
   // stops render loop with restarting
   stop = () => {
-    Console.trace('Project', 'Stopping')
+    //Console.trace('Project', 'Stopping')
     if (!GPU.isInitialized())
       return
     
@@ -161,21 +171,20 @@ export class Project {
     this.runDuration = 0
   }
 
-  restart = () => {
-    console.log('restart')
-    this.stop()
-    this.run()
-  }
+  // restart = () => {
+  //   console.log('restart')
+  //   this.stop()
+  //   this.run()
+  // }
 
-  halt = () => {
-    console.log('halt')
-    this.stop()
-    this.dt = 0
-    this.status = "Error"
-  }
+  // halt = () => {
+  //   console.log('halt')
+  //   this.stop()
+  //   this.dt = 0
+  //   this.status = "Error"
+  // }
 
   initPipeline = () => {
-    Console.trace('Project', 'Creating Pipeline..')
     this.mapBuffers()
     this.createPipeline()
   }
@@ -326,27 +335,6 @@ export class Project {
 
   render = () => {
     this.encodeCommands()
-  }
-
-  errorHandler = (ev: GPUUncapturedErrorEvent) => {
-    let message: string = ev.error.message
-
-    // shader error
-    if (message.startsWith('Tint WGSL reader failure')) {
-      
-      let start = message.indexOf(':')+1
-      let body = message.substr(start, message.indexOf('Shader')-start).trim()
-      Console.err("Shader error", body)
-    }
-    else if (message.startsWith('[ShaderModule] is an error.')) {
-      Console.err("Shader module", message)
-    }
-    else {
-      Console.err("Unknown error", message)
-      
-    }
-    if (this.running)
-      this.halt()
   }
 
   onStart: () => void = () => {}

@@ -1,6 +1,4 @@
-
-import Console from "./console"
-import Status from "./status"
+import { Logger } from "../recoil/console"
 
 export type GPUInitResult = 'ok' | 'error' | 'incompatible'
 
@@ -18,42 +16,42 @@ class _GPU {
 
     constuctor() {}
 
-    async init(): Promise<GPUInitResult> {
+    async init(logger: Logger): Promise<GPUInitResult> {
 
         if (!navigator.gpu)
             return 'incompatible'
 
         this.device = null
 
-        await this.tryEnsureDeviceOnCurrentAdapter()
+        await this.tryEnsureDeviceOnCurrentAdapter(logger)
         if (!this.adapter) return 'error'
 
         while (!this.device) {
             this.adapter = null;
-            await this.tryEnsureDeviceOnCurrentAdapter();
+            await this.tryEnsureDeviceOnCurrentAdapter(logger);
             if (!this.adapter) return 'error'
         }
 
-        Console.trace('GPU', 'Device found')
+        logger.trace('GPU', 'Device found')
         return 'ok'
     }
 
-    async tryEnsureDeviceOnCurrentAdapter() {
+    async tryEnsureDeviceOnCurrentAdapter(logger: Logger) {
         if (!this.adapter) {
             this.adapter = await navigator.gpu.requestAdapter()
 
             if (!this.adapter) {
-                Console.err('GPU', 'Adapter not found')
+                logger.err('GPU', 'Adapter not found')
                 return;
             }
         }
 
-        Console.trace('GPU', `Adapter found: ${this.adapter.name}`)
+        logger.trace('GPU', `Adapter found: ${this.adapter.name}`)
         this.device = await this.adapter.requestDevice()
 
         this.device.lost.then((info) => {
             alert(`GPU Device lost. Info: ${info}`)
-            this.init()
+            //this.init()
         })
     }
 
@@ -61,10 +59,10 @@ class _GPU {
         return !(this.adapter == null || this.device == null)
     }
 
-    attachCanvas(canvasID : string): string {
+    attachCanvas(canvasID : string, logger: Logger): string {
 
         if (!this.isInitialized()) 
-            (async () => await this.init())()
+            (async () => await this.init(logger))()
         
 
         this.canvas = document.getElementById(canvasID) as HTMLCanvasElement

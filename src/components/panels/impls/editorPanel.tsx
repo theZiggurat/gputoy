@@ -21,7 +21,7 @@ import { Panel, PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd, PanelProps,
 import { RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
 import { FaRegTrashAlt} from 'react-icons/fa'
 import { MdAdd, MdClose, MdCode, MdSettings } from 'react-icons/md'
-import useInstance, { EditorInstanceState } from '../instance'
+import useInstance, { EditorInstanceState } from '../../../recoil/instance'
 import { RowButton } from '../../reusable/rowButton';
 import { codeFiles } from '../../../recoil/project';
 import { useRecoilState } from 'recoil';
