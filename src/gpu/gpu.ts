@@ -32,7 +32,7 @@ class _GPU {
             if (!this.adapter) return 'error'
         }
 
-        logger.log('GPU', 'Device found')
+        logger.debug('GPU', 'Device found')
         return 'ok'
     }
 
@@ -46,7 +46,7 @@ class _GPU {
             }
         }
 
-        logger.log('GPU', `Adapter found: ${this.adapter.name}`)
+        logger.debug('GPU', `Adapter found: ${this.adapter.name}`)
         this.device = await this.adapter.requestDevice()
 
         this.device.lost.then((info) => {
@@ -62,24 +62,24 @@ class _GPU {
     attachCanvas = async (canvasID : string, logger: Logger): Promise<boolean> => {
 
         if (!GPU.isInitialized()) 
-            logger.log('GPU', 'Trying to attach canvas without GPU initialized. Initializing now')  
+            logger.debug('GPU', 'Trying to attach canvas without GPU initialized. Initializing now')  
 
         // if gpu is not initialized
         // keep trying unless browser is incompatible
         while (!GPU.isInitialized()) {
             let status = await GPU.init(logger)
             if (status === 'incompatible') {
-                logger.fatal('GPU', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
+                logger.debug('GPU', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
                 return false
             }
             if (status === 'error') {
-                logger.err('GPU', 'Failed to initialize, retrying...')
+                logger.debug('GPU', 'Failed to initialize, retrying...')
             }
         }
 
         this.canvas = document.getElementById(canvasID) as HTMLCanvasElement
         if (!this.canvas) {
-            logger.err('GPU', "Cannot attach canvas: Canvas doesn't exist")
+            //logger.err('GPU', "Cannot attach canvas: Canvas doesn't exist")
             return false
         }
             
@@ -109,7 +109,7 @@ class _GPU {
 
         this.targetTexture = this.canvasContext.getCurrentTexture()
 
-        logger.trace('GPU', `Attached canvas id=${canvasID}`)
+        logger.debug('GPU', `Attached canvas id=${canvasID}`)
         return true
     }
 

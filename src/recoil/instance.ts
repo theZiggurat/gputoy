@@ -29,7 +29,7 @@ const defaultDynProps = [
   }, 
   {
     keywordFilter: '',
-    typeFilters: [true, true, true, true]
+    typeFilters: [true, true, true, true, false]
   }
 ]
 

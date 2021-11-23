@@ -11,7 +11,8 @@ export enum MessageType {
   Trace = 0,
   Log = 1,
   Error = 2,
-  Fatal = 3
+  Fatal = 3,
+  Debug = 4,
 }
 
 const _console = atom<Message[]>({
@@ -24,6 +25,7 @@ export type Logger = {
   log: (header: string, body: string) => void,
   err: (header: string, body: string) => void
   fatal: (header: string, body: string) => void,
+  debug: (header: string, body: string) => void,
 }
 
 export const useLogger = (): Logger => {
@@ -41,12 +43,16 @@ export const useLogger = (): Logger => {
   const fatal = (header: string, body: string) => {
     setConsole(old => [...old, { header, body, type: MessageType.Fatal, time: new Date() }])
   }
+  const debug = (header: string, body: string) => {
+    setConsole(old => [...old, { header, body, type: MessageType.Debug, time: new Date() }])
+  }
 
   return {
     trace,
     log,
     err,
-    fatal
+    fatal,
+    debug
   }
 }
 

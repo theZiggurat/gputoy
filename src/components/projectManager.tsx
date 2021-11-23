@@ -66,10 +66,15 @@ const ProjectManager = () => {
 
   useEffect(() => {
     Project.instance().updateDefaultParams(defaultParamState, logger)
+    if(projectStatusState.frameNum > 0)
+      Project.instance().renderFrame()
+    
   }, [defaultParamState])
 
   useEffect(() => {
     Project.instance().updateParams(paramState, logger)
+    if(projectStatusState.frameNum > 0)
+      Project.instance().renderFrame()
   }, [paramState, isCanvasInitialized])
 
   useEffect(() => {

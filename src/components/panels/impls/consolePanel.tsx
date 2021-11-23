@@ -12,7 +12,7 @@ import {
 
 import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa'
 import { CloseIcon } from '@chakra-ui/icons'
-import Console, { clearConsole, Message, useConsole } from '../../../recoil/console'
+import { clearConsole, Message, useConsole } from '../../../recoil/console'
 import { MdSettings } from 'react-icons/md';
 
 import { Panel, PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd, DynamicPanelProps } from '../panel';
@@ -23,7 +23,8 @@ const colors = [
   "green",
   "blue",
   "orange",
-  "red"
+  "red",
+  "purple"
 ]
 
 const prehead = [
@@ -31,6 +32,7 @@ const prehead = [
   "[---Log---] ",
   "[--Error--] ",
   "[--Fatal--] ",
+  "[--Debug--] ",
 ]
 
 const f = (n: number) => ('0' + n).slice(-2)
@@ -135,7 +137,8 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
           <RowToggleButton text="Trace" toggled={instanceState.typeFilters[0]} onClick={() => toggle(0)}/>
           <RowToggleButton text="Log"   toggled={instanceState.typeFilters[1]} onClick={() => toggle(1)}/>
           <RowToggleButton text="Error" toggled={instanceState.typeFilters[2]} onClick={() => toggle(2)}/>
-          <RowToggleButton text="Fatal" toggled={instanceState.typeFilters[3]} onClick={() => toggle(3)} last/>
+          <RowToggleButton text="Fatal" toggled={instanceState.typeFilters[3]} onClick={() => toggle(3)}/>
+          <RowToggleButton text="Debug" toggled={instanceState.typeFilters[4]} onClick={() => toggle(4)} last/>
         </PanelBarMiddle>
 
         <PanelBarEnd>
