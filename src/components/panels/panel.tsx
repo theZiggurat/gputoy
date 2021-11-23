@@ -1,6 +1,6 @@
 import React, { LegacyRef, ReactElement, ReactNode, useCallback, useEffect, useRef } from 'react'
 import SplitPane from 'react-split-pane'
-import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
+import { DefaultValue, useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 import { layoutState } from '../../recoil/atoms'
 import { set } from 'lodash/fp'
 import { get } from 'lodash'
@@ -20,7 +20,7 @@ import {
   Portal,
   Divider
 } from '@chakra-ui/react'
-import { clearInstance, panelInstances } from '../../recoil/instance'
+import useInstance, { useInstanceCleaner, useInstances } from '../../recoil/instance'
 
 
 // --------- CUSTOM PANEL INTERFACES  --------------
@@ -53,6 +53,11 @@ export interface PanelInProps {
 export const Panel = (props: PanelInProps) => {
 
   const [barLocation, setBarLocation] = React.useState('bottom')
+  const [instanceState, setInstance] = useInstance(props)
+
+  // on mount, set the instance to either what it was before
+  // or default value if there was no value before
+  useEffect(() => setInstance(instanceState), [])
 
   const onChangeLocation = () => {
     setBarLocation(barLocation == 'top' ? 'bottom': 'top')
@@ -130,16 +135,12 @@ interface PanelBarProps {
 }
 export const PanelBar = (props: PanelBarProps) => {
 
-  const resetInstance = clearInstance(props)
-  const instances = useRecoilValue(panelInstances)
+  const instances = useInstances()
 
   const scrollRef = useHorizontalScroll(Boolean(props.preventScroll))
   const onHandleSplitVertical = (idx: number) => props.onSplitPanel!(props.path!, 'horizontal', idx)
   const onHandleSplitHorizontal = (idx: number) => props.onSplitPanel!(props.path!, 'vertical', idx)
-  const onHandleCombine = () => {
-    props.onCombinePanel!(props.path!)
-    resetInstance()
-  }
+  const onHandleCombine = () => props.onCombinePanel!(props.path!)
   const onHandleSwitch = (index: number) => props.onSwitchPanel!(props.path!, index)
   const {children, location, onChangeLocation, ...barProps} = props
 
@@ -334,18 +335,13 @@ export const Panels = (props: PanelProps & PanelDescriptorProps) => {
     const { descriptors, ...panelProps } = props
     const { panelLayout, ...rest } = panelProps
 
-    //useTraceUpdate(props)
-
-    //console.log(props)
-
-    //const renderCallback = useCallback(() => , [props])
-
     return render(panelLayout, descriptors, rest as PanelProps)
 }
 
 export const usePanels = (): PanelProps => {
 
     const [panelTreeLayout, setPanelTreeLayout] = useRecoilState(layoutState)
+    const cleaner = useInstanceCleaner()
 
     // load layout from localstorage
     useEffect(() => {
@@ -356,6 +352,7 @@ export const usePanels = (): PanelProps => {
     // save layout to local storage on change
     useEffect(() => {
         window.localStorage.setItem('layout', JSON.stringify(panelTreeLayout))
+        cleaner(instances(panelTreeLayout))
     }, [panelTreeLayout])
 
     const trySetLayout = (layout: any | undefined) => { if(layout !== undefined) setPanelTreeLayout(layout) }
@@ -470,10 +467,11 @@ const replaceAtPath = (obj: any, path: string, f: (obj: any) => void): any | und
     return apath.length == 0 ? f(objAtPath): set(apath, f(objAtPath), obj)
 }
 
-const instances = (obj: any): string[] => {
-    const _instances = (obj: any, path: string): string[] => {
-        const self = get(obj, arrpath(path).concat('instanceID'))
-        return self === undefined ? [] : [self].concat(_instances(obj, path.concat('l'))).concat(_instances(obj, path.concat('r')))
+const instances = (obj: any): any[] => {
+    const _instances = (obj: any, path: string): any[] => {
+        const selfID = get(obj, arrpath(path).concat('instanceID'))
+        const selfIndex = get(obj, arrpath(path).concat('index'))
+        return selfID === undefined ? [] : [{id: selfID, index: selfIndex}].concat(_instances(obj, path.concat('l'))).concat(_instances(obj, path.concat('r')))
     }
     return _instances(obj, '')
 }

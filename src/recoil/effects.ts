@@ -7,7 +7,6 @@ const localStorageEffect = (key: string) => ({setSelf, onSet}) => {
       return new DefaultValue()
     const localStorage = window.localStorage
     const val = localStorage.getItem(key)
-    console.log('from storage', JSON.parse(val as string))
     return val != null
         ? JSON.parse(val as string)
         : new DefaultValue()

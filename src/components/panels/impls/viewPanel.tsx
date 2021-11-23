@@ -111,7 +111,6 @@ const ViewportPanel = (props: ViewportProps & DynamicPanelProps) => {
 
     const [showResolution, setShowResolution] = React.useState(false)
     const setResolution = useSetRecoilState(resolution)
-    const [_ ,showExist] = useInstance(props)
 
     const onResize = () => {
         setShowResolution(true)
@@ -133,10 +132,6 @@ const ViewportPanel = (props: ViewportProps & DynamicPanelProps) => {
         const handle = setTimeout(() => setShowResolution(false), 2000)
         return () => clearTimeout(handle)
     }, [width, height])
-
-    useEffect(() => {
-        showExist({})
-    }, [])
 
     return (
         <Panel {...props}>

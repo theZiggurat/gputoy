@@ -26,6 +26,10 @@ export const layoutState = atom<any>({
         index: 2
     }
   },
+  // for some reason I cant figure out
+  // this local storage effect absolutely ruins the layout when rendering
+  // even though the layout object it loads is identical to the one
+  // loaded by the usePanels' useEffect
   // effects_UNSTABLE: [
   //   localStorageEffect('layout')
   // ]

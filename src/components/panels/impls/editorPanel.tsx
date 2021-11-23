@@ -36,7 +36,7 @@ const hightlightWithLineNumbers = (input, language) =>
 interface EditorProps {
     onEditCode: (idx: number, code: string) => void,
     onEditFileName: (idx: number, code: string) => void,
-    onCreateFile: (lang: Lang) => number,
+    onCreateFile: (lang: types.Lang) => number,
     onDeleteFile: (idx: number) => void,
     files: types.CodeFile[],
 }

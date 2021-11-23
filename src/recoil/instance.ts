@@ -1,5 +1,5 @@
 import { memoize } from "lodash"
-import { atom, atomFamily, DefaultValue, Resetter, selectorFamily, SetterOrUpdater, useRecoilState, useResetRecoilState } from "recoil"
+import { atom, atomFamily, DefaultValue, Resetter, selector, selectorFamily, SetterOrUpdater, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil"
 import localStorageEffect from "./effects"
 
 export interface ConsoleInstanceState {
@@ -36,12 +36,16 @@ const defaultDynProps = [
 type InstanceState = any
 type InstanceSelector = {
   id: string,
-  index: number
+  index?: number
 }
 
-const panelInstanceState = atomFamily<InstanceState, InstanceSelector>({
+const panelInstance = atomFamily<InstanceState, InstanceSelector>({
   key: 'instanceState',
-  default: (selector: InstanceSelector) => defaultDynProps[selector.index],
+  default: (selector: InstanceSelector) => {
+    return selector.index !== undefined ? 
+      defaultDynProps[selector.index]
+      : { split: 50 }
+  },
   effects_UNSTABLE: (selector: InstanceSelector) => {
     return [
       localStorageEffect(`instance_${selector.id}_${selector.index}`)
@@ -49,54 +53,35 @@ const panelInstanceState = atomFamily<InstanceState, InstanceSelector>({
   }
 })
 
-export const panelInstances = atom<InstanceSelector[]>({
+const panelInstances = atom<InstanceSelector[]>({
   key: 'instances',
   default: []
 })
 
-const panelInstanceStateSelector = selectorFamily({
-  key: 'instanceStateSelector',
-
-  get: (selector: InstanceSelector) => ({get}): InstanceState =>  {
-    const instance = get(panelInstanceState(selector))
-    return instance
-  },
-
-  set: (selector: InstanceSelector) => ({set, reset}, instance) => {
-
-    // if it is a default value, the instance has been cleared
-    if (guardRecoilDefaultValue(instance)) {
-      reset(panelInstanceState(selector))
-      set(panelInstances, prev => prev.filter(sel => sel.id != selector.id))
-      return
-    }
-
-    // else, it has been set to something
-    set(panelInstanceState(selector), instance)
-
-    // if it is not yet in the instances list, add it
+const panelInstanceCleaner = selector<InstanceSelector[]>({
+  key: 'instanceStateCleaner',
+  get: ({get}) => get(panelInstances),
+  set: ({set, reset}, instances) => {
     set(panelInstances, prev => {
-      if(!prev.map(sel => sel.id).includes(selector.id))
-        return [...prev, selector]
-      else
-        return prev
+      const idArr = instances.map(sel => sel.id)
+      prev.filter(sel => !idArr.includes(sel.id)).forEach(sel =>
+        reset(panelInstance(sel))
+      )
+      return instances
     })
   }
-}) 
+})
+
+export const useInstances = () => {
+  return useRecoilValue(panelInstances)
+}
+
+export const useInstanceCleaner = () => {
+  return useSetRecoilState(panelInstanceCleaner)
+}
 
 const useInstance = <T>(props: any): [T, SetterOrUpdater<T>] => {
-  return useRecoilState<T>(panelInstanceStateSelector({id: props.instanceID, index: props.panelIndex}))
+  return useRecoilState<T>(panelInstance({id: props.instanceID, index: props.panelIndex}))
 }
-
-export const clearInstance = (props: any): Resetter => {
-    return useResetRecoilState(panelInstanceStateSelector({id: props.instanceID, index: props.panelIndex}))
-}
-
-export const guardRecoilDefaultValue = (
-  candidate: unknown
-): candidate is DefaultValue => {
-  if (candidate instanceof DefaultValue) return true;
-  return false;
-};
 
 export default useInstance
