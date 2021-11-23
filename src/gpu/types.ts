@@ -1,4 +1,3 @@
-
 /**
  * Current status of project
  */
@@ -40,4 +39,14 @@ export type CodeFile = {
     file: string,
     lang: Lang,
     isRender?: boolean,
+}
+
+export type MousePos = {
+  x: number,
+  y: number
+}
+
+export type Resolution = {
+  width: number,
+  height: number,
 }

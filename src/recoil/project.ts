@@ -26,17 +26,7 @@ export const codeFiles = atom<types.CodeFile[]>({
   ]
 })
 
-type MousePos = {
-  x: number,
-  y: number
-}
-
-type Resolution = {
-  width: number,
-  height: number,
-}
-
-export const mousePos = atom<MousePos>({
+export const mousePos = atom<types.MousePos>({
   key: 'mousepos',
   default: {
     x: 0,
@@ -44,7 +34,7 @@ export const mousePos = atom<MousePos>({
   },
 })
 
-export const resolution = atom<Resolution>({
+export const resolution = atom<types.Resolution>({
   key: 'resolution',
   default: {
     width: 0,
