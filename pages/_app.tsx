@@ -7,6 +7,8 @@ import { RecoilRoot } from 'recoil'
 import { GPUInitResult } from '../src/gpu/gpu'
 import ShdrAlert from '../src/components/warning'
 
+import { UserProvider } from '@auth0/nextjs-auth0';
+
 import '../styles/globals.css'
 import '../styles/create.css'
 import '../styles/prism-custom.css'
@@ -29,13 +31,15 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [gpuInitResult, setGPUInitResult] = React.useState('ok' as GPUInitResult)
 
   return (
-    <RecoilRoot>
-      <ProjectManager/>
-      <ChakraProvider theme={theme}>
-        <ShdrAlert gpuResult={gpuInitResult}/>
-        <Component {...pageProps} />
-      </ChakraProvider>
-    </RecoilRoot>
+    <UserProvider>
+      <RecoilRoot>
+        <ProjectManager/>
+        <ChakraProvider theme={theme}>
+          <ShdrAlert gpuResult={gpuInitResult}/>
+          <Component {...pageProps} />
+        </ChakraProvider>
+      </RecoilRoot>
+    </UserProvider>
   )
 }
 export default MyApp
