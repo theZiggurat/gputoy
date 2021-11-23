@@ -81,11 +81,8 @@ export class Project {
   }
 
   updateShaders = (files: types.CodeFile[], logger: Logger) => {
-    if(GPU.isInitialized()) {
-      this.shaders = files
-      this.shaderDirty = true
-    }
-      
+    this.shaders = files
+    this.shaderDirty = true
   }
 
   compileShaders = (logger: Logger): boolean => {

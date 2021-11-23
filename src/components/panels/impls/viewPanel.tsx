@@ -21,7 +21,7 @@ import {
     DynamicPanelProps
 } from '../panel'
 import { DefaultValue, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { canvasStatus, mousePos, projectStatus, resolution } from '../../../recoil/project';
+import { canvasInitialized, canvasStatus, mousePos, projectStatus, resolution } from '../../../recoil/project';
 import { useLogger } from '../../../recoil/console';
 import useInstance from '../../../recoil/instance';
 
@@ -175,6 +175,7 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
 
     //const setCanvasStatus = useSetRecoilState(canvasStatus)
     const setMousePos = useSetRecoilState(mousePos)
+    const setCanvasInitialized = useSetRecoilState(canvasInitialized)
     const canvasRef = useRef<MutableRefObject<HTMLCanvasElement>>()
     const logger = useLogger()
     const id = `canvas_${props.instanceID}`
@@ -190,7 +191,8 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
     }
 
     useEffect(() => {
-        Project.instance().attachCanvas(id, logger)
+        const isInit = async () => setCanvasInitialized(await Project.instance().attachCanvas(id, logger))
+        isInit()
     }, [])
 
     return <canvas id={id} ref={canvasRef} onMouseMove={onHandleMousePos} style={{

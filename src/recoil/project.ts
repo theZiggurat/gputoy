@@ -70,3 +70,8 @@ export const defaultParams = selector<types.ParamDesc[]>({
   },
 })
 
+export const canvasInitialized = atom<boolean>({
+  key: 'canvasInitialized',
+  default: false
+})
+

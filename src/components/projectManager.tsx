@@ -6,13 +6,14 @@ import GPU from '../gpu/gpu'
 import useGPUError from '../gpu/error'
 
 import { Project } from '../gpu/project'
-import { codeFiles, defaultParams, params, projectStatus } from '../recoil/project'
+import { canvasInitialized, codeFiles, defaultParams, params, projectStatus } from '../recoil/project'
 
 
 
 const ProjectManager = () => {
 
   const [projectStatusState, setProjectStatus] = useRecoilState(projectStatus)
+  const isCanvasInitialized = useRecoilValue(canvasInitialized)
   const defaultParamState = useRecoilValue(defaultParams)
   const paramState = useRecoilValue(params)
   const files = useRecoilValue(codeFiles)
@@ -69,7 +70,7 @@ const ProjectManager = () => {
 
   useEffect(() => {
     Project.instance().updateParams(paramState, logger)
-  }, [paramState])
+  }, [paramState, isCanvasInitialized])
 
   useEffect(() => {
     Project.instance().updateShaders(files, logger)
