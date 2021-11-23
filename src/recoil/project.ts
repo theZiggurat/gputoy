@@ -1,20 +1,11 @@
-import  { atom, atomFamily, selector, useRecoilCallback } from 'recoil'
-import { CodeFile } from '../components/panels/impls/editorPanel'
-import { ParamDesc } from '../gpu/params'
-import { Project } from '../gpu/project'
-import localStorageEffect, { canvasSync, consoleLogEffect } from './effects'
+import  { atom, selector } from 'recoil'
+import localStorageEffect from './effects'
+import * as types from '../gpu/types'
 
-type ProjectStatus = {
-  lastStartTime: number
-  lastFrameRendered: number
-  dt: number
-  frameNum: number
-  runDuration: number
-  prevDuration: number
-  running: boolean
-}
+import defaultShader from '../../shaders/basicShader.wgsl'
 
-export const projectStatus = atom<ProjectStatus>({
+
+export const projectStatus = atom<types.ProjectStatus>({
   key: 'projectStatus',
   default: {
     lastStartTime:  0,
@@ -27,17 +18,9 @@ export const projectStatus = atom<ProjectStatus>({
   } 
 })
 
-export const params = atom<ParamDesc[]>({
-  key: 'params',
-  default: [],
-  effects_UNSTABLE: [
-    localStorageEffect('params')
-  ]
-})
-
-export const codeFiles = atom<CodeFile[]>({
+export const codeFiles = atom<types.CodeFile[]>({
   key: 'codefiles',
-  default: [],
+  default: [{file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true}],
   effects_UNSTABLE: [
     localStorageEffect('files')
   ]
@@ -69,37 +52,15 @@ export const resolution = atom<Resolution>({
   },
 })
 
-export type CanvasStatus = {
-  id: string,
-  attached: boolean,
-}
+export const params = atom<types.ParamDesc[]>({
+  key: 'params',
+  default: [],
+  effects_UNSTABLE: [
+    localStorageEffect('params')
+  ]
+})
 
-// const canvasSync = ({setSelf, onSet}) => {
-//   onSet(async (newValue: CanvasStatus, oldValue: CanvasStatus, _: boolean) => {
-//     //if (newValue.id !== oldValue.id) {
-//       let success = await Project.instance().attachCanvas(newValue.id)
-//       if (success)
-//         //Console.log('Viewport', `id: ${newValue.id} attach success`)
-//       else 
-//         //Console.err('Viewport', `id: ${newValue.id} attach failed`)
-//     //}
-//   })
-// }
-
-// export const canvasStatus = atom<CanvasStatus>({
-//   key: 'canvasStatus',
-//   default: {
-//     id: '',
-//     attached: false
-//   },
-//   effects_UNSTABLE: [
-//     canvasSync
-//   ]
-// })
-
-
-
-export const defaultParams = selector<ParamDesc[]>({
+export const defaultParams = selector<types.ParamDesc[]>({
   key: 'defaultParams',
   get: ({get}) => {
 
@@ -116,6 +77,6 @@ export const defaultParams = selector<ParamDesc[]>({
       {paramName: 'res', paramType: 'vec2i', param: [res.width, res.height]},
       {paramName: 'mouse', paramType: 'vec2i', param: [mouse.x, mouse.y]},
     ]
-  }
+  },
 })
 

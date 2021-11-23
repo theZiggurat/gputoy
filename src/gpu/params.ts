@@ -1,18 +1,4 @@
-import Console from "../recoil/console"
-
-/**
- * TODO: add mat4, vec4f, vec4i, and rgba
- */
-export type ParamType = 'int' | 'float' | 'color' | 'vec3f' | 'vec2f' | 'vec3i' | 'vec2i'
-
-/**
- * Holds data and metadata for single parameter in uniform
- */
-export interface ParamDesc {
-  paramName: string,
-  paramType: ParamType
-  param: number[]
-}
+import * as types from './types'
 
 const declInfo = {
   'int':    { size: 4,   align: 4,   order: 6, decl: 'i32',       writeType: 'int'   },
@@ -24,7 +10,7 @@ const declInfo = {
   'vec2i':  { size: 8,   align: 8,   order: 5, decl: 'vec2<i32>', writeType: 'int'   },
 }
 
-export const encode = (val: number[], type: ParamType): string => {
+export const encode = (val: number[], type: types.ParamType): string => {
   switch (type) {
     case 'color': return "#".concat(val.map(d => {
       let v = (d*255).toString(16)
@@ -36,7 +22,7 @@ export const encode = (val: number[], type: ParamType): string => {
   }
 }
 
-export const decode = (val: string, type: ParamType): number[] => {
+export const decode = (val: string, type: types.ParamType): number[] => {
   switch (type) {
     case 'float': return [parseFloat(val)]
     case 'int': return [parseInt(val)]
@@ -55,7 +41,7 @@ class Params {
   private name: string
   private prefix: string
 
-  private params: ParamDesc[] = []
+  private params: types.ParamDesc[] = []
   private byteOffsets: number[] = []
 
   private frozen: boolean
@@ -83,7 +69,7 @@ class Params {
    * @inparams params list of param descriptors
    * @returns whether the project these parameters belong to should recompile
    */
-  set = (inparams: ParamDesc[], device: GPUDevice): boolean => {
+  set = (inparams: types.ParamDesc[], device: GPUDevice): boolean => {
 
     let needRecompile = inparams.length != this.params.length
     if (!needRecompile && !this.frozen) {

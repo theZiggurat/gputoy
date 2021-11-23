@@ -32,7 +32,7 @@ class _GPU {
             if (!this.adapter) return 'error'
         }
 
-        logger.trace('GPU', 'Device found')
+        logger.log('GPU', 'Device found')
         return 'ok'
     }
 
@@ -46,7 +46,7 @@ class _GPU {
             }
         }
 
-        logger.trace('GPU', `Adapter found: ${this.adapter.name}`)
+        logger.log('GPU', `Adapter found: ${this.adapter.name}`)
         this.device = await this.adapter.requestDevice()
 
         this.device.lost.then((info) => {
@@ -59,19 +59,35 @@ class _GPU {
         return !(this.adapter == null || this.device == null)
     }
 
-    attachCanvas(canvasID : string, logger: Logger): string {
+    attachCanvas = async (canvasID : string, logger: Logger): Promise<boolean> => {
 
-        if (!this.isInitialized()) 
-            (async () => await this.init(logger))()
-        
+        if (!GPU.isInitialized()) 
+            logger.log('GPU', 'Trying to attach canvas without GPU initialized. Initializing now')  
+
+        // if gpu is not initialized
+        // keep trying unless browser is incompatible
+        while (!GPU.isInitialized()) {
+            let status = await GPU.init(logger)
+            if (status === 'incompatible') {
+                logger.fatal('GPU', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
+                return false
+            }
+            if (status === 'error') {
+                logger.err('GPU', 'Failed to initialize, retrying...')
+            }
+        }
 
         this.canvas = document.getElementById(canvasID) as HTMLCanvasElement
-        if (!this.canvas)
-            return "Cannot attach canvas: Canvas doesn't exist"
-
+        if (!this.canvas) {
+            logger.err('GPU', "Cannot attach canvas: Canvas doesn't exist")
+            return false
+        }
+            
         this.canvasContext = this.canvas.getContext('webgpu')!
-        if (!this.canvasContext)
-            return 'Cannot attach canvas: Failed to create WEBGPU context'
+        if (!this.canvasContext) {
+            logger.fatal('GPU', 'Cannot attach canvas: Failed to create WEBGPU context')
+            return false
+        }
 
         const rect = this.canvas.parentElement!.getBoundingClientRect()
         this.canvas.width = rect.width
@@ -92,13 +108,10 @@ class _GPU {
         })
 
         this.targetTexture = this.canvasContext.getCurrentTexture()
-        
-        return 'Ok'
+
+        logger.trace('GPU', `Attached canvas id=${canvasID}`)
+        return true
     }
-
-    resizeRenderTarget() {
-
-    }  
 
 }
 

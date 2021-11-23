@@ -6,7 +6,7 @@ import GPU from '../gpu/gpu'
 import useGPUError from '../gpu/error'
 
 import { Project } from '../gpu/project'
-import { defaultParams, projectStatus } from '../recoil/project'
+import { codeFiles, defaultParams, params, projectStatus } from '../recoil/project'
 
 
 
@@ -14,6 +14,8 @@ const ProjectManager = () => {
 
   const [projectStatusState, setProjectStatus] = useRecoilState(projectStatus)
   const defaultParamState = useRecoilValue(defaultParams)
+  const paramState = useRecoilValue(params)
+  const files = useRecoilValue(codeFiles)
 
 
   const [isRunningState, setRunningState] = useState(false)
@@ -41,9 +43,9 @@ const ProjectManager = () => {
       intervalHandle.current = window.requestAnimationFrame(f)
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (isRunning.current) {
-      Project.instance().prepareRun(logger)
+      Project.instance().prepareRun(projectStatusState, logger)
       window.requestAnimationFrame(f)
     }
 
@@ -52,16 +54,28 @@ const ProjectManager = () => {
 
   // syncs the isRunning ref with recoil global projectStatus state
   // and triggers above layhout effect to run on switching projectStatus.running false -> true
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (isRunning.current != projectStatusState.running) {
       isRunning.current = projectStatusState.running
     }
     setRunningState(projectStatusState.running)
   }, [projectStatusState])
 
+
+
   useEffect(() => {
     Project.instance().updateDefaultParams(defaultParamState, logger)
   }, [defaultParamState])
+
+  useEffect(() => {
+    Project.instance().updateParams(paramState, logger)
+  }, [paramState])
+
+  useEffect(() => {
+    Project.instance().updateShaders(files, logger)
+  }, [files])
+
+
 
   useGPUError(isRunning, setRunningState, logger)
 

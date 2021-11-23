@@ -25,6 +25,7 @@ import useInstance, { EditorInstanceState } from '../../../recoil/instance'
 import { RowButton } from '../../reusable/rowButton';
 import { codeFiles } from '../../../recoil/project';
 import { useRecoilState } from 'recoil';
+import * as types from '../../../gpu/types'
 
 const hightlightWithLineNumbers = (input, language) =>
   highlight(input, language)
@@ -32,20 +33,12 @@ const hightlightWithLineNumbers = (input, language) =>
     .map((line: string, i: number) => `<span class='editorLineNumber'>${i + 1}</span>${line}`)
     .join("\n");
 
-
-type Lang = 'wgsl' | 'glsl'
-export interface CodeFile {
-    filename: string,
-    file: string,
-    lang: Lang,
-}
-
 interface EditorProps {
     onEditCode: (idx: number, code: string) => void,
     onEditFileName: (idx: number, code: string) => void,
     onCreateFile: (lang: Lang) => number,
     onDeleteFile: (idx: number) => void,
-    files: CodeFile[],
+    files: types.CodeFile[],
 }
 
 const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
@@ -207,26 +200,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
 export const useEditorPanel = (): EditorProps => {
 
-    const [filesState, setFiles] = useRecoilState<CodeFile[]>(codeFiles)
-
-    // // file loading
-    // useEffect(() => {
-    //     let storedFiles = window.localStorage.getItem('files');
-    //     if (storedFiles) {
-    //         let files = JSON.parse(storedFiles)
-    //         if (files.length > 0){
-    //             setFiles(files)
-    //             return
-    //         }
-    //     } 
-    //     setFiles([{filename: 'test', file: 'aaa', lang: 'wgsl'}])
-    // }, [])
-
-    // // file saving
-    // useEffect(() => {
-    //     window.localStorage.setItem('files', JSON.stringify(files))
-    //  }, [files])
-
+    const [filesState, setFiles] = useRecoilState<types.CodeFile[]>(codeFiles)
 
     const onEditCode = useCallback((idx: number, code: string) => {
         setFiles(prevCode => {
@@ -239,10 +213,10 @@ export const useEditorPanel = (): EditorProps => {
         })
     }, [filesState])
 
-    const onCreateFile = useCallback((lang: Lang): number => {
+    const onCreateFile = useCallback((lang: types.Lang): number => {
         let idx = 0
         let len = filesState.length
-        while (files.map((c) => c.filename).includes(`shader${idx}`)) 
+        while (filesState.map((c) => c.filename).includes(`shader${idx}`)) 
             ++idx
         setFiles(prevCode => [...prevCode, {
             filename: `shader${idx}`,

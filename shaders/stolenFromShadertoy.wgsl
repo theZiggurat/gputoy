@@ -17,7 +17,7 @@ fn noise(p: vec2<f32>) -> f32 {
 }
 
 fn fbm(qIn: vec2<f32>) -> f32{
-    let m2: mat2x2<f32> = mat2x2<f32>(0.8,-0.6,0.6,0.8);
+    let m2: mat2x2<f32> = mat2x2<f32>(vec2<f32>(0.8,-0.6), vec2<f32>(0.6,0.8));
     var q: vec2<f32> = qIn;
     var f: f32 = 0.0;
     f = f + 0.5000*noise( q ); q = m2*q*2.02;
