@@ -25,7 +25,7 @@ const defaultDynProps = [
     nameErrors: []
   },
   {
-    currentFileIndex: -1
+    currentFileIndex: 0
   }, 
   {
     keywordFilter: '',

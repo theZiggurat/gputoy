@@ -237,7 +237,7 @@ export const useEditorPanel = (): EditorProps => {
     const onEditFileName = useCallback((idx: number, filename: string) => {
         setFiles(prevCode => {
             let updated = [...prevCode]
-            updated[idx].filename = filename
+            updated[idx] = Object.assign({}, prevCode[idx], {filename})
             return updated
         })
     }, [filesState])
