@@ -103,15 +103,14 @@ pub fn compile_wgsl(src: &str) -> Option<Uint32Array> {
     use naga::front::wgsl::Parser;
 
     panic::set_hook(Box::new(console_error_panic_hook::hook));
-    log("test from wasm");
 
     let mut parser = Parser::new();
 
     let module = match parser.parse(src) {
         Ok(module) => module,
         Err(err) => {
-            error(&err.to_string()[..]);
-            ERRORS.lock().unwrap().push(err.to_string());
+            error(&err.emit_to_string(&src)[..]);
+            ERRORS.lock().unwrap().push(err.emit_to_string(&src));
             return None;
         }
     };

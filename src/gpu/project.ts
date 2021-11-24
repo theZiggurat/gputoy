@@ -39,10 +39,10 @@ export class Project {
   }
 
   // starts project
-  prepareRun = (state: types.ProjectStatus, logger: Logger) => {
+  prepareRun = (state: types.ProjectStatus, logger: Logger): boolean => {
     if(!GPU.isInitialized()){
       logger.err('Project', 'GPU not initialized. Cancelling run')
-      return
+      return false
     }
 
     // project is starting or restarted
@@ -51,11 +51,11 @@ export class Project {
       if (this.shaderDirty) {
         if (!Compiler.isReady()) {
           logger.err('Compiler', 'Compiler module not ready')
-          return
+          return false
         }
         if (!this.compileShaders(logger)) {
-          logger.err('Project', 'Shader compilation failed')
-          return
+          //logger.err('Project', 'Shader compilation failed')
+          return false
         }
         this.shaderDirty = false
       }
@@ -64,6 +64,7 @@ export class Project {
       this.createPipeline()
       logger.trace('Project', 'Ready')
     }
+    return true
   }
 
   renderFrame = () => {
@@ -96,7 +97,8 @@ export class Project {
       .concat(this.params.getShaderDecl())
       .concat(src!.file)
 
-    let module = Compiler.compileWGSL!(GPU.device, shader)
+      console.log(shader)
+    let module = Compiler.compileWGSL!(GPU.device, shader, logger)
     if (!module)
       return false
     this.shaderModule = module
@@ -126,6 +128,9 @@ export class Project {
 
   createPipeline = () => {
     if (!GPU.isInitialized())
+      return
+
+    if (!this.shaderModule)
       return
 
     let layouts = [this.included.getBindGroupLayout()]

@@ -5,7 +5,7 @@ import init, {
   get_ir,
   get_errors
 } from '../../naga-compiler/pkg/naga_compiler'
-import Console from '../recoil/console'
+import { Logger } from '../recoil/console'
 
 type ShaderStage = 'vertex' | 'fragment' | 'compute'
 
@@ -13,35 +13,36 @@ class _Compiler {
 
   private ready: boolean = false
 
-  compileWGSL?: (device: GPUDevice, src: string) => GPUShaderModule | null
-  compileGLSL?: (device: GPUDevice, src: string, stage: ShaderStage) => GPUShaderModule | null
+  compileWGSL?: (device: GPUDevice, src: string, logger: Logger) => GPUShaderModule | null
+  compileGLSL?: (device: GPUDevice, src: string, stage: ShaderStage, logger: Logger) => GPUShaderModule | null
 
   constructor() {
     init().then(() => {
-      this.compileWGSL = (device: GPUDevice, src: string): GPUShaderModule | null => {
+      this.compileWGSL = (device: GPUDevice, src: string, logger: Logger): GPUShaderModule | null => {
         let module = compile_wgsl(src)
         if (module) {
-          //Console.trace('NAGA-COMPILER -- IR', get_ir())
+          logger.debug('NAGA-COMPILER -- IR', get_ir())
           return device.createShaderModule({
             code: module
           })
         }else {
+          //logger.err('NAGA_COMPILER', get_errors())
           let errors: string[] = JSON.parse(get_errors())
-          //errors.forEach(err => Console.err('NAGA COMPILER', err));
+          errors.forEach(err => logger.err('NAGA COMPILER', err));
           return null
         }
       }
 
-      this.compileGLSL = (device: GPUDevice, src: string, stage: ShaderStage): GPUShaderModule | null => {
+      this.compileGLSL = (device: GPUDevice, src: string, stage: ShaderStage, logger: Logger): GPUShaderModule | null => {
         let module = compile_glsl(src, stage as string)
         if (module) {
-          //Console.trace('NAGA-COMPILER -- IR', get_ir())
+          logger.debug('NAGA-COMPILER -- IR', get_ir())
           return device.createShaderModule({
             code: module
           })
         } else {
           let errors: string[] = JSON.parse(get_errors())
-          //errors.forEach(err => Console.err('NAGA COMPILER', err));
+          errors.forEach(err => logger.err('NAGA COMPILER', err));
           return null
         }
       }

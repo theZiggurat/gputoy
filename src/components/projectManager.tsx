@@ -46,8 +46,18 @@ const ProjectManager = () => {
 
   useEffect(() => {
     if (isRunning.current) {
-      Project.instance().prepareRun(projectStatusState, logger)
-      window.requestAnimationFrame(f)
+      if (Project.instance().prepareRun(projectStatusState, logger))
+        window.requestAnimationFrame(f)
+      else {
+        setProjectStatus(old => { 
+          return {
+          ...old,
+          running: false,
+          frameNum: 0,
+          runDuration: 0,
+          prevDuration: 0,
+      }})
+      }
     }
 
     return () => cancelAnimationFrame(intervalHandle.current)
