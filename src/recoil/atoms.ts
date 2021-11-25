@@ -4,28 +4,30 @@ import localStorageEffect from './effects'
 export const layoutState = atom<any>({
   key: 'layout',
   default: {
-    type: 'vertical',
-    instanceID: 0,
-    left: {
-        type: 'horizontal',
-        instanceID: 1,
-        left: {
-            type: 'leaf',
-            instanceID: 2,
-            index: 0
+    "left": {
+        "left": {
+            "instanceID": "-Tf2CZSB",
+            "index": 0,
+            "type": "leaf"
         },
-        right: {
-            type: 'leaf',
-            instanceID: 3,
-            index: 3
-        }
+        "right": {
+            "instanceID": "_CWXFY_l",
+            "index": 3,
+            "type": "leaf"
+        },
+        "index": -1,
+        "type": "horizontal",
+        "instanceID": "eNI3H93P"
     },
-    right: {
-        type: 'leaf',
-        instanceID: 4,
-        index: 2
-    }
-  },
+    "right": {
+        "instanceID": "L0xhpauP",
+        "index": 2,
+        "type": "leaf"
+    },
+    "index": -1,
+    "type": "vertical",
+    "instanceID": "UjsW244-"
+  }
   // for some reason I cant figure out
   // this local storage effect absolutely ruins the layout when rendering
   // even though the layout object it loads is identical to the one

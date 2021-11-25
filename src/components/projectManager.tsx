@@ -76,14 +76,17 @@ const ProjectManager = () => {
 
   useEffect(() => {
     Project.instance().updateDefaultParams(defaultParamState, logger)
-    if(projectStatusState.frameNum > 0)
+    if(projectStatusState.frameNum > 0 && !projectStatusState.running)
+    {
       Project.instance().renderFrame()
+    }
+      
     
   }, [defaultParamState])
 
   useEffect(() => {
     Project.instance().updateParams(paramState, logger)
-    if(projectStatusState.frameNum > 0)
+    if(projectStatusState.frameNum > 0 && !projectStatusState.running) 
       Project.instance().renderFrame()
   }, [paramState, isCanvasInitialized])
 
@@ -93,7 +96,37 @@ const ProjectManager = () => {
 
 
 
-  useGPUError(isRunning, setRunningState, logger)
+  const errorHandler = (ev: GPUUncapturedErrorEvent) => {
+    let message: string = ev.error.message
+
+    // shader error
+    if (message.startsWith('Tint WGSL reader failure')) {
+      
+      let start = message.indexOf(':')+1
+      let body = message.substr(start, message.indexOf('Shader')-start).trim()
+      logger.err("Shader error", body)
+    }
+    else if (message.startsWith('[ShaderModule] is an error.')) {
+      logger.err("Shader module", message)
+    }
+    else {
+      logger.err("Unknown error", message)
+      
+    }
+    setProjectStatus(old => { 
+      return {
+      ...old,
+      running: false,
+      frameNum: 0,
+      runDuration: 0,
+      prevDuration: 0,
+  }})
+  }
+
+  useEffect(() => {
+    if (GPU.isInitialized())
+      GPU.device.onuncapturederror = errorHandler
+  }, [])
 
   return <></>
 }

@@ -24,6 +24,7 @@ import { DefaultValue, useRecoilState, useRecoilValue, useSetRecoilState } from 
 import { canvasInitialized, canvasStatus, mousePos, projectStatus, resolution } from '../../../recoil/project';
 import { useLogger } from '../../../recoil/console';
 import useInstance from '../../../recoil/instance';
+import { throttle } from 'lodash';
 
 
 
@@ -45,8 +46,9 @@ const StatusInfo = (props: {text: string, textColor?: string, first?: boolean, l
         borderEndRadius={props.last?"":"0"}
         borderLeft={props.first?"0px":"1px"}
         borderColor="blackAlpha.300"
+        width={120}
     >
-        <Text pl={2} pr={2} fontSize={12} color={props.textColor}>{props.text}</Text>
+        <Text fontSize={12} color={props.textColor}>{props.text}</Text>
     </Center>
 )
 
@@ -56,8 +58,8 @@ const StatusInfoGroup = () => {
 
     return <>
         <StatusInfo text={`FPS: ${(1 / projectStatusValue.dt * 1000).toFixed(0)}`} first/>
-        <StatusInfo text={`Duration: ${projectStatusValue.runDuration.toFixed(2)}s`}/>
-        <StatusInfo text={`Framenum: ${projectStatusValue.frameNum}`} last/>
+        <StatusInfo text={`Time: ${projectStatusValue.runDuration.toFixed(2)}s`}/>
+        <StatusInfo text={`Frame: ${projectStatusValue.frameNum}`} last/>
     </>
 }
 
@@ -149,7 +151,7 @@ const ViewportPanel = (props: ViewportProps & DynamicPanelProps) => {
                             {`Resolution: ${width} x ${height}`}
                         </Box>
                     </Fade>
-                    {/* <RandomBox/> */}
+                    <RandomBox/>
                     <ViewportCanvas instanceID={props.instanceID} width={width} height={height}/>
                 </Box>
             </PanelContent>
@@ -175,7 +177,7 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
     const logger = useLogger()
     const id = `canvas_${props.instanceID}`
 
-    const onHandleMousePos = (evt) => {
+    const onHandleMousePos = throttle((evt) => {
         if (canvasRef.current) {
             const rect = canvasRef.current.getBoundingClientRect()
             setMousePos({
@@ -183,7 +185,7 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
                 y: Math.floor(evt.clientY - rect.top)
             })
         }
-    }
+    }, 30)
 
     useEffect(() => {
         const isInit = async () => {

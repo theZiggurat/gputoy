@@ -97,7 +97,7 @@ export class Project {
       .concat(this.params.getShaderDecl())
       .concat(src!.file)
 
-      console.log(shader)
+      //console.log(shader)
     let module = Compiler.compileWGSL!(GPU.device, shader, logger)
     if (!module)
       return false
