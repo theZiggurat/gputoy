@@ -14,6 +14,8 @@ import {
 import Editor from 'react-simple-code-editor'
 
 import "prismjs";
+
+// @ts-ignore
 import { highlight, languages } from "prismjs/components/prism-core";
 import "prismjs/components/prism-rust";
 

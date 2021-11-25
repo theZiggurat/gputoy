@@ -335,7 +335,7 @@ export const Panels = (props: PanelProps & PanelDescriptorProps) => {
     const { descriptors, ...panelProps } = props
     const { panelLayout, ...rest } = panelProps
 
-    return render(panelLayout, descriptors, rest as PanelProps)
+    return _render(panelLayout, descriptors, rest as PanelProps, '')
 }
 
 export const usePanels = (): PanelProps => {
@@ -401,10 +401,6 @@ export const usePanels = (): PanelProps => {
     }
 }
 
-const render = (panelLayout: any, descriptors: PanelDescriptor[], props: PanelProps): React.ReactElement<any> => {
-    return _render(panelLayout, descriptors, props, '')
-}
-
 const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, path: string): React.ReactElement<any> => {
 
     if (obj['instanceID'] === undefined) 
@@ -441,7 +437,7 @@ const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, pa
                 SplitPane,
                 {
                     split: obj['type'], 
-                    defaultSize: "50%", 
+                    defaultSize: "65%", 
                     style: path=='' ? {
                         flex: '1 1 auto',
                         position: 'relative'
