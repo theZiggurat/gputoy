@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { 
     Input,
     IconButton,
@@ -14,6 +14,8 @@ import {
 import Editor from 'react-simple-code-editor'
 
 import "prismjs";
+
+// @ts-ignore
 import { highlight, languages } from "prismjs/components/prism-core";
 import "prismjs/components/prism-rust";
 
@@ -21,8 +23,11 @@ import { Panel, PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd, PanelProps,
 import { RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
 import { FaRegTrashAlt} from 'react-icons/fa'
 import { MdAdd, MdClose, MdCode, MdSettings } from 'react-icons/md'
-import useInstance, { EditorInstanceState } from '../instance'
+import useInstance, { EditorInstanceState } from '../../../recoil/instance'
 import { RowButton } from '../../reusable/rowButton';
+import { codeFiles } from '../../../recoil/project';
+import { useRecoilState } from 'recoil';
+import * as types from '../../../gpu/types'
 
 const hightlightWithLineNumbers = (input, language) =>
   highlight(input, language)
@@ -30,25 +35,18 @@ const hightlightWithLineNumbers = (input, language) =>
     .map((line: string, i: number) => `<span class='editorLineNumber'>${i + 1}</span>${line}`)
     .join("\n");
 
-
-type Lang = 'wgsl' | 'glsl'
-export interface CodeFile {
-    filename: string,
-    file: string,
-    lang: Lang,
-}
-
 interface EditorProps {
     onEditCode: (idx: number, code: string) => void,
     onEditFileName: (idx: number, code: string) => void,
-    onCreateFile: (lang: Lang) => number,
+    onCreateFile: (lang: types.Lang) => number,
     onDeleteFile: (idx: number) => void,
-    files: CodeFile[],
+    files: types.CodeFile[],
 }
 
 const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
-    const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
+    const [ instanceState, setInstanceState ] = useInstance<EditorInstanceState>(props)
+    const { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName } = useEditorPanel()
  
     const [workspace, setWorkspace] = React.useState<number[]>([])
 
@@ -60,11 +58,11 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
     const toggleDrawer = () => setFileDrawerOpen(isopen => !isopen)
     const closeDrawer = () => setFileDrawerOpen(false)
 
-    const currentFile = props.files[instanceState.currentFileIndex]
+    const currentFile = files[instanceState.currentFileIndex]
 
-    const onHandleFilenameChange = (ev) => props.onEditFileName(instanceState.currentFileIndex, ev.target.value)
+    const onHandleFilenameChange = (ev) => onEditFileName(instanceState.currentFileIndex, ev.target.value)
     const onHandleAddFile = () => {
-        let newIdx = props.onCreateFile('wgsl')
+        let newIdx = onCreateFile('wgsl')
         setCurrentFileIndex(newIdx)
     }
 
@@ -85,7 +83,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                         className="editor"
                         textareaId="codeArea"
                         value={currentFile.file}
-                        onValueChange={code => props.onEditCode(instanceState.currentFileIndex, code)}
+                        onValueChange={code => onEditCode(instanceState.currentFileIndex, code)}
                         highlight={code => hightlightWithLineNumbers(code, languages.rust)}
                         padding={20}
                         style={{
@@ -143,7 +141,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                             >
                                 <Flex direction="column" width="200px" backgroundColor="gray.850">
                                 {
-                                    props.files.map((file, idx) => 
+                                    files.map((file, idx) => 
                                         <Button
                                             size="sm"
                                             backgroundColor={idx==instanceState.currentFileIndex ? "whiteAlpha.300": "whiteAlpha.50"}
@@ -204,30 +202,9 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
 export const useEditorPanel = (): EditorProps => {
 
-    const [files, setFiles] = React.useState<CodeFile[]>(() =>{
-        return [{filename: 'test', file: 'aaa', lang: 'wgsl'}]
-    })
+    const [filesState, setFiles] = useRecoilState<types.CodeFile[]>(codeFiles)
 
-    // file loading
-    useEffect(() => {
-        let storedFiles = window.localStorage.getItem('files');
-        if (storedFiles) {
-            let files = JSON.parse(storedFiles)
-            if (files.length > 0){
-                setFiles(files)
-                return
-            }
-        } 
-        setFiles([{filename: 'test', file: 'aaa', lang: 'wgsl'}])
-    }, [])
-
-    // file saving
-    useEffect(() => {
-        window.localStorage.setItem('files', JSON.stringify(files))
-     }, [files])
-
-
-    const onEditCode = (idx: number, code: string) => {
+    const onEditCode = useCallback((idx: number, code: string) => {
         setFiles(prevCode => {
             let updated = [...prevCode]
             updated[idx] = {
@@ -236,12 +213,12 @@ export const useEditorPanel = (): EditorProps => {
             }
             return updated
         })
-    }
+    }, [filesState])
 
-    const onCreateFile = (lang: Lang): number => {
+    const onCreateFile = useCallback((lang: types.Lang): number => {
         let idx = 0
-        let len = files.length
-        while (files.map((c) => c.filename).includes(`shader${idx}`)) 
+        let len = filesState.length
+        while (filesState.map((c) => c.filename).includes(`shader${idx}`)) 
             ++idx
         setFiles(prevCode => [...prevCode, {
             filename: `shader${idx}`,
@@ -249,25 +226,25 @@ export const useEditorPanel = (): EditorProps => {
             lang: lang
         }])
         return len
-    }
+    }, [filesState])
 
-    const onDeleteFile = (idx: number) => {
+    const onDeleteFile = useCallback((idx: number) => {
         setFiles(prevCode => {
             let updated = [...prevCode]
             updated.splice(idx, 1)
             return updated
         })
-    }
+    }, [filesState])
 
-    const onEditFileName = (idx: number, filename: string) => {
+    const onEditFileName = useCallback((idx: number, filename: string) => {
         setFiles(prevCode => {
             let updated = [...prevCode]
-            updated[idx].filename = filename
+            updated[idx] = Object.assign({}, prevCode[idx], {filename})
             return updated
         })
-    }
+    }, [filesState])
 
-    return { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName }
+    return { files: filesState, onEditCode, onCreateFile, onDeleteFile, onEditFileName }
 }
 
 export default EditorPanel;

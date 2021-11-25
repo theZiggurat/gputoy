@@ -1,31 +1,25 @@
-import Params, {ParamDesc, ParamType} from './params'
-import GPU from './gpu'
-import Console from './console'
+import { Logger } from '../recoil/console'
+
 import Compiler from './compiler'
+import * as types from './types'
+import GPU from './gpu'
+import Params from './params'
+import staticdecl from './staticdecl'
 
-interface ProjcetSerializable {
+export class Project {
 
-}
+  static _instance: Project
 
-class Project {
-
-  // run state
-  lastStartTime: number = 0
-  lastFrameRendered: number = 0
-  dt: number = 0
-  frameNum: number = 0
-  runDuration: number = 0
-  prevDuration: number = 0
-  running: boolean = false
-
-  canvas!: HTMLCanvasElement
-  mousePos: [number, number] = [0, 0]
+  static instance = (): Project => {
+    if (Project._instance === undefined) 
+      Project._instance = new Project()
+    return Project._instance
+  }
 
   // project state
   included: Params = new Params('Included', 'i', true)
   params: Params = new Params('Params', 'p', false, 1)
-
-  status: string = 'Ok'
+  shaders: types.CodeFile[] = []
 
   // gpu state
   vertexBuffer!: GPUBuffer
@@ -34,175 +28,81 @@ class Project {
   pipeline!: GPURenderPipeline
   pipelineLayout!: GPUPipelineLayout
 
-  vertexDecl = `struct VertexOutput {
-    [[builtin(position)]] position: vec4<f32>;
-    [[location(1)]] uv: vec2<f32>;
-  };
-
-  [[stage(vertex)]]
-  fn vs_main(
-      [[location(0)]] position: vec2<f32>,
-  ) -> VertexOutput {
-      var out: VertexOutput;
-      out.position = vec4<f32>(position, 0.0, 1.0);
-      out.uv = (position + vec2<f32>(1.0)) / 2.0;
-      return out;
-  }
-`
-
-  userSrc:  string = ""
-  shaderSrc: string = ""
-
   // needs update
   shaderDirty = true
-  uniformsDirty = true
 
   // attaches canvas to current GPU device if there is one
   // if there is no device, it will try to init
   // if browser is incompatable, it will return
-  attachCanvas = async (canvasId: string) => {
-
-    // if gpu is not initialized
-    // keep trying unless browser is incompatible
-    while (!GPU.isInitialized()) {
-      this.status = 'Initializing'
-      let status = await GPU.init()
-      if (status === 'incompatible') {
-        this.status = 'Browser Incompatible'
-        Console.fatal('Error', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
-        return
-      }
-    }
-
-    let status = GPU.attachCanvas(canvasId)
-    this.status = status
-
-    this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
-    if(this.canvas) 
-      this.canvas.addEventListener('mousemove', evt => {
-        let rect = this.canvas.getBoundingClientRect()
-        this.mousePos = [
-          evt.clientX - rect.left,
-          evt.clientY - rect.top
-        ]
-      }, false);
-
-    GPU.device.onuncapturederror = this.errorHandler
+  attachCanvas = async (canvasId: string, logger: Logger): Promise<boolean> => {
+    return await GPU.attachCanvas(canvasId, logger)
   }
 
   // starts project
-  run = () => {
-    if (!(this.render) || this.running || !GPU.isInitialized()) 
-      return
-
-    if (!Compiler.isReady()) {
-      Console.err('Compiler', 'Compiler module not ready')
-      return
+  prepareRun = (state: types.ProjectStatus, logger: Logger): boolean => {
+    if(!GPU.isInitialized()){
+      logger.err('Project', 'GPU not initialized. Cancelling run')
+      return false
     }
 
-    this.updateDefaultParams()
-    if (!this.params.isEmpty() && !this.params.isBuilt())
-      this.params.updateDesc(GPU.device)
-
-    if (this.shaderDirty) {
-      Console.trace('Project', 'Compiling..')
-      if (!this.compileShaders())
-        return
+    // project is starting or restarted
+    if (state.frameNum == 0 || this.shaderDirty) {
+      logger.trace('Project', 'Preparing run')
+      if (this.shaderDirty) {
+        if (!Compiler.isReady()) {
+          logger.err('Compiler', 'Compiler module not ready')
+          return false
+        }
+        if (!this.compileShaders(logger)) {
+          //logger.err('Project', 'Shader compilation failed')
+          return false
+        }
+        this.shaderDirty = false
+      }
+      logger.trace('Project', 'Creating Pipeline..')
+      this.mapBuffers()
+      this.createPipeline()
+      logger.trace('Project', 'Ready')
     }
-
-    this.initPipeline()
-    this.shaderDirty = false
-
-    this.lastStartTime = performance.now()
-
-    //Console.trace("debug output", this.shaderSrc)
-    this.running = true
-    this.status = 'Running'
-    Console.trace('Project', 'Running')
-    this.renderInternal()
+    return true
   }
 
-  // runs external render and does record-keeping
-  renderInternal = () => {
-    if (!this.running) return
-
-    let now = performance.now()
-    this.dt = now - this.lastFrameRendered
-    this.lastFrameRendered = now
-    this.runDuration = (now - this.lastStartTime) / 1000 + this.prevDuration
-    ++this.frameNum
-
-    this.updateDefaultParams()
-    this.render()
-    
-    window.requestAnimationFrame(this.renderInternal)
+  renderFrame = () => {
+    this.encodeCommands()
   }
 
-  // stops render loop without restarting
-  pause = () => {
-    Console.trace('Project', 'Pausing')
-    if (!GPU.isInitialized())
-      return
-    this.status = 'Paused'
-    this.running = false
-    this.prevDuration = this.runDuration
+  updateDefaultParams = (paramDesc: types.ParamDesc[], logger: Logger) => {
+    if(GPU.isInitialized()) 
+      this.shaderDirty = this.included.set(paramDesc, GPU.device) || this.shaderDirty
   }
 
-  // stops render loop with restarting
-  stop = () => {
-    Console.trace('Project', 'Stopping')
-    if (!GPU.isInitialized())
-      return
-    
+  updateParams = (paramDesc: types.ParamDesc[], logger: Logger) => {
+    if(GPU.isInitialized()) 
+      this.shaderDirty = this.params.set(paramDesc, GPU.device) || this.shaderDirty
+  }
+
+  updateShaders = (files: types.CodeFile[], logger: Logger) => {
+    this.shaders = files
     this.shaderDirty = true
-    this.status = 'Ok'
-    this.running = false
-    this.frameNum = 0
-    this.runDuration = 0
   }
 
-  restart = () => {
-    console.log('restart')
-    this.stop()
-    this.run()
-  }
-
-  halt = () => {
-    console.log('halt')
-    this.stop()
-    this.dt = 0
-    this.status = "Error"
-  }
-
-  initPipeline = () => {
-    Console.trace('Project', 'Creating Pipeline..')
-    this.mapBuffers()
-    this.createPipeline()
-  }
-
-  updateDefaultParams = () => {
-
-    let rect = this.canvas.getBoundingClientRect()
-    let mouseNorm = [this.mousePos[0] / rect.width, 1 - this.mousePos[1] / rect.height]
-
-    this.shaderDirty = this.included.set([
-      {paramName: 'time', paramType: 'float', param: [this.runDuration]},
-      {paramName: 'dt',   paramType: 'float', param: [this.dt]},
-      {paramName: 'mouseNorm', paramType: 'vec2f', param: mouseNorm},
-      {paramName: 'aspectRatio', paramType: 'float', param: [rect.width / rect.height]},
-      {paramName: 'res', paramType: 'vec2i', param: [rect.width, rect.height]},
-      {paramName: 'frame', paramType: 'int', param: [this.frameNum]},
-      {paramName: 'mouse', paramType: 'vec2i', param: [this.mousePos[0], rect.height - this.mousePos[1]]},
-    ], GPU.device) || this.shaderDirty
-  }
-
-  setParams = (params: ParamDesc[]) => {
-    let updateDesc = this.params.set(params, GPU.device)
-    if (updateDesc) {
-      this.shaderDirty = true
-      if (this.running)
-        this.stop()
+  compileShaders = (logger: Logger): boolean => {
+    let src = this.shaders.find(f => f.isRender)
+    if (src === undefined) {
+      logger.err('Project', 'Cannot compile. No \'render\' shader in files!')
+      return false
     }
+    let shader = this.included.getShaderDecl()
+      .concat(staticdecl.vertex)
+      .concat(this.params.getShaderDecl())
+      .concat(src!.file)
+
+      //console.log(shader)
+    let module = Compiler.compileWGSL!(GPU.device, shader, logger)
+    if (!module)
+      return false
+    this.shaderModule = module
+    return true
   }
 
   // buffer initialization called on run()
@@ -226,31 +126,11 @@ class Project {
     );
   }
 
-  compileShaders = (): boolean => {
-    // this.shaderSrc = this.included.getShaderDecl()
-    //   .concat(this.vertexDecl)
-    //   .concat(this.params.getShaderDecl())
-    //   .concat(this.userSrc)
-
-    let src = this.included.getShaderDecl().concat(this.params.getShaderDecl()).concat(this.vertexDecl).concat(`
-    [[stage(fragment)]]
-    fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-        
-      let col = 0.5 * cos(in.uv.xyx + i.time  + vec3<f32>(0., 2., 4.)) + 0.5;
-      return vec4<f32>(col, 1.0);
-
-    }
-    `)
-    //Console.log("source", this.shaderSrc)
-    let module = Compiler.compileWGSL!(GPU.device, src)
-    if (!module)
-      return false
-    this.shaderModule = module
-    return true
-  }
-
   createPipeline = () => {
     if (!GPU.isInitialized())
+      return
+
+    if (!this.shaderModule)
       return
 
     let layouts = [this.included.getBindGroupLayout()]
@@ -294,7 +174,6 @@ class Project {
     
   }
 
-
   encodeCommands = () => {
     if (!GPU.isInitialized())
       return
@@ -322,41 +201,6 @@ class Project {
     rpass.endPass()
 
     GPU.device.queue.submit([commandEncoder.finish()])
-  }
-
-  render = () => {
-    this.encodeCommands()
-  }
-
-  errorHandler = (ev: GPUUncapturedErrorEvent) => {
-    let message: string = ev.error.message
-
-    // shader error
-    if (message.startsWith('Tint WGSL reader failure')) {
-      
-      let start = message.indexOf(':')+1
-      let body = message.substr(start, message.indexOf('Shader')-start).trim()
-      Console.err("Shader error", body)
-    }
-    else if (message.startsWith('[ShaderModule] is an error.')) {
-      Console.err("Shader module", message)
-    }
-    else {
-      Console.err("Unknown error", message)
-      
-    }
-    if (this.running)
-      this.halt()
-  }
-
-  onStart: () => void = () => {}
-  onPause: () => void = () => {}
-  onStop: () => void = () => {}
-  onHalt: () => void = () => {}
-
-  setShaderSrc = (src: string) => {
-    this.userSrc = src
-    this.shaderDirty = true
   }
 }
 

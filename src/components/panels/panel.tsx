@@ -1,6 +1,6 @@
-import React, { LegacyRef, ReactElement, ReactNode, useEffect } from 'react'
+import React, { LegacyRef, ReactElement, ReactNode, useCallback, useEffect, useRef } from 'react'
 import SplitPane from 'react-split-pane'
-import { useRecoilState } from 'recoil'
+import { DefaultValue, useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 import { layoutState } from '../../recoil/atoms'
 import { set } from 'lodash/fp'
 import { get } from 'lodash'
@@ -20,6 +20,7 @@ import {
   Portal,
   Divider
 } from '@chakra-ui/react'
+import useInstance, { useInstanceCleaner, useInstances } from '../../recoil/instance'
 
 
 // --------- CUSTOM PANEL INTERFACES  --------------
@@ -29,7 +30,7 @@ export interface PanelDescriptor {
   name: string,
   icon: React.ReactElement<any>,
   component: React.FC<any>,
-  staticProps: any
+  single?: boolean
 }
 
 export interface DynamicPanelProps {
@@ -46,11 +47,17 @@ export interface PanelInProps {
   onSplitPanel?: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
   onCombinePanel?: (path: string) => void,
   onSwitchPanel?: (path: string, panelIndex: number) => void,
+  instanceID: string,
 }
 
 export const Panel = (props: PanelInProps) => {
 
   const [barLocation, setBarLocation] = React.useState('bottom')
+  const [instanceState, setInstance] = useInstance(props)
+
+  // on mount, set the instance to either what it was before
+  // or default value if there was no value before
+  useEffect(() => setInstance(instanceState), [])
 
   const onChangeLocation = () => {
     setBarLocation(barLocation == 'top' ? 'bottom': 'top')
@@ -80,7 +87,8 @@ export const Panel = (props: PanelInProps) => {
             onSwitchPanel: props.onSwitchPanel,
             panelDesc: props.panelDesc,
             panelIndex: props.panelIndex,
-            clippingBoundary: bounds.current
+            clippingBoundary: bounds.current,
+            instanceID: props.instanceID
           })
         //else
           //return elem
@@ -122,9 +130,12 @@ interface PanelBarProps {
   panelIndex?: number,
   panelDesc?: PanelDescriptor[],
   clippingBoundary?: HTMLDivElement
-  preventScroll?: boolean
+  preventScroll?: boolean,
+  instanceID?: string,
 }
 export const PanelBar = (props: PanelBarProps) => {
+
+  const instances = useInstances()
 
   const scrollRef = useHorizontalScroll(Boolean(props.preventScroll))
   const onHandleSplitVertical = (idx: number) => props.onSplitPanel!(props.path!, 'horizontal', idx)
@@ -193,6 +204,7 @@ export const PanelBar = (props: PanelBarProps) => {
                     onHandleSplitVertical={() => onHandleSplitVertical(idx)}
                     last={idx==props.panelDesc!.length-1}
                     first={idx==0}
+                    disabled={instances.map(sel => sel.index).includes(idx) && desc.single}
                   />)
                 }                  
               </Flex>
@@ -221,7 +233,7 @@ export const PanelBar = (props: PanelBarProps) => {
 
 // --------- PANEL BAR MIDDLE --------------
 
-export const PanelBarMiddle = (props: {children: ReactElement} | any) => {
+export const PanelBarMiddle = (props: {children: ReactElement[] | ReactElement} | any) => {
   const {children, ...flexprops} = props
   return (
     <Flex dir="row" flex="0 0 auto" justifyContent="center" {...flexprops} pr={1} pl={1}>
@@ -232,7 +244,7 @@ export const PanelBarMiddle = (props: {children: ReactElement} | any) => {
 
 // --------- PANEL BAR END --------------
 
-export const PanelBarEnd = (props: {children: ReactElement[]}) => {
+export const PanelBarEnd = (props: {children: ReactElement[] | ReactElement} | any) => {
   return (
     <Flex dir="row" flex="1 0 auto" justifyContent="end">
       {props.children}
@@ -250,6 +262,7 @@ interface PaneSelectorButtonProps {
   onSwitch: () => void,
   last: boolean,
   first: boolean,
+  disabled?: boolean
 }
 
 const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
@@ -270,6 +283,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           borderBottomRadius="0"
           onClick={props.onSwitch}
           pl={2}
+          disabled={props.disabled}
         >
           <Text fontSize="xs" fontWeight="thin">{props.title}</Text>
         </Button>
@@ -282,6 +296,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           borderRadius="0"
           border="0"
           onClick={props.onHandleSplitHorizontal}
+          disabled={props.disabled}
         />
         <IconButton 
           backgroundColor="whiteAlpha.100"
@@ -294,6 +309,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           borderEndRadius={props.first?"":"0"}
           borderBottomRightRadius={props.last?"":"0"}
           onClick={props.onHandleSplitVertical}
+          disabled={props.disabled}
         />
       </Flex>
       {!props.last && <Divider/>}
@@ -319,12 +335,13 @@ export const Panels = (props: PanelProps & PanelDescriptorProps) => {
     const { descriptors, ...panelProps } = props
     const { panelLayout, ...rest } = panelProps
 
-    return render(panelLayout, descriptors, rest as PanelProps)
+    return _render(panelLayout, descriptors, rest as PanelProps, '')
 }
 
 export const usePanels = (): PanelProps => {
 
     const [panelTreeLayout, setPanelTreeLayout] = useRecoilState(layoutState)
+    const cleaner = useInstanceCleaner()
 
     // load layout from localstorage
     useEffect(() => {
@@ -335,6 +352,7 @@ export const usePanels = (): PanelProps => {
     // save layout to local storage on change
     useEffect(() => {
         window.localStorage.setItem('layout', JSON.stringify(panelTreeLayout))
+        cleaner(instances(panelTreeLayout))
     }, [panelTreeLayout])
 
     const trySetLayout = (layout: any | undefined) => { if(layout !== undefined) setPanelTreeLayout(layout) }
@@ -383,10 +401,6 @@ export const usePanels = (): PanelProps => {
     }
 }
 
-const render = (panelLayout: any, descriptors: PanelDescriptor[], props: PanelProps): React.ReactElement<any> => {
-    return _render(panelLayout, descriptors, props, '')
-}
-
 const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, path: string): React.ReactElement<any> => {
 
     if (obj['instanceID'] === undefined) 
@@ -403,8 +417,7 @@ const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, pa
             React.createElement(
                 descriptors[obj['index']].component, 
                 {   
-                    ...props, 
-                    ...descriptors[obj['index']].staticProps,
+                    ...props,
                     panelDesc: descriptors,
                     path: path, 
                     panelIndex: obj['index'], 
@@ -423,8 +436,9 @@ const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, pa
             React.createElement(
                 SplitPane,
                 {
+                    key: obj['instanceID'],
                     split: obj['type'], 
-                    defaultSize: "50%", 
+                    defaultSize: "65%", 
                     style: path=='' ? {
                         flex: '1 1 auto',
                         position: 'relative'
@@ -450,10 +464,11 @@ const replaceAtPath = (obj: any, path: string, f: (obj: any) => void): any | und
     return apath.length == 0 ? f(objAtPath): set(apath, f(objAtPath), obj)
 }
 
-const instances = (obj: any): string[] => {
-    const _instances = (obj: any, path: string): string[] => {
-        const self = get(obj, arrpath(path).concat('instanceID'))
-        return self === undefined ? [] : [self].concat(_instances(obj, path.concat('l'))).concat(_instances(obj, path.concat('r')))
+const instances = (obj: any): any[] => {
+    const _instances = (obj: any, path: string): any[] => {
+        const selfID = get(obj, arrpath(path).concat('instanceID'))
+        const selfIndex = get(obj, arrpath(path).concat('index'))
+        return selfID === undefined ? [] : [{id: selfID, index: selfIndex}].concat(_instances(obj, path.concat('l'))).concat(_instances(obj, path.concat('r')))
     }
     return _instances(obj, '')
 }

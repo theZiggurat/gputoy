@@ -1,7 +1,6 @@
-import React, { useEffect, useCallback } from 'react'
-import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
-import WorkingProject from '../../../gpu/project';
-import { ProjectStatus } from '../../../../pages/create';
+import React, { useEffect, useRef, MutableRefObject } from 'react'
+import {FaPlay, FaStop, FaPause } from 'react-icons/fa'
+import WorkingProject, { Project } from '../../../gpu/project';
 import { useResizeDetector } from 'react-resize-detector'
 import { RowButton } from '../../reusable/rowButton';
 import { MdSettings } from 'react-icons/md';
@@ -20,15 +19,11 @@ import {
     PanelBarEnd, 
     DynamicPanelProps
 } from '../panel'
-
-
-
-interface ViewportProps {
-    onRequestStart: () => void,
-    onRequestPause: () => void,
-    onRequestStop: () => void,
-    projectStatus: ProjectStatus,
-}
+import {  useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { canvasInitialized, mousePos, projectControl, projectStatus, resolution } from '../../../recoil/project';
+import { useLogger } from '../../../recoil/console';
+import useInstance from '../../../recoil/instance';
+import { throttle } from 'lodash';
 
 const StatusInfo = (props: {text: string, textColor?: string, first?: boolean, last?: boolean}) => (
     <Center 
@@ -41,31 +36,89 @@ const StatusInfo = (props: {text: string, textColor?: string, first?: boolean, l
         borderEndRadius={props.last?"":"0"}
         borderLeft={props.first?"0px":"1px"}
         borderColor="blackAlpha.300"
+        width={120}
     >
-        <Text pl={2} pr={2} fontSize={12} color={props.textColor}>{props.text}</Text>
+        <Text fontSize={12} color={props.textColor}>{props.text}</Text>
     </Center>
 )
 
-const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
+const StatusInfoGroup = () => {
 
-    const {onRequestStart, onRequestPause, onRequestStop, projectStatus, instanceID, ...props} = allprops
+    const projectStatusValue = useRecoilValue(projectStatus)
+
+    return <>
+        <StatusInfo text={`FPS: ${(1 / projectStatusValue.dt * 1000).toFixed(0)}`} first/>
+        <StatusInfo text={`Time: ${projectStatusValue.runDuration.toFixed(2)}s`}/>
+        <StatusInfo text={`Frame: ${projectStatusValue.frameNum}`} last/>
+    </>
+}
+
+const ViewportPanelBarEnd = () => {
+
+    const [projectControlValue, setProjectControl] = useRecoilState(projectControl)
+
+    const onHandlePlayPause = () => setProjectControl(old => old == 'play' ? 'pause':'play')
+    const onHandleStop = () => setProjectControl('stop')
+
+    return <>
+        <RowButton 
+            purpose="Play"
+            icon={ projectControlValue == 'play' ? <FaPause/>:<FaPlay/>} 
+            onClick={onHandlePlayPause}
+            first
+        />
+        <RowButton 
+            purpose="Stop"
+            icon={<FaStop/>} 
+            onClick={onHandleStop}
+        />
+        <RowButton 
+            purpose="Viewport Settings"
+            icon={<MdSettings/>}
+            last
+        />
+    </>
+}
+
+const ViewportCanvas = (props: {instanceID: number, width?: number, height?: number}) => {
+
+    const setMousePos = useSetRecoilState(mousePos)
+    const setCanvasInitialized = useSetRecoilState(canvasInitialized)
+    const canvasRef = useRef<HTMLCanvasElement|null>(null)
+    const logger = useLogger()
+    const id = `canvas_${props.instanceID}`
+
+    const onHandleMousePos = throttle((evt) => {
+        if (canvasRef.current) {
+            const rect = canvasRef.current.getBoundingClientRect()
+            setMousePos({
+                x: Math.floor(evt.clientX - rect.left),
+                y: Math.floor(evt.clientY - rect.top)
+            })
+        }
+    }, 30)
+
+    useEffect(() => {
+        const isInit = async () => {
+            setCanvasInitialized(await Project.instance().attachCanvas(id, logger))
+        }
+        isInit()
+    }, [id])
+
+    return <canvas id={id} ref={canvasRef} onMouseMove={onHandleMousePos} style={{
+        width: props.width,
+        height: props.height
+    }}/>
+
+    
+}
+
+const ViewportPanel = (props: DynamicPanelProps & any) => {
 
     const [showResolution, setShowResolution] = React.useState(false)
-    const [ready, setReady] = React.useState(false)
+    const setResolution = useSetRecoilState(resolution)
 
-     useEffect(() => {
-        const initCanvas = async () => {
-            await WorkingProject.attachCanvas('canvas')
-            let status = WorkingProject.status
-            if (status === 'Ok')
-                setReady(true)
-        }
-        initCanvas()
-    }, [])
-
-    const onResize = () => {
-        setShowResolution(true)
-    }
+    const onResize = () => setShowResolution(true)
 
     const { width, height, ref } = useResizeDetector({
         refreshMode: "debounce",
@@ -78,6 +131,8 @@ const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
     })
 
     useEffect(() => {
+        if (width && height)
+            setResolution({width, height})
         const handle = setTimeout(() => setShowResolution(false), 2000)
         return () => clearTimeout(handle)
     }, [width, height])
@@ -98,78 +153,19 @@ const ViewportPanel = (allprops: ViewportProps & DynamicPanelProps) => {
                             {`Resolution: ${width} x ${height}`}
                         </Box>
                     </Fade>
-                    <canvas id='canvas' style={{
-                        width: width,
-                        height: height
-                    }}/>
+                    <ViewportCanvas instanceID={props.instanceID} width={width} height={height}/>
                 </Box>
             </PanelContent>
             <PanelBar>
                 <PanelBarMiddle>
-                    <StatusInfo text={`FPS: ${projectStatus.fps}`} first/>
-                    <StatusInfo text={`Duration: ${projectStatus.time}s`}/>
-                    <StatusInfo text={`Status: ${projectStatus.gpustatus}`} last/>
+                    <StatusInfoGroup/>
                 </PanelBarMiddle>
                 <PanelBarEnd>
-                    <RowButton 
-                        purpose="Play"
-                        icon={WorkingProject.shaderDirty ? <FaUpload/> : WorkingProject.running ? <FaPause/>:<FaPlay/>} 
-                        onClick={WorkingProject.running ? onRequestPause : onRequestStart}
-                        disabled={!ready}
-                        first
-                    />
-                    <RowButton 
-                        purpose="Stop"
-                        icon={<FaStop/>} 
-                        onClick={onRequestStop}
-                    />
-                    <RowButton 
-                        purpose="Viewport Settings"
-                        icon={<MdSettings/>}
-                        last
-                    />
+                    <ViewportPanelBarEnd/>
                 </PanelBarEnd>
             </PanelBar>
         </Panel>
     )
-}
-
-export const useViewportPanel = (): ViewportProps => {
-    const [projectStatus, setProjectStatus] = React.useState<ProjectStatus>({
-        gpustatus: "",
-        fps: "--",
-        time: "--",
-    })
-
-    useEffect(() => {
-        const id = setInterval(() => {
-            let fps = '--'
-            if (WorkingProject.dt != 0) {
-                fps = (1 / WorkingProject.dt * 1000).toFixed(2).toString()
-            }
-
-            setProjectStatus(oldStatus => {
-                let newStatus = {
-                    gpustatus: WorkingProject.status,
-                    fps: fps,
-                    time: (WorkingProject.runDuration).toFixed(1).toString()
-                }
-                return newStatus
-            })
-        },(100))
-        return () => clearInterval(id)
-    },[])
-
-    const onRequestStart = () => WorkingProject.run()
-    const onRequestPause = () =>  WorkingProject.pause()
-    const onRequestStop = () => WorkingProject.stop()
-
-    return {
-        projectStatus,
-        onRequestStart,
-        onRequestPause,
-        onRequestStop
-    }
 }
 
 export default ViewportPanel

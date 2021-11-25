@@ -12,18 +12,19 @@ import {
 
 import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa'
 import { CloseIcon } from '@chakra-ui/icons'
-import Console, { Message } from '../../../gpu/console'
+import { clearConsole, Message, useConsole } from '../../../recoil/console'
 import { MdSettings } from 'react-icons/md';
 
 import { Panel, PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd, DynamicPanelProps } from '../panel';
-import useInstance, { ConsoleInstanceState } from '../instance';
+import useInstance, { ConsoleInstanceState } from '../../../recoil/instance';
 import { RowButton, RowToggleButton} from '../../reusable/rowButton';
 
 const colors = [
   "green",
   "blue",
   "orange",
-  "red"
+  "red",
+  "purple"
 ]
 
 const prehead = [
@@ -31,6 +32,7 @@ const prehead = [
   "[---Log---] ",
   "[--Error--] ",
   "[--Fatal--] ",
+  "[--Debug--] ",
 ]
 
 const f = (n: number) => ('0' + n).slice(-2)
@@ -39,8 +41,8 @@ const formatTime = (date: Date) => `${f(date.getHours())}:${f(date.getMinutes())
 const ConsolePanel = (props: DynamicPanelProps & any) => {
 
   const [instanceState, setInstanceState] = useInstance<ConsoleInstanceState>(props)
-
-  const [text, setText] = React.useState(Console.getBuffer())
+  const console = useConsole(instanceState.typeFilters, instanceState.keywordFilter)
+  const clear = clearConsole()
 
   const setKeywordFilter = (filter: string) => setInstanceState({...instanceState, keywordFilter: filter})
   const setTypeFilters = (filter: boolean[]) => setInstanceState({...instanceState, typeFilters: filter})
@@ -49,10 +51,6 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
   const bottom = React.useRef<HTMLDivElement>(null)
 
   const toast = useToast()
-
-  useEffect(() => {
-    setText([...Console.getFiltered(instanceState.typeFilters, instanceState.keywordFilter)])
-  }, [instanceState])
 
   /**
    * Automatic scrolling to bottom
@@ -65,7 +63,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
           inline: "center",
           behavior: "smooth",
         }
-    )}, [text])
+    )}, [console])
 
   const toggle = (idx: number) => {
     var filters = [...instanceState.typeFilters]
@@ -75,7 +73,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
 
   const writeToClipboard = () => {
     navigator.clipboard.writeText(
-      Console.getBuffer().map(line => 
+      console.map(line => 
         `${formatTime(line.time)}  ${prehead[line.type]} ${line.header}: ${line.body}`
       ).join('\n')
     )
@@ -93,7 +91,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
         fontFamily='"Fira code", "Fira Mono", monospace' 
         fontSize="sm" 
       >
-        {text.map((message: Message, idx) => 
+        {console.map((message: Message, idx) => 
             <Box 
               key={idx}
               //backgroundColor={idx%2==0?'':'blackAlpha.100'}
@@ -139,7 +137,8 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
           <RowToggleButton text="Trace" toggled={instanceState.typeFilters[0]} onClick={() => toggle(0)}/>
           <RowToggleButton text="Log"   toggled={instanceState.typeFilters[1]} onClick={() => toggle(1)}/>
           <RowToggleButton text="Error" toggled={instanceState.typeFilters[2]} onClick={() => toggle(2)}/>
-          <RowToggleButton text="Fatal" toggled={instanceState.typeFilters[3]} onClick={() => toggle(3)} last/>
+          <RowToggleButton text="Fatal" toggled={instanceState.typeFilters[3]} onClick={() => toggle(3)}/>
+          <RowToggleButton text="Debug" toggled={instanceState.typeFilters[4]} onClick={() => toggle(4)} last/>
         </PanelBarMiddle>
 
         <PanelBarEnd>
@@ -147,14 +146,14 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
             purpose="Copy console to clipboard"
             icon={<FaRegClipboard/>}
             onClick={() => writeToClipboard()}
-            disabled={text.length == 0}
+            disabled={console.length == 0}
             first
           />
           <RowButton 
             purpose="Clear console"
             icon={<FaRegTrashAlt/>}
-            onClick={() => Console.clear()}
-            disabled={text.length == 0}
+            onClick={clear}
+            disabled={console.length == 0}
           />
           <RowButton 
             purpose="Console Settings"

@@ -22,11 +22,10 @@ import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { MdNightlight, MdWbSunny} from 'react-icons/md'
 
-import dynamic from 'next/dynamic'
 import { useResetRecoilState } from 'recoil';
 import { layoutState } from '../recoil/atoms';
+import UserMenu from './user';
 
-//const MenuButton = dynamic(() => import('@chakra-ui/menu'), {ssr: false})
 
 interface NavLinkProps {
   href: string,
@@ -54,7 +53,6 @@ const NavLink = (props: NavLinkProps) => {
 export default function Nav() {
 
   const { colorMode, toggleColorMode } = useColorMode();
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const router = useRouter();
   const isActive = router.pathname == '/'; 
 
@@ -86,38 +84,7 @@ export default function Nav() {
               <Button onClick={toggleColorMode} size="sm">
                 <Icon as={colorMode==="light" ? MdWbSunny : MdNightlight}/>
               </Button>
-              <Menu>
-                <MenuButton
-                  id="menubutton"
-                  as={Button}
-                  rounded={'full'}
-                  variant={'link'}
-                  cursor={'pointer'}
-                  minW={0}>
-                  <Avatar
-                    size={'sm'}
-                    src={'https://avatars.dicebear.com/api/male/username.svg'}
-                  />
-                </MenuButton>
-                <MenuList alignItems={'center'}>
-                  <br />
-                  <Center>
-                    <Avatar
-                      size={'2xl'}
-                      src={'https://avatars.dicebear.com/api/male/username.svg'}
-                    />
-                  </Center>
-                  <br />
-                  <Center>
-                    <p>Username</p>
-                  </Center>
-                  <br />
-                  <MenuDivider />
-                  <MenuItem>Your Servers</MenuItem>
-                  <MenuItem>Account Settings</MenuItem>
-                  <MenuItem>Logout</MenuItem>
-                </MenuList>
-              </Menu>
+              <UserMenu/>
             </Stack>
           </Flex>
         </Flex>

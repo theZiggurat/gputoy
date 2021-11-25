@@ -7,11 +7,14 @@ import { RecoilRoot } from 'recoil'
 import { GPUInitResult } from '../src/gpu/gpu'
 import ShdrAlert from '../src/components/warning'
 
+import { UserProvider } from '@auth0/nextjs-auth0';
+
 import '../styles/globals.css'
 import '../styles/create.css'
 import '../styles/prism-custom.css'
 import 'react-tabs/style/react-tabs.css';
 import dynamic from 'next/dynamic'
+import ProjectManager from '../src/components/projectManager'
 
 
 const theme = extendTheme({
@@ -28,12 +31,15 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [gpuInitResult, setGPUInitResult] = React.useState('ok' as GPUInitResult)
 
   return (
-    <RecoilRoot>
-      <ChakraProvider theme={theme}>
-        <ShdrAlert gpuResult={gpuInitResult}/>
-        <Component {...pageProps} />
-      </ChakraProvider>
-    </RecoilRoot>
+    <UserProvider>
+      <RecoilRoot>
+        <ProjectManager/>
+        <ChakraProvider theme={theme}>
+          <ShdrAlert gpuResult={gpuInitResult}/>
+          <Component {...pageProps} />
+        </ChakraProvider>
+      </RecoilRoot>
+    </UserProvider>
   )
 }
 export default MyApp
