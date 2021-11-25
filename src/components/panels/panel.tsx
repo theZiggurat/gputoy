@@ -436,6 +436,7 @@ const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, pa
             React.createElement(
                 SplitPane,
                 {
+                    key: obj['instanceID'],
                     split: obj['type'], 
                     defaultSize: "65%", 
                     style: path=='' ? {

@@ -125,7 +125,7 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
         refreshRate: 100,
         onResize: onResize,
         refreshOptions: {
-            leading: false,
+            leading: true,
             trailing: true
         }
     })
