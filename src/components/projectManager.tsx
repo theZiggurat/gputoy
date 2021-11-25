@@ -6,82 +6,71 @@ import GPU from '../gpu/gpu'
 import useGPUError from '../gpu/error'
 
 import { Project } from '../gpu/project'
-import { canvasInitialized, codeFiles, defaultParams, params, projectStatus } from '../recoil/project'
+import { canvasInitialized, codeFiles, defaultParams, params, projectControl, projectStatus, useProjectControls } from '../recoil/project'
+import { includes, throttle } from 'lodash'
 
 
 
 const ProjectManager = () => {
 
-  const [projectStatusState, setProjectStatus] = useRecoilState(projectStatus)
+  const projectStatusState= useRecoilValue(projectStatus)
+  const projectControlStatus = useRecoilValue(projectControl)
   const isCanvasInitialized = useRecoilValue(canvasInitialized)
+  const { play, pause, stop, step } = useProjectControls()
+
   const defaultParamState = useRecoilValue(defaultParams)
   const paramState = useRecoilValue(params)
   const files = useRecoilValue(codeFiles)
 
-
-  const [isRunningState, setRunningState] = useState(false)
   const logger = useLogger()
 
   const isRunning = useRef(false)
   const intervalHandle = useRef(0)
 
-  const f = () => {
-
-    Project.instance().renderFrame()
-
-    setProjectStatus(old => { 
-      let now = performance.now()
-      return {
-        ...old,
-        runDuration: (now - old.lastStartTime) / 1000 + old.prevDuration,
-        lastFrameRendered: now,
-        dt: now - old.lastFrameRendered,
-        frameNum: old.frameNum + 1
-      }
-    })
-
-    if (isRunning.current)
-      intervalHandle.current = window.requestAnimationFrame(f)
+  /**
+   * One iteration of the render loop
+   */
+  const renderStep = () => {
+    if (isRunning.current) {
+      step()
+      Project.instance().renderFrame()
+      intervalHandle.current = window.requestAnimationFrame(renderStep)
+    }
   }
 
+  /**
+   * Handle play/pause/stop signals from the viewport panel
+   */
   useEffect(() => {
-    if (isRunning.current) {
-      if (Project.instance().prepareRun(projectStatusState, logger))
-        window.requestAnimationFrame(f)
-      else {
-        setProjectStatus(old => { 
-          return {
-          ...old,
-          running: false,
-          frameNum: 0,
-          runDuration: 0,
-          prevDuration: 0,
-      }})
-      }
-    }
-
-    return () => cancelAnimationFrame(intervalHandle.current)
-  }, [isRunningState])
-
-  // syncs the isRunning ref with recoil global projectStatus state
-  // and triggers above layhout effect to run on switching projectStatus.running false -> true
-  useEffect(() => {
-    if (isRunning.current != projectStatusState.running) {
-      isRunning.current = projectStatusState.running
-    }
-    setRunningState(projectStatusState.running)
-  }, [projectStatusState])
+    if (projectControlStatus == 'play') {
+      play()
+      isRunning.current = true
+      if (Project.instance().prepareRun(projectStatusState, logger)) 
+        window.requestAnimationFrame(renderStep)
+      else 
+        stop()
+      return () => cancelAnimationFrame(intervalHandle.current)
+    } 
+    if (projectControlStatus == 'pause') {
+      pause()
+      isRunning.current = false
+    } 
+    if (projectControlStatus == 'stop') {
+      stop()
+      isRunning.current = false
+    } 
+  }, [projectControlStatus])
 
 
-
+  /**
+   * Handle uniform and shader updates
+   * Apply these to the project instance once their respective recoil states have changed
+   */
   useEffect(() => {
     Project.instance().updateDefaultParams(defaultParamState, logger)
-    if(projectStatusState.frameNum > 0 && !projectStatusState.running)
-    {
+    if(projectStatusState.frameNum > 0 && !projectStatusState.running){
       Project.instance().renderFrame()
     }
-      
-    
   }, [defaultParamState])
 
   useEffect(() => {
@@ -95,10 +84,13 @@ const ProjectManager = () => {
   }, [files])
 
 
-
   const errorHandler = (ev: GPUUncapturedErrorEvent) => {
-    let message: string = ev.error.message
-
+    let error = ev.error
+    if (error instanceof GPUOutOfMemoryError) {
+      logger.fatal('GPU', 'Out of memory')
+      return
+    }
+    let message: string = error.message
     // shader error
     if (message.startsWith('Tint WGSL reader failure')) {
       
@@ -111,16 +103,8 @@ const ProjectManager = () => {
     }
     else {
       logger.err("Unknown error", message)
-      
     }
-    setProjectStatus(old => { 
-      return {
-      ...old,
-      running: false,
-      frameNum: 0,
-      runDuration: 0,
-      prevDuration: 0,
-  }})
+    stop()
   }
 
   useEffect(() => {

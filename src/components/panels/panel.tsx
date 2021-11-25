@@ -131,7 +131,7 @@ interface PanelBarProps {
   panelDesc?: PanelDescriptor[],
   clippingBoundary?: HTMLDivElement
   preventScroll?: boolean,
-  instanceID: string,
+  instanceID?: string,
 }
 export const PanelBar = (props: PanelBarProps) => {
 
@@ -233,7 +233,7 @@ export const PanelBar = (props: PanelBarProps) => {
 
 // --------- PANEL BAR MIDDLE --------------
 
-export const PanelBarMiddle = (props: {children: ReactElement} | any) => {
+export const PanelBarMiddle = (props: {children: ReactElement[] | ReactElement} | any) => {
   const {children, ...flexprops} = props
   return (
     <Flex dir="row" flex="0 0 auto" justifyContent="center" {...flexprops} pr={1} pl={1}>
@@ -244,7 +244,7 @@ export const PanelBarMiddle = (props: {children: ReactElement} | any) => {
 
 // --------- PANEL BAR END --------------
 
-export const PanelBarEnd = (props: {children: ReactElement[]}) => {
+export const PanelBarEnd = (props: {children: ReactElement[] | ReactElement} | any) => {
   return (
     <Flex dir="row" flex="1 0 auto" justifyContent="end">
       {props.children}

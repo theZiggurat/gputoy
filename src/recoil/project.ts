@@ -1,7 +1,8 @@
-import  { atom, selector } from 'recoil'
+import  { atom, selector, useRecoilState, useSetRecoilState } from 'recoil'
 import localStorageEffect from './effects'
 import * as types from '../gpu/types'
 
+// @ts-ignore
 import defaultShader from '../../shaders/basicShader.wgsl'
 
 
@@ -17,6 +18,63 @@ export const projectStatus = atom<types.ProjectStatus>({
     running: false,
   } 
 })
+
+type ProjectControl = 'play' | 'pause' | 'stop'
+export const projectControl = atom<ProjectControl>({
+  key: 'projectControl',
+  default: 'stop'
+})
+
+export const useProjectControls = () => {
+  const setProjectStatus = useSetRecoilState(projectStatus)
+
+  const pause = () => {
+    setProjectStatus(old => { 
+      return {
+          ...old, 
+          running: false,
+          prevDuration: old.runDuration
+      }
+    })
+  }
+
+  const play = () => {
+    setProjectStatus(old => { 
+      return {
+          ...old,
+          running: true,
+          lastStartTime: performance.now(),
+      }
+    })
+  }
+
+  const stop = () => {
+      setProjectStatus(old => { 
+          return {
+          ...old,
+          running: false,
+          frameNum: 0,
+          runDuration: 0,
+          prevDuration: 0,
+      }})
+  }
+
+  const step = () => {
+    setProjectStatus(old => {
+      let now = performance.now()
+      return {
+        ...old,
+        runDuration: (now - old.lastStartTime) / 1000 + old.prevDuration,
+        lastFrameRendered: now,
+        dt: now - old.lastFrameRendered,
+        frameNum: old.frameNum + 1
+      }
+    })
+  }
+
+  return { play, pause, stop, step }
+}
+
 
 export const codeFiles = atom<types.CodeFile[]>({
   key: 'codefiles',

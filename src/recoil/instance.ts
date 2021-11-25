@@ -63,7 +63,7 @@ const panelInstanceCleaner = selector<InstanceSelector[]>({
   get: ({get}) => get(panelInstances),
   set: ({set, reset}, instances) => {
     set(panelInstances, prev => {
-      const idArr = instances.map(sel => sel.id)
+      const idArr = (instances as InstanceSelector[]).map(sel => sel.id)
       prev.filter(sel => !idArr.includes(sel.id)).forEach(sel =>
         reset(panelInstance(sel))
       )

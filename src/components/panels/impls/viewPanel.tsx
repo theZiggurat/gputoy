@@ -1,7 +1,6 @@
-import React, { useEffect, useCallback, useLayoutEffect, useState, useRef, MutableRefObject } from 'react'
-import {FaPlay, FaStop, FaPause, FaPlus, FaUpload} from 'react-icons/fa'
+import React, { useEffect, useRef, MutableRefObject } from 'react'
+import {FaPlay, FaStop, FaPause } from 'react-icons/fa'
 import WorkingProject, { Project } from '../../../gpu/project';
-import { ProjectStatus } from '../../../../pages/create';
 import { useResizeDetector } from 'react-resize-detector'
 import { RowButton } from '../../reusable/rowButton';
 import { MdSettings } from 'react-icons/md';
@@ -20,20 +19,11 @@ import {
     PanelBarEnd, 
     DynamicPanelProps
 } from '../panel'
-import { DefaultValue, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { canvasInitialized, canvasStatus, mousePos, projectStatus, resolution } from '../../../recoil/project';
+import {  useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { canvasInitialized, mousePos, projectControl, projectStatus, resolution } from '../../../recoil/project';
 import { useLogger } from '../../../recoil/console';
 import useInstance from '../../../recoil/instance';
 import { throttle } from 'lodash';
-
-
-
-interface ViewportProps {
-    onRequestStart: () => void,
-    onRequestPause: () => void,
-    onRequestStop: () => void,
-    projectStatus: ProjectStatus,
-}
 
 const StatusInfo = (props: {text: string, textColor?: string, first?: boolean, last?: boolean}) => (
     <Center 
@@ -65,13 +55,15 @@ const StatusInfoGroup = () => {
 
 const ViewportPanelBarEnd = () => {
 
-    const [onHandlePlayPause, onHandleStop] = useViewportPanelControls()
-    const projectStatusState = useRecoilValue(projectStatus)
+    const [projectControlValue, setProjectControl] = useRecoilState(projectControl)
+
+    const onHandlePlayPause = () => setProjectControl(old => old == 'play' ? 'pause':'play')
+    const onHandleStop = () => setProjectControl('stop')
 
     return <>
         <RowButton 
             purpose="Play"
-            icon={ projectStatusState.running ? <FaPause/>:<FaPlay/>} 
+            icon={ projectControlValue == 'play' ? <FaPause/>:<FaPlay/>} 
             onClick={onHandlePlayPause}
             first
         />
@@ -88,35 +80,45 @@ const ViewportPanelBarEnd = () => {
     </>
 }
 
-const RandomBox = () => {
+const ViewportCanvas = (props: {instanceID: number, width?: number, height?: number}) => {
 
-    const projectStatusState = useRecoilValue(projectStatus)
+    const setMousePos = useSetRecoilState(mousePos)
+    const setCanvasInitialized = useSetRecoilState(canvasInitialized)
+    const canvasRef = useRef<HTMLCanvasElement|null>(null)
+    const logger = useLogger()
+    const id = `canvas_${props.instanceID}`
 
-    return <Box 
-        position="absolute" 
-        left="800px" top="20px" 
-        bg="blackAlpha.600" 
-        borderRadius="lg" 
-        width="fit-content" 
-        p={3}
-    >
-        <Text whiteSpace="pre-wrap">
-            {JSON.stringify(projectStatusState, null, 2)}
-        </Text>
-        
-    </Box>
+    const onHandleMousePos = throttle((evt) => {
+        if (canvasRef.current) {
+            const rect = canvasRef.current.getBoundingClientRect()
+            setMousePos({
+                x: Math.floor(evt.clientX - rect.left),
+                y: Math.floor(evt.clientY - rect.top)
+            })
+        }
+    }, 30)
+
+    useEffect(() => {
+        const isInit = async () => {
+            setCanvasInitialized(await Project.instance().attachCanvas(id, logger))
+        }
+        isInit()
+    }, [id])
+
+    return <canvas id={id} ref={canvasRef} onMouseMove={onHandleMousePos} style={{
+        width: props.width,
+        height: props.height
+    }}/>
+
+    
 }
 
-// const StatusInfoGroup = ()
-
-const ViewportPanel = (props: ViewportProps & DynamicPanelProps) => {
+const ViewportPanel = (props: DynamicPanelProps & any) => {
 
     const [showResolution, setShowResolution] = React.useState(false)
     const setResolution = useSetRecoilState(resolution)
 
-    const onResize = () => {
-        setShowResolution(true)
-    }
+    const onResize = () => setShowResolution(true)
 
     const { width, height, ref } = useResizeDetector({
         refreshMode: "debounce",
@@ -151,14 +153,12 @@ const ViewportPanel = (props: ViewportProps & DynamicPanelProps) => {
                             {`Resolution: ${width} x ${height}`}
                         </Box>
                     </Fade>
-                    <RandomBox/>
                     <ViewportCanvas instanceID={props.instanceID} width={width} height={height}/>
                 </Box>
             </PanelContent>
             <PanelBar>
                 <PanelBarMiddle>
                     <StatusInfoGroup/>
-                    
                 </PanelBarMiddle>
                 <PanelBarEnd>
                     <ViewportPanelBarEnd/>
@@ -166,74 +166,6 @@ const ViewportPanel = (props: ViewportProps & DynamicPanelProps) => {
             </PanelBar>
         </Panel>
     )
-}
-
-const ViewportCanvas = (props: {instanceID: number, width?: number, height?: number}) => {
-
-    //const setCanvasStatus = useSetRecoilState(canvasStatus)
-    const setMousePos = useSetRecoilState(mousePos)
-    const setCanvasInitialized = useSetRecoilState(canvasInitialized)
-    const canvasRef = useRef<MutableRefObject<HTMLCanvasElement>>()
-    const logger = useLogger()
-    const id = `canvas_${props.instanceID}`
-
-    const onHandleMousePos = throttle((evt) => {
-        if (canvasRef.current) {
-            const rect = canvasRef.current.getBoundingClientRect()
-            setMousePos({
-                x: Math.floor(evt.clientX - rect.left),
-                y: Math.floor(evt.clientY - rect.top)
-            })
-        }
-    }, 30)
-
-    useEffect(() => {
-        const isInit = async () => {
-            setCanvasInitialized(await Project.instance().attachCanvas(id, logger))
-        }
-        isInit()
-    }, [id])
-
-    return <canvas id={id} ref={canvasRef} onMouseMove={onHandleMousePos} style={{
-        width: props.width,
-        height: props.height
-    }}/>
-
-    
-}
-
-const useViewportPanelControls = () => {
-    const setProjectStatus = useSetRecoilState(projectStatus)
-
-    const onHandlePlayPause = () => {
-        setProjectStatus(old => {
-            if (old.running)
-                return {
-                    ...old, 
-                    running: false,
-                    prevDuration: old.runDuration
-                }
-            else 
-                return {
-                    ...old,
-                    running: true,
-                    lastStartTime: performance.now(),
-                }
-        })
-    }
-
-    const onHandleStop = () => {
-        setProjectStatus(old => { 
-            return {
-            ...old,
-            running: false,
-            frameNum: 0,
-            runDuration: 0,
-            prevDuration: 0,
-        }})
-    }
-
-    return [onHandlePlayPause, onHandleStop]
 }
 
 export default ViewportPanel

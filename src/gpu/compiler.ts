@@ -21,7 +21,7 @@ class _Compiler {
       this.compileWGSL = (device: GPUDevice, src: string, logger: Logger): GPUShaderModule | null => {
         let module = compile_wgsl(src)
         if (module) {
-          logger.debug('NAGA-COMPILER -- IR', get_ir())
+          //logger.debug('NAGA-COMPILER -- IR', get_ir())
           return device.createShaderModule({
             code: module
           })
@@ -36,7 +36,7 @@ class _Compiler {
       this.compileGLSL = (device: GPUDevice, src: string, stage: ShaderStage, logger: Logger): GPUShaderModule | null => {
         let module = compile_glsl(src, stage as string)
         if (module) {
-          logger.debug('NAGA-COMPILER -- IR', get_ir())
+          //logger.debug('NAGA-COMPILER -- IR', get_ir())
           return device.createShaderModule({
             code: module
           })
