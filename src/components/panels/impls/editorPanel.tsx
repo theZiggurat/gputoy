@@ -32,6 +32,7 @@ import * as types from '../../../gpu/types'
 const hightlightWithLineNumbers = (input, language) =>
   highlight(input, language)
     .split("\n")
+    .map((line: string, i: number) => i==3 ? `<span class="editorLineNumberTest">${line}</span>`: line)
     .map((line: string, i: number) => `<span class='editorLineNumber'>${i + 1}</span>${line}`)
     .join("\n");
 

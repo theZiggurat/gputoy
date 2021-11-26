@@ -87,18 +87,16 @@ export class Project {
   }
 
   compileShaders = (logger: Logger): boolean => {
-    let src = this.shaders.find(f => f.isRender)
-    if (src === undefined) {
+    let srcFile = this.shaders.find(f => f.isRender)
+    if (srcFile === undefined) {
       logger.err('Project', 'Cannot compile. No \'render\' shader in files!')
       return false
     }
-    let shader = this.included.getShaderDecl()
+    let decls = this.included.getShaderDecl()
       .concat(staticdecl.vertex)
       .concat(this.params.getShaderDecl())
-      .concat(src!.file)
 
-      //console.log(shader)
-    let module = Compiler.compileWGSL!(GPU.device, shader, logger)
+    let module = Compiler.compileWGSL!(GPU.device, srcFile, decls, logger)
     if (!module)
       return false
     this.shaderModule = module
