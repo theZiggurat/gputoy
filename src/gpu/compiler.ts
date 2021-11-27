@@ -1,3 +1,4 @@
+import { SetterOrUpdater } from 'recoil'
 import init, {
   compile_glsl, 
   compile_wgsl, 
@@ -6,26 +7,34 @@ import init, {
   get_errors
 } from '../../naga-compiler/pkg/naga_compiler'
 import { Logger } from '../recoil/console'
+import { FileErrors } from '../recoil/project'
 import { CodeFile } from './types'
 
 type ShaderStage = 'vertex' | 'fragment' | 'compute'
 
-class _Compiler {
+class Compiler {
 
-  
+  static _instance: Compiler
+
+  static instance = (): Compiler => {
+    if (Compiler._instance === undefined) 
+      Compiler._instance = new Compiler()
+    return Compiler._instance
+  }
 
   private ready: boolean = false
 
-  compileWGSL?: (device: GPUDevice, src: CodeFile, decls: string, logger: Logger) => GPUShaderModule | null
+  compileWGSL?: (device: GPUDevice, src: CodeFile, decls: string, logger: Logger, setFileErrors: SetterOrUpdater<FileErrors>) => GPUShaderModule | null
   compileGLSL?: (device: GPUDevice, src: string, stage: ShaderStage, logger: Logger) => GPUShaderModule | null
 
   constructor() {
     init().then(() => {
-      this.compileWGSL = (device: GPUDevice, src: CodeFile, decls: string, logger: Logger): GPUShaderModule | null => {
+      this.compileWGSL = (device: GPUDevice, src: CodeFile, decls: string, logger: Logger, setFileErrors: SetterOrUpdater<FileErrors>): GPUShaderModule | null => {
+        setFileErrors({})
         let fullsrc = decls.concat(src.file)
         let module = compile_wgsl(fullsrc)
         if (module) {
-          logger.trace('NAGA COMPILER', `${src.filename}.${src.lang} compiled successfully`)
+          //logger.trace('NAGA COMPILER', `${src.filename}.${src.lang} compiled successfully`)
           return device.createShaderModule({
             code: module
           })
@@ -39,6 +48,11 @@ class _Compiler {
             err = err.replace(/(?<=wgsl:)\d*(?=:\d*)/g, newNumStr)
             err = err.replace(/\d+(?= │|│)/g, newNumStr + " ".repeat(spacesToAdd))
             logger.err('NAGA COMPILER', err)
+            setFileErrors(old => {
+              let n = {...old}
+              n[src.filename] = Number(newNumStr)
+              return n
+            })
           });
           return null
         }
@@ -63,7 +77,10 @@ class _Compiler {
     })
   }
   isReady = (): boolean => this.ready
+  
+  collectErrors = () => {
+
+  }
 }
 
-const Compiler = new _Compiler()
 export default Compiler

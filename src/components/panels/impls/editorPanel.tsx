@@ -25,14 +25,14 @@ import { FaRegTrashAlt} from 'react-icons/fa'
 import { MdAdd, MdClose, MdCode, MdSettings } from 'react-icons/md'
 import useInstance, { EditorInstanceState } from '../../../recoil/instance'
 import { RowButton } from '../../reusable/rowButton';
-import { codeFiles } from '../../../recoil/project';
-import { useRecoilState } from 'recoil';
+import { codeFiles, fileErrors } from '../../../recoil/project';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import * as types from '../../../gpu/types'
 
-const hightlightWithLineNumbers = (input, language) =>
+const hightlightWithLineNumbers = (input, language, filename, fileErrors) =>
   highlight(input, language)
     .split("\n")
-    .map((line: string, i: number) => i==3 ? `<span class="editorLineNumberTest">${line}</span>`: line)
+    .map((line: string, i: number) => i==fileErrors[filename]-1 ? `<span class="editorLineNumberTest">${line}</span>`: line)
     .map((line: string, i: number) => `<span class='editorLineNumber'>${i + 1}</span>${line}`)
     .join("\n");
 
@@ -48,6 +48,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
     const [ instanceState, setInstanceState ] = useInstance<EditorInstanceState>(props)
     const { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName } = useEditorPanel()
+    const fileErrorValue = useRecoilValue(fileErrors)
  
     const [workspace, setWorkspace] = React.useState<number[]>([])
 
@@ -85,7 +86,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                         textareaId="codeArea"
                         value={currentFile.file}
                         onValueChange={code => onEditCode(instanceState.currentFileIndex, code)}
-                        highlight={code => hightlightWithLineNumbers(code, languages.rust)}
+                        highlight={code => hightlightWithLineNumbers(code, languages.rust, currentFile.filename, fileErrorValue)}
                         padding={20}
                         style={{
                             fontFamily: '"Fira code", "Fira Mono", monospace',
@@ -96,7 +97,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                 </Box>
             </PanelContent>
             <PanelBar preventScroll={isFileDrawerOpen}>
-                <PanelBarMiddle zIndex="20">
+                <PanelBarMiddle zIndex="3">
                     <IconButton
                         aria-label="Browse files"
                         title="Browse files"

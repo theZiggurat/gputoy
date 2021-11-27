@@ -5,6 +5,8 @@ import * as types from './types'
 import GPU from './gpu'
 import Params from './params'
 import staticdecl from './staticdecl'
+import { SetterOrUpdater } from 'recoil'
+import { FileErrors } from '../recoil/project'
 
 export class Project {
 
@@ -31,6 +33,10 @@ export class Project {
   // needs update
   shaderDirty = true
 
+  constructor() {
+    Compiler.instance()
+  }
+
   // attaches canvas to current GPU device if there is one
   // if there is no device, it will try to init
   // if browser is incompatable, it will return
@@ -39,7 +45,7 @@ export class Project {
   }
 
   // starts project
-  prepareRun = (state: types.ProjectStatus, logger: Logger): boolean => {
+  prepareRun = (state: types.ProjectStatus, logger: Logger, setFileErrors: SetterOrUpdater<FileErrors>): boolean => {
     if(!GPU.isInitialized()){
       logger.err('Project', 'GPU not initialized. Cancelling run')
       return false
@@ -49,11 +55,11 @@ export class Project {
     if (state.frameNum == 0 || this.shaderDirty) {
       logger.trace('Project', 'Preparing run')
       if (this.shaderDirty) {
-        if (!Compiler.isReady()) {
+        if (!Compiler.instance().isReady()) {
           logger.err('Compiler', 'Compiler module not ready')
           return false
         }
-        if (!this.compileShaders(logger)) {
+        if (!this.compileShaders(logger, setFileErrors)) {
           //logger.err('Project', 'Shader compilation failed')
           return false
         }
@@ -79,6 +85,7 @@ export class Project {
   updateParams = (paramDesc: types.ParamDesc[], logger: Logger) => {
     if(GPU.isInitialized()) 
       this.shaderDirty = this.params.set(paramDesc, GPU.device) || this.shaderDirty
+    console.log(this.shaderDirty)
   }
 
   updateShaders = (files: types.CodeFile[], logger: Logger) => {
@@ -86,7 +93,7 @@ export class Project {
     this.shaderDirty = true
   }
 
-  compileShaders = (logger: Logger): boolean => {
+  compileShaders = (logger: Logger, setFileErrors: SetterOrUpdater<FileErrors>): boolean => {
     let srcFile = this.shaders.find(f => f.isRender)
     if (srcFile === undefined) {
       logger.err('Project', 'Cannot compile. No \'render\' shader in files!')
@@ -96,7 +103,7 @@ export class Project {
       .concat(staticdecl.vertex)
       .concat(this.params.getShaderDecl())
 
-    let module = Compiler.compileWGSL!(GPU.device, srcFile, decls, logger)
+    let module = Compiler.instance().compileWGSL!(GPU.device, srcFile, decls, logger, setFileErrors)
     if (!module)
       return false
     this.shaderModule = module

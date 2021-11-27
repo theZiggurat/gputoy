@@ -1,5 +1,5 @@
 import  { atom, atomFamily, selector, useRecoilState, useSetRecoilState } from 'recoil'
-import localStorageEffect from './effects'
+import localStorageEffect, { consoleLogEffect } from './effects'
 import * as types from '../gpu/types'
 
 // @ts-ignore
@@ -84,12 +84,13 @@ export const codeFiles = atom<types.CodeFile[]>({
   ]
 })
 
-type FileErrors = {
+export type FileErrors = {
   [key: string]: number
 }
 export const fileErrors = atom<FileErrors>({
   key: 'fileErrors',
-  default: {}
+  default: {},
+  effects_UNSTABLE: [consoleLogEffect('fileErrors')]
 })
 
 export const mousePos = atom<types.MousePos>({

@@ -35,6 +35,5 @@ yarn-error.log*
 
 # rust build files
 /naga-compiler/target
-/naga-compiler/pkg
 
 /.vscode/

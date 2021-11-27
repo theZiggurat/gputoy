@@ -1,12 +1,12 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import { useLogger } from '../recoil/console'
 
 import GPU from '../gpu/gpu'
 import useGPUError from '../gpu/error'
 
 import { Project } from '../gpu/project'
-import { canvasInitialized, codeFiles, defaultParams, params, projectControl, projectStatus, useProjectControls } from '../recoil/project'
+import { canvasInitialized, codeFiles, defaultParams, fileErrors, params, projectControl, projectStatus, useProjectControls } from '../recoil/project'
 import { includes, throttle } from 'lodash'
 
 
@@ -16,6 +16,7 @@ const ProjectManager = () => {
   const projectStatusState= useRecoilValue(projectStatus)
   const projectControlStatus = useRecoilValue(projectControl)
   const isCanvasInitialized = useRecoilValue(canvasInitialized)
+  const setFileError = useSetRecoilState(fileErrors)
   const { play, pause, stop, step } = useProjectControls()
 
   const defaultParamState = useRecoilValue(defaultParams)
@@ -45,10 +46,13 @@ const ProjectManager = () => {
     if (projectControlStatus == 'play') {
       play()
       isRunning.current = true
-      if (Project.instance().prepareRun(projectStatusState, logger)) 
+      if (Project.instance().prepareRun(projectStatusState, logger, setFileError)) 
         window.requestAnimationFrame(renderStep)
-      else 
+      else {
+
         stop()
+      }
+        
       return () => cancelAnimationFrame(intervalHandle.current)
     } 
     if (projectControlStatus == 'pause') {
