@@ -1,0 +1,12 @@
+{
+  "name": "naga-compiler",
+  "version": "0.1.0",
+  "files": [
+    "naga_compiler_bg.wasm",
+    "naga_compiler.js",
+    "naga_compiler.d.ts"
+  ],
+  "module": "naga_compiler.js",
+  "types": "naga_compiler.d.ts",
+  "sideEffects": false
+}

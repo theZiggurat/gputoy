@@ -5,7 +5,7 @@ import init, {
   get_module_info,
   get_ir,
   get_errors
-} from '../../naga-compiler/pkg/naga_compiler'
+} from '../../pkg/naga_compiler'
 import { Logger } from '../recoil/console'
 import { FileErrors } from '../recoil/project'
 import { CodeFile } from './types'
