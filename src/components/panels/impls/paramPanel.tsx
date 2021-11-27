@@ -25,9 +25,8 @@ import {
 
 import {FaMinus, FaSearch} from 'react-icons/fa'
 import { HexColorPicker } from "react-colorful";
-import {ParamType, ParamDesc, encode, decode} from '../../../gpu/params'
+import { encode, decode} from '../../../gpu/params'
 import { Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel'
-import WorkingProject from '../../../gpu/project'
 import { CloseIcon } from '@chakra-ui/icons'
 import { MdAdd, MdSettings } from 'react-icons/md'
 import { useDebounce } from '../../../utils/lodashHooks'
@@ -36,6 +35,8 @@ import useInstance, { ParamInstanceState } from '../../../recoil/instance';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { layoutState } from '../../../recoil/atoms';
 import { params } from '../../../recoil/project';
+import * as types from '../../../gpu/types'
+import { debounce } from 'lodash';
 
 const gridSpacing = [12, 8, 12, 2]
 const totalGridSpace = 35
@@ -43,10 +44,10 @@ const totalGridSpace = 35
 interface ParamRowProps {
     idx: number
     paramName?: string
-    paramType: ParamType
+    paramType: types.ParamType
     param: string
     onParamNameChange: (idx: number, name: string) => void
-    onParamTypeChange: (idx: number, type: ParamType) => void
+    onParamTypeChange: (idx: number, type: types.ParamType) => void
     onParamChange: (param: string) => void
     onParamDelete: (idx: number) => void
     isInvalid: boolean
@@ -56,11 +57,12 @@ const ParamRow = (props: ParamRowProps) => {
 
     let paramInput = null;
 
+    const onHandleColorChange = debounce(props.onParamChange, 25, {leading: true, trailing: false})
+
     if (props.paramType === 'color') {
         paramInput = 
         <Popover 
-            computePositionOnMount 
-            placement='auto'
+            
         >
             <PopoverTrigger>
                 <Button 
@@ -79,11 +81,11 @@ const ParamRow = (props: ParamRowProps) => {
                 <PopoverContent size='fit-content' bg='transparent' border='none'>
                     <PopoverArrow/>
                     {/* <PopoverCloseButton /> */}
-                    <PopoverBody m={0} p={0}>
+                    <PopoverBody m={0} p={0} zIndex={4}>
                             <HexColorPicker 
                                 style={{margin:0}} 
                                 color={props.param as string} 
-                                onChange={props.onParamChange}
+                                onChange={onHandleColorChange}
                             />
                     </PopoverBody>
                 </PopoverContent>
@@ -195,7 +197,7 @@ const ParamPanel = (props: ParamPanelProps) => {
                     borderColor="whiteAlpha.100" 
                     pr={5}
                     pt={1}
-                    zIndex={20}
+                    zIndex={3}
                 >
                     <GridItem colSpan={1}/>
                     <GridItem colSpan={gridSpacing[0]} pl={3}  fontSize="smaller" backgroundColor="gray.800">

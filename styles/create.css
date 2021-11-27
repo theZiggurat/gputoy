@@ -76,6 +76,11 @@
   padding-left: 10px;
 }
 
+.editor .editorLineNumberTest {
+  background-color: rgba(255, 0, 0, 0.192);
+  position: absolute;
+}
+
 /* .tabLight {
 
 } */
