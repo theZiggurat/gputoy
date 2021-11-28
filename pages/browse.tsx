@@ -2,7 +2,7 @@ import React from 'react'
 import { chakra, Text } from '@chakra-ui/react'
 import Scaffold from '../src/components/scaffold'
 
-const Create = () => {
+const Browse = () => {
     return (
         <Scaffold>
             <chakra.div height="100%" flexDirection="column" alignItems="center" textAlign="center" display="flex" justifyContent="center">
@@ -12,7 +12,7 @@ const Create = () => {
     )
 }
 
-export default Create;
+export default Browse;
 
 
 
