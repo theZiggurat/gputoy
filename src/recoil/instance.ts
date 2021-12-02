@@ -1,5 +1,12 @@
-import { memoize } from "lodash"
-import { atom, atomFamily, DefaultValue, Resetter, selector, selectorFamily, SetterOrUpdater, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil"
+import { 
+  atom, 
+  atomFamily, 
+  selector, 
+  SetterOrUpdater, 
+  useRecoilState,
+  useRecoilValue, 
+  useSetRecoilState 
+} from "recoil"
 import localStorageEffect from "./effects"
 
 export interface ConsoleInstanceState {
@@ -58,6 +65,8 @@ const panelInstances = atom<InstanceSelector[]>({
   default: []
 })
 
+
+
 const panelInstanceCleaner = selector<InstanceSelector[]>({
   key: 'instanceStateCleaner',
   get: ({get}) => get(panelInstances),
@@ -72,14 +81,30 @@ const panelInstanceCleaner = selector<InstanceSelector[]>({
   }
 })
 
+/**
+ * Setter for current panel instances
+ * Used by panels component to garbage collect removed instances from local storage
+ * @returns a setter 
+ */
+ export const useInstanceCleaner = () => {
+  return useSetRecoilState(panelInstanceCleaner)
+}
+
+/**
+ * Gives data about current panel instances
+ * Used by panel bar so singleton panels cannot be chosen twice
+ * @returns list of current panel instances
+ */
 export const useInstances = () => {
   return useRecoilValue(panelInstances)
 }
 
-export const useInstanceCleaner = () => {
-  return useSetRecoilState(panelInstanceCleaner)
-}
-
+/**
+ * Returns panel instance state
+ * to be used in panel implementations
+ * @param props panelProps which includes {instanceID, index}
+ * @returns instance state for panel
+ */
 const useInstance = <T>(props: any): [T, SetterOrUpdater<T>] => {
   return useRecoilState<T>(panelInstance({id: props.instanceID, index: props.panelIndex}))
 }

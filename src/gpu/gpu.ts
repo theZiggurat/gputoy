@@ -2,21 +2,33 @@ import { Logger } from "../recoil/console"
 
 export type GPUInitResult = 'ok' | 'error' | 'incompatible'
 
+export type AttachResult = {
+    canvas: HTMLCanvasElement,
+    canvasContext: GPUCanvasContext,
+    targetTexture: GPUTexture,
+    presentationSize: number[],
+    preferredFormat: GPUTextureFormat,
+}
+
 class _GPU {
 
-    canvas!: HTMLCanvasElement
+    //canvas!: HTMLCanvasElement
     adapter!: GPUAdapter
     device!: GPUDevice
 
-    canvasContext!: GPUCanvasContext
-    targetTexture!: GPUTexture
-    presentationSize: number[] = [0, 0]
+    initCalled: boolean = false
 
-    preferredFormat!: GPUTextureFormat
+    // canvasContext!: GPUCanvasContext
+    // targetTexture!: GPUTexture
+    // presentationSize: number[] = [0, 0]
+
+    // preferredFormat!: GPUTextureFormat
 
     constuctor() {}
 
     async init(logger?: Logger): Promise<GPUInitResult> {
+
+        console.log('device init')
 
         if (!navigator.gpu)
             return 'incompatible'
@@ -59,105 +71,76 @@ class _GPU {
         return !(this.adapter == null || this.device == null)
     }
 
-    attachCanvas = async (canvasID : string, logger?: Logger): Promise<boolean> => {
+    attachCanvas = async (canvasID : string, logger?: Logger): Promise<AttachResult | null> => {
 
+
+        //console.log('attaching', canvasID)
         if (!GPU.isInitialized()) 
             logger?.debug('GPU', 'Trying to attach canvas without GPU initialized. Initializing now')  
 
         // if gpu is not initialized
         // keep trying unless browser is incompatible
+        // but don't race with other calls to attachCanvas
         while (!GPU.isInitialized()) {
-            let status = await GPU.init(logger)
-            if (status === 'incompatible') {
-                logger?.debug('GPU', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
-                return false
-            }
-            if (status === 'error') {
-                logger?.debug('GPU', 'Failed to initialize, retrying...')
+            if (!this.initCalled) {
+                this.initCalled = true
+                let status = await GPU.init(logger)
+                if (status === 'incompatible') {
+                    logger?.debug('GPU', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
+                    return null
+                }
+                if (status === 'error') {
+                    logger?.debug('GPU', 'Failed to initialize, retrying...')
+                    this.initCalled = false
+                }
+            } else {
+                await sleep(50)
             }
         }
 
-        this.canvas = document.getElementById(canvasID) as HTMLCanvasElement
-        if (!this.canvas) {
+        const canvas = document.getElementById(canvasID) as HTMLCanvasElement
+        if (!canvas) {
             //logger.err('GPU', "Cannot attach canvas: Canvas doesn't exist")
-            return false
+            return null
         }
             
-        this.canvasContext = this.canvas.getContext('webgpu')!
-        if (!this.canvasContext) {
+        const canvasContext = canvas.getContext('webgpu')!
+        if (!canvasContext) {
             logger?.fatal('GPU', 'Cannot attach canvas: Failed to create WEBGPU context')
-            return false
+            return null
         }
 
-        // const rect = this.canvas.parentElement!.getBoundingClientRect()
-        // this.canvas.width = rect.width
-        // this.canvas.height = rect.height
-
         const devicePixelRatio = window.devicePixelRatio || 1
-        this.presentationSize = [
-            this.canvas.clientHeight * devicePixelRatio,
-            this.canvas.clientWidth * devicePixelRatio
+        const presentationSize = [
+            canvas.clientHeight * devicePixelRatio,
+            canvas.clientWidth * devicePixelRatio
         ]
 
-        this.preferredFormat = this.canvasContext.getPreferredFormat(this.adapter)
+        const preferredFormat = canvasContext.getPreferredFormat(this.adapter)
 
-        this.canvasContext.configure({
+        canvasContext.configure({
             device: this.device,
-            format: this.preferredFormat,
-            size: this.presentationSize
+            format: preferredFormat,
+            size: presentationSize
         })
 
-        this.targetTexture = this.canvasContext.getCurrentTexture()
+        const targetTexture = canvasContext.getCurrentTexture()
 
         logger?.debug('GPU', `Attached canvas id=${canvasID}`)
-        return true
-    }
-
-    attachOffscreen = async (canvas: HTMLCanvasElement): Promise<boolean> => {
-
-        // if gpu is not initialized
-        // keep trying unless browser is incompatible
-        while (!GPU.isInitialized()) {
-            let status = await GPU.init()
-            if (status === 'incompatible') {
-                return false
-            }
+        
+        return {
+            canvas,
+            canvasContext,
+            targetTexture,
+            presentationSize,
+            preferredFormat
         }
-
-        console.log(canvas)
-        this.canvas = canvas
-            
-        this.canvasContext = this.canvas.getContext('webgpu')!
-        if (!this.canvasContext) {
-            console.error('GPU-offscreen', 'Cannot attach canvas: Failed to create WEBGPU context')
-            return false
-        }
-
-        const rect = this.canvas.getClientRects()
-        this.canvas.width = rect.width
-        this.canvas.height = rect.height
-
-        const devicePixelRatio = window.devicePixelRatio || 1
-        this.presentationSize = [
-            this.canvas.clientHeight * devicePixelRatio,
-            this.canvas.clientWidth * devicePixelRatio
-        ]
-
-        this.preferredFormat = this.canvasContext.getPreferredFormat(this.adapter)
-
-        this.canvasContext.configure({
-            device: this.device,
-            format: this.preferredFormat,
-            size: this.presentationSize
-        })
-
-        this.targetTexture = this.canvasContext.getCurrentTexture()
-
-        console.log('GPU-offscreen', `Attached offscreen canvas`)
-        return true
     }
-
 }
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
 const GPU = new _GPU;
 export default GPU;

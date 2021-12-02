@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import type { AppProps } from 'next/app'
 import { ChakraProvider, extendTheme } from '@chakra-ui/react'
 
@@ -9,9 +9,9 @@ import '../styles/create.css'
 import '../styles/prism-custom.css'
 import '../styles/index.css'
 import 'react-tabs/style/react-tabs.css';
-import ProjectManager from '../src/components/projectManager'
 
 import "@fontsource/jetbrains-mono"
+import Compiler from '../src/gpu/compiler'
 
 
 const theme = extendTheme({
@@ -33,9 +33,13 @@ const theme = extendTheme({
 
 function MyApp({ Component, pageProps }: AppProps) {
 
+  useEffect(() => {
+    Compiler.instance()
+  }, [])
+
   return (
     <RecoilRoot>
-      <ProjectManager/>
+      {/* <ProjectManager/> */}
       <ChakraProvider theme={theme}>
         <Component {...pageProps}/>
       </ChakraProvider>

@@ -1,13 +1,14 @@
-import  { atom, atomFamily, selector, useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
-import localStorageEffect, { consoleLogEffect, setSkipStorage } from './effects'
+import  { atom, atomFamily, selector, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
+import localStorageEffect, { consoleLogEffect } from './effects'
 import * as types from '../gpu/types'
 
 // @ts-ignore
 import defaultShader from '../../shaders/basicShader.wgsl'
 
-import { Project as DBProject } from '.prisma/client'
 import { layoutState } from './atoms'
 import { useConsole, _console } from './console'
+import { useEffect } from 'react'
+import { Project } from '../gpu/project'
 
 
 export const projectStatus = atom<types.ProjectStatus>({
@@ -31,6 +32,11 @@ export const projectControl = atom<ProjectControl>({
 
 export const useProjectControls = () => {
   const setProjectStatus = useSetRecoilState(projectStatus)
+  const defaultParamState = useRecoilValue(defaultParams)
+
+  useEffect(() => {
+    Project.instance().updateDefaultParams(defaultParamState)
+  }, [defaultParamState])
 
   const pause = () => {
     setProjectStatus(old => { 
@@ -84,8 +90,7 @@ export const codeFiles = atom<types.CodeFile[]>({
   key: 'codefiles',
   default: [{file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true}],
   effects_UNSTABLE: [
-    localStorageEffect('files'),
-    consoleLogEffect('files')
+    localStorageEffect('files')
   ]
 })
 
@@ -95,7 +100,6 @@ export type FileErrors = {
 export const fileErrors = atom<FileErrors>({
   key: 'fileErrors',
   default: {},
-  effects_UNSTABLE: [consoleLogEffect('fileErrors')]
 })
 
 export const mousePos = atom<types.MousePos>({
@@ -146,48 +150,6 @@ export const canvasInitialized = atom<boolean>({
   key: 'canvasInitialized',
   default: false
 })
-
-export const setProjectStateFromDBValue = (): (project: DBProject) => void => {
-
-  setSkipStorage(true)
-
-  useResetRecoilState(_console)()
-  useResetRecoilState(resolution)()
-  useResetRecoilState(mousePos)()
-  useResetRecoilState(projectStatus)()
-
-  const setShaders = useSetRecoilState(codeFiles)
-  const setParams = useSetRecoilState(params)
-  const setLayout = useSetRecoilState(layoutState)
-  const resetLayout = useResetRecoilState(layoutState)
-
-  const setTo = (project: DBProject) => {
-    if (!project)
-      return
-
-    setShaders(project.shaders.map(s => {
-      return {
-        filename: s.name,
-        file: s.source,
-        lang: s.lang,
-        isRender: s.isRender,
-      }
-    }))
-
-    if (project.params)
-      setParams(JSON.parse(project.params))
-    else
-      setParams([])
-
-    if(project.layout)
-      setLayout(project.layout)
-    else
-      resetLayout()
-  }
-  
-  return setTo
-
-}
 
 export const setProjectStateFromLocalStorage = () => {
 

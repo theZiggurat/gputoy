@@ -37,7 +37,6 @@ import { layoutState } from '../../../recoil/atoms';
 import { params } from '../../../recoil/project';
 import * as types from '../../../gpu/types'
 import { debounce } from 'lodash';
-import { setSkipStorage} from '../../../recoil/effects';
 
 const gridSpacing = [12, 8, 12, 2]
 const totalGridSpace = 35
@@ -262,7 +261,6 @@ const ParamPanel = (props: ParamPanelProps) => {
                     purpose="Options"
                     icon={<MdSettings size={17}/>}
                     last
-                    onClick={() => setSkipStorage(true)}
                 />
             </PanelBarEnd>
         </PanelBar>

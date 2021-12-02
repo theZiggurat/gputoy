@@ -1,18 +1,11 @@
 import type { NextPage } from 'next'
 import { ReactNode, useEffect, useState } from 'react'
 import { 
-  chakra, 
   Box, 
   useColorModeValue,
   Heading,
   Flex,
-  FlexProps,
-  HStack,
-  StackDivider,
   Text,
-  Fade,
-  Grid,
-  GridItem
 } from '@chakra-ui/react'
 import Head from 'next/head'
 import {BiBrain, BiGitRepoForked} from 'react-icons/bi'
@@ -97,7 +90,7 @@ const Home: NextPage = () => {
             Share your creations. Browse for inspiration. Fork to learn about others creations.
           </Card>
           <Card head="Extendable" icon={<MdCable size='4rem'/>}>
-            Use the content broser (WIP) to utilize sub-shaders and shader functions in your project.
+            Use the content browser (WIP) to utilize sub-shaders and shader functions in your project.
           </Card>
           <Card head="Elegant" icon={<BiBrain size='4rem'/>}>
             A shader prototyping tool for the future. GPUToy's interface takes inspiration from Blender.

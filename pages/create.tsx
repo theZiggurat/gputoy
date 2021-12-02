@@ -1,18 +1,14 @@
-import React, { useEffect, useLayoutEffect } from 'react'
+import React from 'react'
 import { Panels, usePanels } from '../src/components/panels/panel'
 import Scaffold from '../src/components/scaffold'
 
 import descriptors from '../src/components/panels/descriptors'
-import { setSkipStorage } from '../src/recoil/effects'
-import { codeFiles, mousePos, params, projectControl, projectStatus, resolution, setProjectStateFromLocalStorage } from '../src/recoil/project'
-import { useResetRecoilState, useSetRecoilState } from 'recoil'
-import { layoutState } from '../src/recoil/atoms'
 import { _console } from '../src/recoil/console'
 import { Flex, Text, Divider } from '@chakra-ui/react'
 import { RiArrowDropDownLine } from 'react-icons/ri'
-import { AiOutlineCloudServer } from 'react-icons/ai'
 import {FiHardDrive } from 'react-icons/fi'
 import Head from 'next/head'
+import ProjectManager from '../src/components/projectManager'
 
 type ProjectHeaderProps = {
     title?: string,
@@ -30,45 +26,7 @@ const ProjectHeader = (props: ProjectHeaderProps) => {
 
 const Create = () => {
 
-    setSkipStorage(false)
-
     const props = usePanels()
-
-    const resetConsole = useResetRecoilState(_console)
-    const resetStatus = useResetRecoilState(projectStatus)
-    const resetControl = useResetRecoilState(projectControl)
-    const resetShaders = useResetRecoilState(codeFiles)
-    const resetParams = useResetRecoilState(params)
-    const resetLayout = useResetRecoilState(layoutState)
-
-    const setShaders = useSetRecoilState(codeFiles)
-    const setParams = useSetRecoilState(params)
-    const setLayout = useSetRecoilState(layoutState)
-
-    useEffect(() => {
-
-        resetStatus()
-        resetConsole()
-        resetControl()
-
-        let shaders = window.localStorage.getItem('files')
-        if (shaders)
-            setShaders(JSON.parse(shaders))
-        else
-            resetShaders()
-    
-        let parameters = window.localStorage.getItem('params')
-        if (parameters)
-            setParams(JSON.parse(parameters))
-        else
-            resetParams()
-    
-        let layout = window.localStorage.getItem('layout')
-        if (layout)
-            setLayout(JSON.parse(layout))
-        else
-            resetLayout()
-    }, [])
     
     return (
         <Scaffold navChildren={
@@ -77,6 +35,7 @@ const Create = () => {
             <Head>
                 <title>{`GPUToy :: Unnamed Project`}</title>
             </Head>
+            <ProjectManager/>
             <Panels {...props} descriptors={descriptors}/>
         </Scaffold>
     )

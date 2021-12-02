@@ -1,8 +1,5 @@
 import { DefaultValue } from 'recoil';
 
-export var SKIP_STORAGE = false
-export const setSkipStorage = (skip: boolean) => SKIP_STORAGE = skip
-
 const localStorageEffect = (key: string) => ({setSelf, onSet}) => {
   setSelf(() => {
     if (typeof window === 'undefined')
