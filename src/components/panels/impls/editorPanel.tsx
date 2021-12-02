@@ -28,7 +28,6 @@ import { RowButton } from '../../reusable/rowButton';
 import { codeFiles, fileErrors } from '../../../recoil/project';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import * as types from '../../../gpu/types'
-import { SKIP_STORAGE } from '../../../recoil/effects';
 
 const hightlightWithLineNumbers = (input, language, filename, fileErrors) =>
   highlight(input, language)
