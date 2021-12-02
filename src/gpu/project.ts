@@ -50,30 +50,29 @@ export class Project {
   }
 
   // starts project
-  prepareRun = (state: types.ProjectStatus, logger: Logger, setFileErrors: SetterOrUpdater<FileErrors>): boolean => {
+  prepareRun = (state: types.ProjectStatus, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): boolean => {
     if(!GPU.isInitialized()){
-      logger.err('Project', 'GPU not initialized. Cancelling run')
+      logger?.err('Project', 'GPU not initialized. Cancelling run')
       return false
     }
 
     // project is starting or restarted
     if (state.frameNum == 0 || this.shaderDirty) {
-      logger.trace('Project', 'Preparing run')
+      logger?.trace('Project', 'Preparing run')
       if (this.shaderDirty) {
         if (!Compiler.instance().isReady()) {
-          logger.err('Compiler', 'Compiler module not ready')
+          logger?.err('Compiler', 'Compiler module not ready')
           return false
         }
         if (!this.compileShaders(logger, setFileErrors)) {
-          //logger.err('Project', 'Shader compilation failed')
           return false
         }
         this.shaderDirty = false
       }
-      logger.trace('Project', 'Creating Pipeline..')
+      logger?.trace('Project', 'Creating Pipeline..')
       this.mapBuffers()
       this.createPipeline()
-      logger.trace('Project', 'Ready')
+      logger?.trace('Project', 'Ready')
     }
     return true
   }
@@ -124,7 +123,23 @@ export class Project {
     return GPU.canvas.toDataURL('image/png')
   }
 
-  updateDefaultParams = (paramDesc: types.ParamDesc[], logger: Logger) => {
+  setFromDbDirect = (project: DBProject) => {
+    if (project.params)
+      this.updateParams(JSON.parse(project.params))
+    else
+      this.updateParams([])
+
+    this.updateShaders(project.shaders.map(s => {
+      return {
+        filename: s.name,
+        file: s.source,
+        lang: s.lang,
+        isRender: s.isRender,
+      }
+    }))
+  }
+
+  updateDefaultParams = (paramDesc: types.ParamDesc[], logger?: Logger) => {
     if(GPU.isInitialized()) 
       this.shaderDirty = this.included.set(paramDesc, GPU.device) || this.shaderDirty
   }
@@ -135,7 +150,7 @@ export class Project {
     //console.log(this.shaderDirty)
   }
 
-  updateShaders = (files: types.CodeFile[], logger: Logger) => {
+  updateShaders = (files: types.CodeFile[], logger?: Logger) => {
     this.shaders = files
     this.shaderDirty = true
   }

@@ -6,12 +6,12 @@ import {
 import Head from 'next/head'
 import Nav from "./navbar";
 
-const Scaffold = ({children}: {children: ReactNode}) => {
+const Scaffold = (props: {children: ReactNode, navChildren?: ReactNode}) => {
   
     return (
         <Flex flexFlow="column" width="100%" height="100%" maxHeight="100%" overflow="hidden">
-            <Nav/>
-            { children }
+            <Nav children={props.navChildren}/>
+            { props.children }
         </Flex>
     )
 }

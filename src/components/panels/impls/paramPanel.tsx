@@ -37,6 +37,7 @@ import { layoutState } from '../../../recoil/atoms';
 import { params } from '../../../recoil/project';
 import * as types from '../../../gpu/types'
 import { debounce } from 'lodash';
+import { setSkipStorage} from '../../../recoil/effects';
 
 const gridSpacing = [12, 8, 12, 2]
 const totalGridSpace = 35
@@ -157,15 +158,13 @@ const ParamRow = (props: ParamRowProps) => {
 }
 
 interface ParamPanelProps {
-    params: ParamDesc[],
+    params: types.ParamDesc[],
     addParam: () => void,
     deleteParam: (idx: number) => void,
-    setParamAtIndex: (p: ParamDesc, idx: number, changedType: boolean) => void,
+    setParamAtIndex: (p: types.ParamDesc, idx: number, changedType: boolean) => void,
 }
 
 const ParamPanel = (props: ParamPanelProps) => {
-    
-    const setf = useSetRecoilState(layoutState)
 
     const { params, addParam, deleteParam, setParamAtIndex } = useParamsPanel()
 
@@ -179,7 +178,7 @@ const ParamPanel = (props: ParamPanelProps) => {
     const onHandleParamNameChange = (idx: number, paramName: string) => 
         setParamAtIndex({...params[idx], paramName}, idx, false)
 
-    const onHandleParamTypeChange = (idx: number, paramType: ParamType) => 
+    const onHandleParamTypeChange = (idx: number, paramType: types.ParamType) => 
         setParamAtIndex({...params[idx], paramType}, idx, true)
 
     useDebounce(() => setNameErrors(params.map(p => !(/^[a-z0-9]+$/i.test(p.paramName)))), 500, [params])
@@ -263,7 +262,7 @@ const ParamPanel = (props: ParamPanelProps) => {
                     purpose="Options"
                     icon={<MdSettings size={17}/>}
                     last
-                    onClick={() => setf({})}
+                    onClick={() => setSkipStorage(true)}
                 />
             </PanelBarEnd>
         </PanelBar>
@@ -274,17 +273,8 @@ export default ParamPanel
 
 export const useParamsPanel = (): ParamPanelProps => {
     
-    const [paramsState, setParams] = useRecoilState<ParamDesc[]>(params)
+    const [paramsState, setParams] = useRecoilState<types.ParamDesc[]>(params)
 
-    useEffect(() => {
-        //WorkingProject.setParams(paramsState)
-    }, [paramsState])
-
-    useEffect(() => {
-        let params = window.localStorage.getItem('params')
-        if (params) 
-            setParams(JSON.parse(params))
-    }, [])
 
     const addParam = useCallback(() => {
         setParams(oldParams => {
@@ -294,7 +284,6 @@ export const useParamsPanel = (): ParamPanelProps => {
                 paramType: 'int',
                 param: [0]
             })
-            window.localStorage.setItem('params', JSON.stringify(newParams))
             return newParams
         })
         
@@ -304,12 +293,11 @@ export const useParamsPanel = (): ParamPanelProps => {
         setParams(oldParams => {
             let newParams = [...oldParams]
             newParams.splice(idx, 1)
-            window.localStorage.setItem('params', JSON.stringify(newParams))
             return newParams
         })
     }, [paramsState])
 
-    const setParamAtIndex = useCallback((p: ParamDesc, idx: number, changedType: boolean) => {
+    const setParamAtIndex = useCallback((p: types.ParamDesc, idx: number, changedType: boolean) => {
 
         if (changedType) {
             if (p.paramType === 'color') {
@@ -322,7 +310,6 @@ export const useParamsPanel = (): ParamPanelProps => {
         setParams(oldParams => {
             let newParams = [...oldParams]
             newParams[idx] = p
-            window.localStorage.setItem('params', JSON.stringify(newParams))
             return newParams
         })
     }, [paramsState])

@@ -60,6 +60,23 @@ const ViewportPanelBarEnd = () => {
     const onHandlePlayPause = () => setProjectControl(old => old == 'play' ? 'pause':'play')
     const onHandleStop = () => setProjectControl('stop')
 
+    const handleKeyDown = (ev: KeyboardEvent) => {
+        if (ev.code == 'Space' && ev.ctrlKey) {
+            onHandlePlayPause()
+            ev.preventDefault()
+        }
+        if (ev.key == 's' && ev.ctrlKey) {
+            console.log('here')
+            ev.preventDefault()
+        }
+            
+    }
+
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    })
+
     return <>
         <RowButton 
             purpose="Play"

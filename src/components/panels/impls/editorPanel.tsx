@@ -28,6 +28,7 @@ import { RowButton } from '../../reusable/rowButton';
 import { codeFiles, fileErrors } from '../../../recoil/project';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import * as types from '../../../gpu/types'
+import { SKIP_STORAGE } from '../../../recoil/effects';
 
 const hightlightWithLineNumbers = (input, language, filename, fileErrors) =>
   highlight(input, language)
@@ -74,6 +75,10 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
             setWorkspace(prev => [...prev, idx])
         closeDrawer()
     }
+
+    useEffect(() => {
+        console.log(files)
+    }, [files])
 
     return (
         <Panel {...props}>
@@ -207,6 +212,7 @@ export const useEditorPanel = (): EditorProps => {
     const [filesState, setFiles] = useRecoilState<types.CodeFile[]>(codeFiles)
 
     const onEditCode = useCallback((idx: number, code: string) => {
+        console.log('here', SKIP_STORAGE)
         setFiles(prevCode => {
             let updated = [...prevCode]
             updated[idx] = {

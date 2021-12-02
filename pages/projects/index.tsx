@@ -2,11 +2,12 @@ import { Box, Center, Flex, HStack, Text, Badge, Button, Image, Spinner } from '
 import { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/client'
 import React, { useEffect } from 'react'
-import prisma from '../lib/prisma'
-import Scaffold from '../src/components/scaffold'
+import prisma from '../../lib/prisma'
+import Scaffold from '../../src/components/scaffold'
 import { Project } from '.prisma/client'
-import { Project as GPUProject} from '../src/gpu/project'
+import { Project as GPUProject} from '../../src/gpu/project'
 import Link from 'next/link'
+import { useResetRecoilState } from 'recoil'
 
 export const getServerSideProps: GetServerSideProps = async ({req, res}) => {
   const session = await getSession({req})
@@ -37,28 +38,36 @@ const ProjectCard = (props: {project: Project, imgsrc?: string}) => {
   const { project, imgsrc } = props
 
   return (
-    <Box backgroundColor="gray.700" width="300px" shadow="lg" borderRadius="20px" m={3}>
-      {
-        imgsrc && <Image src={imgsrc} width="300px" height="200px" borderTopRadius="20px"/>
-      }
-      {
-        !imgsrc && <Center width="300px" height="200px">
-          <Spinner/>
-        </Center>
-      }
-      
-      <Flex direction="column" p={5}>
-        <Text fontSize="xx-large" fontWeight="bold">{project.title}</Text>
-        <HStack mb={3}>
-          <Badge borderRadius="10%" colorScheme="teal">New</Badge>
-          <Badge borderRadius="10%" colorScheme="teal">Easy</Badge>
-        </HStack>
-        <Text fontSize="sm">{project.description}</Text>
-        <Flex>
-            {/* {Date.parse(project.)} */}
+    <Link href='projects/[id]' as={`projects/${project.id}`}>
+      <Box backgroundColor="gray.700" width="300px" shadow='md' borderRadius="20px" m={3} cursor="pointer" _hover={{
+        shadow: 'dark-lg',
+      }}
+      style={{
+        transition: 'box-shadow 0.2s ease-in-out'
+      }}
+    >
+        {
+          imgsrc && <Image src={imgsrc} width="300px" height="200px" borderTopRadius="20px"/>
+        }
+        {
+          !imgsrc && <Center width="300px" height="200px">
+            <Spinner/>
+          </Center>
+        }
+        
+        <Flex direction="column" p={5}>
+          <Text fontSize="xx-large" fontWeight="bold">{project.title}</Text>
+          <HStack mb={3}>
+            <Badge borderRadius="10%" colorScheme="teal">New</Badge>
+            <Badge borderRadius="10%" colorScheme="teal">Easy</Badge>
+          </HStack>
+          <Text fontSize="sm">{project.description}</Text>
+          <Flex>
+              {/* {Date.parse(project.)} */}
+          </Flex>
         </Flex>
-      </Flex>
-    </Box>
+      </Box>
+    </Link>
   )
 }
 
@@ -71,7 +80,6 @@ const Project = (props: {projects: Project[] | null}) => {
   const generatePreviews = async () => {
     await GPUProject.instance().attachCanvas('offscreen')
     const srcs = projects.map(async p => {
-      console.log('doing ', p)
       return await GPUProject.instance().renderPreview(p) ?? ""
     })
     setImgs(await Promise.all(srcs))

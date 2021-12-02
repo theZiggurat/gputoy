@@ -42,8 +42,6 @@ fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let displacement: f32 = pattern(scaled);
     var color: vec4<f32> = vec4<f32>(displacement * 1.2, 0.2, displacement * 5., 1.);
     color = color * vec4<f32>(p.colorMod, 1.0);
-    
-    color.a = min(color.r * 0.25, 1.); // Depth for CineShader
     return color;
 
 }

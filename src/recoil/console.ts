@@ -15,7 +15,7 @@ export enum MessageType {
   Debug = 4,
 }
 
-const _console = atom<Message[]>({
+export const _console = atom<Message[]>({
   key: 'console',
   default: []
 })

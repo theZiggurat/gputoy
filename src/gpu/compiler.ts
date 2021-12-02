@@ -35,7 +35,7 @@ class Compiler {
         let module = compile_wgsl(fullsrc)
         if (module) {
           logger?.trace('NAGA COMPILER', `${src.filename}.${src.lang} compiled successfully`)
-          logger?.trace('NAGA COMPILER', get_ir())
+          //logger?.trace('NAGA COMPILER', get_ir())
           return device.createShaderModule({
             code: module
           })

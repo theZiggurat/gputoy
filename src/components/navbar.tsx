@@ -16,10 +16,12 @@ import {
   HStack,
   Icon,
   Badge,
-  MenuButton
+  MenuButton,
+  Divider
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
+import { ReactChildren, ReactNode } from 'react';
 import { MdNightlight, MdWbSunny} from 'react-icons/md'
 
 import { useResetRecoilState } from 'recoil';
@@ -34,23 +36,24 @@ interface NavLinkProps {
 }
 
 const NavLink = (props: NavLinkProps) => {
+  const selected = props.currentPath === props.href
+
   return(
-    <NextLink href={props.href} passHref>
-      <chakra.span px={3} py={1} rounded={'md'} cursor="pointer" userSelect="none"
-        bg={ props.currentPath === props.href ? 
-            useColorModeValue('gray.300', 'gray.700') : 'inheret'}
-        shadow={ props.currentPath === props.href ? 'lg' : 'inherit'}
+    <NextLink href={props.href} passHref replace>
+      <Button rounded='md' cursor="pointer" userSelect="none" size="sm"
+        bg= { selected ? useColorModeValue('blackAlpha.100', 'whiteAlpha.100') : 'inheret' }
+        shadow={ selected  ? '0px 0px 2px 1px rgba(255, 255, 255, 0.1)' : 'inherit'}
         _hover={{
-          bg: useColorModeValue('gray.300', 'gray.700'),
+          bg: useColorModeValue('blackAlpha.50', 'whiteAlpha.50'),
           shadow: "lg"
           }}>
         {props.text}
-      </chakra.span>
+      </Button>
     </NextLink>
   )
 };
 
-export default function Nav() {
+export default function Nav(props: {children?: ReactNode}) {
 
   const { colorMode, toggleColorMode } = useColorMode();
   const router = useRouter();
@@ -61,11 +64,11 @@ export default function Nav() {
   const onReset = () => resetLayout()
 
   return (
-      <Box bg={useColorModeValue('gray.200', 'gray.900')} px={4} flex="0 0 auto" shadow="inner">
-        <Flex h={16} alignItems={'center'} justifyContent='space-between' >
+      <Box bg={useColorModeValue('gray.200', 'gray.900')} px={4} flex="0 0 auto" shadow="inner" zIndex="1">
+        <Flex h='3rem' alignItems='center' justifyContent='center'>
 
-          <HStack>
-            <Box m={5} marginRight={10} fontSize={25} fontWeight="extrabold">
+          <HStack flex='1 1 auto'>
+            <Box m={0} mr={5} fontSize={20} fontWeight="extrabold">
               <NextLink href="/">
                 GPUTOY
               </NextLink>
@@ -74,12 +77,14 @@ export default function Nav() {
                 </Badge>
             </Box>
             <NavLink href="/browse" text="Browse" currentPath={router.pathname}/>
-            <NavLink href="/create" text="Create" currentPath={router.pathname}/>
+            <NavLink href="/create" text="Create" currentPath={router.pathname} />
             <NavLink href="/projects" text="Projects" currentPath={router.pathname}/>
-            <Button onClick={onReset}>Reset</Button>
+            
           </HStack>
+
+          {props.children}
         
-          <Flex alignItems={'center'}>
+          <Flex alignItems={'center'} flex='1 1 auto' justifyContent='end'>
             <Stack direction={'row'} spacing={7}>
               <Button onClick={toggleColorMode} size="sm">
                 <Icon as={colorMode==="light" ? MdWbSunny : MdNightlight}/>

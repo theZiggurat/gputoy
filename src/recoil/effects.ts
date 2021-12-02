@@ -1,5 +1,7 @@
 import { DefaultValue } from 'recoil';
 
+export var SKIP_STORAGE = false
+export const setSkipStorage = (skip: boolean) => SKIP_STORAGE = skip
 
 const localStorageEffect = (key: string) => ({setSelf, onSet}) => {
   setSelf(() => {
@@ -13,6 +15,7 @@ const localStorageEffect = (key: string) => ({setSelf, onSet}) => {
   })
 
   onSet((newValue, _, isReset) => {
+    if (SKIP_STORAGE) return
     isReset
       ? localStorage.removeItem(key)
       : localStorage.setItem(key, JSON.stringify(newValue));

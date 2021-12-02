@@ -1,9 +1,13 @@
-import  { atom, atomFamily, selector, useRecoilState, useSetRecoilState } from 'recoil'
-import localStorageEffect, { consoleLogEffect } from './effects'
+import  { atom, atomFamily, selector, useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
+import localStorageEffect, { consoleLogEffect, setSkipStorage } from './effects'
 import * as types from '../gpu/types'
 
 // @ts-ignore
 import defaultShader from '../../shaders/basicShader.wgsl'
+
+import { Project as DBProject } from '.prisma/client'
+import { layoutState } from './atoms'
+import { useConsole, _console } from './console'
 
 
 export const projectStatus = atom<types.ProjectStatus>({
@@ -80,7 +84,8 @@ export const codeFiles = atom<types.CodeFile[]>({
   key: 'codefiles',
   default: [{file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true}],
   effects_UNSTABLE: [
-    localStorageEffect('files')
+    localStorageEffect('files'),
+    consoleLogEffect('files')
   ]
 })
 
@@ -141,4 +146,83 @@ export const canvasInitialized = atom<boolean>({
   key: 'canvasInitialized',
   default: false
 })
+
+export const setProjectStateFromDBValue = (): (project: DBProject) => void => {
+
+  setSkipStorage(true)
+
+  useResetRecoilState(_console)()
+  useResetRecoilState(resolution)()
+  useResetRecoilState(mousePos)()
+  useResetRecoilState(projectStatus)()
+
+  const setShaders = useSetRecoilState(codeFiles)
+  const setParams = useSetRecoilState(params)
+  const setLayout = useSetRecoilState(layoutState)
+  const resetLayout = useResetRecoilState(layoutState)
+
+  const setTo = (project: DBProject) => {
+    if (!project)
+      return
+
+    setShaders(project.shaders.map(s => {
+      return {
+        filename: s.name,
+        file: s.source,
+        lang: s.lang,
+        isRender: s.isRender,
+      }
+    }))
+
+    if (project.params)
+      setParams(JSON.parse(project.params))
+    else
+      setParams([])
+
+    if(project.layout)
+      setLayout(project.layout)
+    else
+      resetLayout()
+  }
+  
+  return setTo
+
+}
+
+export const setProjectStateFromLocalStorage = () => {
+
+  const callback = () => {
+    console.log('here', typeof window === 'undefined')
+    if (typeof window === 'undefined') return
+    useResetRecoilState(_console)()
+    useResetRecoilState(resolution)()
+    useResetRecoilState(mousePos)()
+    useResetRecoilState(projectStatus)()
+  
+    const setShaders = useSetRecoilState(codeFiles)
+    const setParams = useSetRecoilState(params)
+    const setLayout = useSetRecoilState(layoutState)
+  
+  
+    let shaders = window.localStorage.getItem('files')
+    if (shaders)
+      setShaders(JSON.parse(shaders))
+    else
+      useResetRecoilState(codeFiles)()
+  
+    let parameters = window.localStorage.getItem('params')
+    if (parameters)
+      setParams(JSON.parse(parameters))
+    else
+      useResetRecoilState(codeFiles)()
+  
+    let layout = window.localStorage.getItem('files')
+    if (layout)
+      setLayout(JSON.parse(layout))
+    else
+      useResetRecoilState(layoutState)()
+  }
+  
+  callback()
+}
 

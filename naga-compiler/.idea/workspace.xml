@@ -9,9 +9,17 @@
       <change beforePath="$PROJECT_DIR$/../package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pages/_app.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/_app.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pages/api/auth/[...auth0].ts" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../pages/browse.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/browse.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/user.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/user.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pages/create.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/create.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pages/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pages/projects.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pages/test.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/navbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/navbar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/panels/impls/viewPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/impls/viewPanel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/panels/panel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/panel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/gpu/compiler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/gpu/compiler.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/recoil/effects.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/recoil/effects.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/recoil/project.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/recoil/project.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -4,36 +4,40 @@ import { ChakraProvider, extendTheme } from '@chakra-ui/react'
 
 import { RecoilRoot } from 'recoil'
 
-import { GPUInitResult } from '../src/gpu/gpu'
-import ShdrAlert from '../src/components/warning'
-
 import '../styles/globals.css'
 import '../styles/create.css'
 import '../styles/prism-custom.css'
+import '../styles/index.css'
 import 'react-tabs/style/react-tabs.css';
-import dynamic from 'next/dynamic'
 import ProjectManager from '../src/components/projectManager'
+
+import "@fontsource/jetbrains-mono"
 
 
 const theme = extendTheme({
-  
+  initialColorMode: 'dark', 
+  useSystemColorMode: false,
   colors: {
     gray: {
       150: '#E8EDF4',
-      850: '#191D28'
+      800: '#19191D',
+      850: '#17171A',
+      900: '#151517',
+      1000: '#050505'
     },
   },
+  fonts: {
+    heading: 'JetBrains Mono',
+  }
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const [gpuInitResult, setGPUInitResult] = React.useState('ok' as GPUInitResult)
 
   return (
     <RecoilRoot>
       <ProjectManager/>
       <ChakraProvider theme={theme}>
-        <ShdrAlert gpuResult={gpuInitResult}/>
-        <Component {...pageProps} />
+        <Component {...pageProps}/>
       </ChakraProvider>
     </RecoilRoot>
   )

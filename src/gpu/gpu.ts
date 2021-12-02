@@ -89,9 +89,9 @@ class _GPU {
             return false
         }
 
-        const rect = this.canvas.parentElement!.getBoundingClientRect()
-        this.canvas.width = rect.width
-        this.canvas.height = rect.height
+        // const rect = this.canvas.parentElement!.getBoundingClientRect()
+        // this.canvas.width = rect.width
+        // this.canvas.height = rect.height
 
         const devicePixelRatio = window.devicePixelRatio || 1
         this.presentationSize = [

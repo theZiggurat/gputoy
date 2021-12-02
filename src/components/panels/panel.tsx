@@ -18,7 +18,8 @@ import {
   PopoverContent,
   Text,
   Portal,
-  Divider
+  Divider,
+  useColorModeValue
 } from '@chakra-ui/react'
 import useInstance, { useInstanceCleaner, useInstances } from '../../recoil/instance'
 
@@ -147,7 +148,7 @@ export const PanelBar = (props: PanelBarProps) => {
   return (
     <Flex 
       maxHeight={12}
-      backgroundColor='gray.850'
+      backgroundColor={useColorModeValue('gray.150', 'gray.850')}
       direction="row"
       alignItems="center"
       flex="0 0 auto"
