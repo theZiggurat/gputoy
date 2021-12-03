@@ -20,7 +20,7 @@ const ProjectCard = (props: {
   const { 
     project, 
     autoplay = false, 
-    bgScale = 1.01,
+    bgScale = 1,
     blur = 24
   } = props
 
@@ -30,6 +30,8 @@ const ProjectCard = (props: {
   const [hovered, setHovered] = useState(false)
   const [playing, setPlaying] = useState(false)
   const animationHandle = useRef(0)
+
+  const textBg = useColorModeValue("light.bg", 'dark.bg')
 
   useEffect(() => {
       const init = async () => {
@@ -132,7 +134,7 @@ const ProjectCard = (props: {
         position="relative" 
         display="block" 
         width="fit-content" 
-        bg={useColorModeValue("gray.0", 'gray.1000')}  
+        bg={textBg}  
         px="0.7rem" 
         pt="0rem"
         top="-1px"
@@ -147,7 +149,7 @@ const ProjectCard = (props: {
       <Text 
         position="relative" 
         display="inline" 
-        bg={useColorModeValue("gray.0", 'gray.1000')}  
+        bg={textBg}  
         p="0.5rem" 
         pl="0.7rem"
         left="-1px"
@@ -164,7 +166,7 @@ const ProjectCard = (props: {
         transform="auto"
         transformOrigin="bottom"
         display="inline" 
-        bg={useColorModeValue("gray.0", 'gray.1000')}  
+        bg={textBg}  
         p="0.5rem" 
         pl="0.7rem"
         fontSize="med" 

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import type { AppProps } from 'next/app'
-import { ChakraProvider, extendTheme } from '@chakra-ui/react'
+import { ChakraProvider } from '@chakra-ui/react'
 
 import { RecoilRoot } from 'recoil'
 
@@ -12,25 +12,7 @@ import 'react-tabs/style/react-tabs.css';
 
 import "@fontsource/jetbrains-mono"
 import Compiler from '../src/gpu/compiler'
-
-
-const theme = extendTheme({
-  initialColorMode: 'dark', 
-  useSystemColorMode: false,
-  colors: {
-    gray: {
-      0: '#EBEBEB',
-      150: '#E8EDF4',
-      800: '#19191D',
-      850: '#17171A',
-      900: '#151517',
-      1000: '#050505'
-    },
-  },
-  fonts: {
-    heading: 'JetBrains Mono',
-  }
-})
+import theme from '../src/theme/theme'
 
 function MyApp({ Component, pageProps }: AppProps) {
 
@@ -40,7 +22,6 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <RecoilRoot>
-      {/* <ProjectManager/> */}
       <ChakraProvider theme={theme}>
         <Component {...pageProps}/>
       </ChakraProvider>

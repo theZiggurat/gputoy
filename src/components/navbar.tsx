@@ -46,11 +46,7 @@ const NavLink = (props: NavLinkProps) => {
         userSelect="none" 
         p="1em"
         size="sm"
-        bg={ selected ? useColorModeValue('blackAlpha.100', 'whiteAlpha.100') : ''}
-        _hover={{
-          bg: useColorModeValue('blackAlpha.200', 'whiteAlpha.200'),
-          shadow: "lg"
-        }}
+        bg={ selected ? '' : 'transparent'}
       >
         {props.text}
       </Button>
@@ -73,7 +69,7 @@ export default function Nav(props: {children?: ReactNode}) {
 
   return (
     <Flex 
-      bg={useColorModeValue('gray.200', 'gray.900')}
+      bg={useColorModeValue('light.a1', 'dark.a1')}
       h='3rem' 
       justifyContent="center"
       alignItems='center'
@@ -108,6 +104,13 @@ export default function Nav(props: {children?: ReactNode}) {
         minW="min-content"
         px="1rem"
       >
+        <Button 
+          onClick={toggleColorMode} 
+          size="sm"
+          borderEndRadius={0}
+        >
+          <Icon as={colorMode==="light" ? MdWbSunny : MdNightlight}/>
+        </Button>
         <NavUser/>
       </Flex>
     </Flex>

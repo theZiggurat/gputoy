@@ -20,7 +20,7 @@ import NextLink from 'next/link';
 
 import Link from 'next/link'
 import {useRouter} from 'next/router'
-import {signOut, signout, useSession} from 'next-auth/client'
+import {signIn, signOut, signout, useSession} from 'next-auth/client'
 import { Session } from 'next-auth';
 
 type UserMenuProps = {
@@ -40,12 +40,38 @@ const UserMenu = (props: UserMenuProps) => {
 		)
 	}
 
+	if (!session) {
+		inner = (
+			<>
+				<Button onClick={() => signIn('github')} m="0.5rem" width="fit-content">
+					Sign in with Github
+				</Button>
+				<Button onClick={() => signIn('google')} m="0.5rem" width="fit-content">
+					Sign in with Google
+				</Button>
+			</>
+		)
+	}
+
+	if (session) {
+		inner = (
+			<>
+				<Flex p='1rem'>
+					Hello
+				</Flex>
+				<Button onClick={() => signOut()} m="1rem" width="fit-content">
+					Sign out
+				</Button>
+			</>
+		)
+	}
+
 	return (
 		<Flex 
-			minW="20rem"
+			minW="min-content"
 			direction="column" 
 			borderRadius="md" 
-			backgroundColor={useColorModeValue('blackAlpha.200', 'whiteAlpha.100')} 
+			borderTopRadius="0px"
 		>
 			{inner}
 		</Flex>
@@ -60,26 +86,29 @@ const NavUser = () => {
 	const [isOpen, setIsOpen] = useState(false)
 	const togglePopover = () => setIsOpen(o => !o)
 
+	const defaultColor = useColorModeValue('light.button', 'dark.button')
+	const activeColor = useColorModeValue('light.buttonHovered', 'dark.buttonHovered')
+
   return (
 		<Popover 
 			placement='bottom-start'
 			isOpen={isOpen}
-			gutter={0}
+			gutter={7}
 		>
 			<PopoverTrigger>
 				<Flex 
-					backgroundColor={useColorModeValue('blackAlpha.200', 'whiteAlpha.200')} 
-					borderStartRadius="15vh" 
+					backgroundColor={isOpen ? activeColor : defaultColor}
 					borderEndRadius="50vh"
 					alignItems="center"
 					cursor="pointer"
 					onClick={togglePopover}
+					_hover={{
+						backgroundColor: activeColor
+					}}
 				>
 					<Text 
 						px="1em"
-						fontFamily="'JetBrains Mono'"
-						fontWeight="light"
-						fontSize="0.8em"
+						fontSize="0.9em"
 					>
 						{session?.user?.name ?? 'Sign In'}
 					</Text>
@@ -93,12 +122,13 @@ const NavUser = () => {
 			<Portal>
 				<PopoverContent 
 					width="fit-content"
-					backgroundColor="gray.850"
+					backgroundColor={useColorModeValue('light.a2', 'dark.a2')}
 					borderColor="blackAlpha.100"
+					borderTopRadius="0px"
 					outline="none"
 					border="none"
 				>
-					<UserMenu session={session ?? undefined} loading/>
+					<UserMenu session={session ?? undefined} loading={loading}/>
 				</PopoverContent>
 			</Portal>
 		</Popover>

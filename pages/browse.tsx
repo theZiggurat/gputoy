@@ -44,7 +44,7 @@ const Browse = (props: {projects: Project[]}) => {
 			<Scaffold>
 				<Box 
 					p="8rem" 
-					bg={useColorModeValue("gray.50", 'gray.1000')}  
+					bg={useColorModeValue("light.p", 'dark.bg')}  
 					height="100%" 
 					overflowY="scroll"
 				>

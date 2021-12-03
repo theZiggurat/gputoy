@@ -24,18 +24,18 @@ import { canvasInitialized, mousePos, projectControl, projectStatus, resolution 
 import { useLogger } from '../../../recoil/console';
 import useInstance from '../../../recoil/instance';
 import { throttle } from 'lodash';
+import consts from '../../../theme/consts';
 
 const StatusInfo = (props: {text: string, textColor?: string, first?: boolean, last?: boolean}) => (
     <Center 
         p={1.5}
-        backgroundColor={useColorModeValue('gray.100', 'whiteAlpha.200')} 
-        fontFamily='"Fira code", "Fira Mono", monospace'
+        backgroundColor={useColorModeValue('light.button', 'dark.button')} 
+        fontFamily={consts.fontMono}
+        fontSize="0.9rem"
         userSelect="none"
         borderRadius="md"
         borderStartRadius={props.first?"":"0"}
         borderEndRadius={props.last?"":"0"}
-        borderLeft={props.first?"0px":"1px"}
-        borderColor="blackAlpha.300"
         width={120}
     >
         <Text fontSize={12} color={props.textColor}>{props.text}</Text>
