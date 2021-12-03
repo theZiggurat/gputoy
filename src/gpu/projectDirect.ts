@@ -21,15 +21,24 @@ class ProjectDirect {
   // needs update
   shaderDirty = true
   
-  gpuAttach!: AttachResult
+  gpuAttach: AttachResult[] = []
 
   constructor() {}
 
-  init = async (project: DBProject) => {
+  init = async (project: DBProject, ...canvasIDs: string[]) => {
 
-    const result = await GPU.attachCanvas(project.id)
-    if (result == null) return
-    this.gpuAttach = result
+    if (typeof window === 'undefined') {
+      console.log('here')
+      return
+    }
+
+    const attachPromise = canvasIDs.map(async id => {
+      return GPU.attachCanvas(id)
+    })
+
+    this.gpuAttach = (await Promise.all(attachPromise))
+      .filter(a => a != null) as AttachResult[]
+    
 
     if(!GPU.isInitialized() || !project || !project.shaders)
       return
@@ -65,6 +74,7 @@ class ProjectDirect {
     this.shaders = shdrs
     this.compileShaders()
     this.mapBuffers()
+
     this.createPipeline()
     this.renderFrame()
   }
@@ -165,7 +175,7 @@ class ProjectDirect {
         entryPoint: "main",
         targets: [
           {
-            format: this.gpuAttach.preferredFormat,
+            format: this.gpuAttach[0].preferredFormat,
           }
         ]
       },
@@ -180,29 +190,32 @@ class ProjectDirect {
     if (!GPU.isInitialized() || !this.pipeline)
       return
 
-    this.gpuAttach.targetTexture = this.gpuAttach.canvasContext.getCurrentTexture()
-    const targetTextureView = this.gpuAttach.targetTexture.createView()
+    this.gpuAttach.forEach(attach => {
 
-    const renderPassDesc: GPURenderPassDescriptor = {
-      label: "render",
-      colorAttachments: [{
-          view: targetTextureView,
-          loadValue: { r: 0, g: 0, b: 0, a: 1 },
-          storeOp: 'store'
-      }],
-    }
-
-    const commandEncoder = GPU.device.createCommandEncoder()
-    const rpass = commandEncoder.beginRenderPass(renderPassDesc)
-    rpass.setPipeline(this.pipeline)
-    rpass.setVertexBuffer(0, this.vertexBuffer)
-    rpass.setBindGroup(0, this.included.getBindGroup())
-    if(!this.params.isEmpty())
-      rpass.setBindGroup(1, this.params.getBindGroup())
-    rpass.draw(6, 1, 0, 0)
-    rpass.endPass()
-
-    GPU.device.queue.submit([commandEncoder.finish()])
+      attach.targetTexture = attach.canvasContext.getCurrentTexture()
+      const targetTextureView = attach.targetTexture.createView()
+  
+      const renderPassDesc: GPURenderPassDescriptor = {
+        label: "render",
+        colorAttachments: [{
+            view: targetTextureView,
+            loadValue: { r: 0, g: 0, b: 0, a: 1 },
+            storeOp: 'store'
+        }],
+      }
+  
+      const commandEncoder = GPU.device.createCommandEncoder()
+      const rpass = commandEncoder.beginRenderPass(renderPassDesc)
+      rpass.setPipeline(this.pipeline)
+      rpass.setVertexBuffer(0, this.vertexBuffer)
+      rpass.setBindGroup(0, this.included.getBindGroup())
+      if(!this.params.isEmpty())
+        rpass.setBindGroup(1, this.params.getBindGroup())
+      rpass.draw(6, 1, 0, 0)
+      rpass.endPass()
+  
+      GPU.device.queue.submit([commandEncoder.finish()])
+    })
   }
 
 }

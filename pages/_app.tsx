@@ -19,6 +19,7 @@ const theme = extendTheme({
   useSystemColorMode: false,
   colors: {
     gray: {
+      0: '#EBEBEB',
       150: '#E8EDF4',
       800: '#19191D',
       850: '#17171A',

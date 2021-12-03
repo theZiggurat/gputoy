@@ -1,108 +1,112 @@
 import { Menu, MenuButton, MenuDivider, MenuItem,  MenuList } from '@chakra-ui/menu'
-import { Avatar, Box, Button, Center, Stack } from '@chakra-ui/react'
-import React, { useEffect } from 'react'
+import { 
+	Avatar, 
+	Flex,
+	Box,
+	Button, 
+	Center, 
+	Stack,
+	Text,
+	useColorModeValue,
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+	Portal,
+	Spinner
+} from '@chakra-ui/react'
+import React, { useEffect, useState } from 'react'
 
 import NextLink from 'next/link';
 
 import Link from 'next/link'
 import {useRouter} from 'next/router'
 import {signOut, signout, useSession} from 'next-auth/client'
-import prisma from '../../lib/prisma';
+import { Session } from 'next-auth';
 
-const UserMenu = () => {
+type UserMenuProps = {
+	session?: Session
+	loading: boolean
+}
+const UserMenu = (props: UserMenuProps) => {
+
+	const { session, loading } = props
+
+	let inner
+	if (loading) {
+		inner = (
+			<Center width='100%' height='10rem'>
+				<Spinner/>
+			</Center>
+		)
+	}
+
+	return (
+		<Flex 
+			minW="20rem"
+			direction="column" 
+			borderRadius="md" 
+			backgroundColor={useColorModeValue('blackAlpha.200', 'whiteAlpha.100')} 
+		>
+			{inner}
+		</Flex>
+	)
+}
+
+const NavUser = () => {
 
   const router = useRouter()
   const [session, loading] = useSession()
 
-  let comp = (
-    <Box>
-      Nothin
-    </Box>
+	const [isOpen, setIsOpen] = useState(false)
+	const togglePopover = () => setIsOpen(o => !o)
+
+  return (
+		<Popover 
+			placement='bottom-start'
+			isOpen={isOpen}
+			gutter={0}
+		>
+			<PopoverTrigger>
+				<Flex 
+					backgroundColor={useColorModeValue('blackAlpha.200', 'whiteAlpha.200')} 
+					borderStartRadius="15vh" 
+					borderEndRadius="50vh"
+					alignItems="center"
+					cursor="pointer"
+					onClick={togglePopover}
+				>
+					<Text 
+						px="1em"
+						fontFamily="'JetBrains Mono'"
+						fontWeight="light"
+						fontSize="0.8em"
+					>
+						{session?.user?.name ?? 'Sign In'}
+					</Text>
+					<Avatar 
+						name={session?.user?.name ?? undefined}
+						src={session?.user?.image ?? undefined}
+						size="sm"
+					/>
+				</Flex>
+			</PopoverTrigger>
+			<Portal>
+				<PopoverContent 
+					width="fit-content"
+					backgroundColor="gray.850"
+					borderColor="blackAlpha.100"
+					outline="none"
+					border="none"
+				>
+					<UserMenu session={session ?? undefined} loading/>
+				</PopoverContent>
+			</Portal>
+		</Popover>
   )
-
-  if(loading) {
-    comp = (
-      <Box>
-        Loading...
-      </Box>
-    )
-  }
-
-  if (session === null) {
-    comp = (
-      <Box>
-        <Link href="/api/auth/signin">
-          <Button>
-            Sign In
-          </Button>
-        </Link>
-        
-        <Link href="/api/auth/signup">
-          <Button>
-            Sign Up
-          </Button>
-        </Link>
-      </Box>
-    )
-  }
-
-  if (session) {
-    comp = <Box>
-      Hello {session.user?.name}
-      <Button onClick={() => signOut()}>
-        Signout
-      </Button>
-    </Box>
-  }
-
-  return comp
-
-  // return <Menu>
-  //   <MenuButton
-  //     id="menubutton"
-  //     as={Button}
-  //     rounded={'full'}
-  //     variant={'link'}
-  //     cursor={'pointer'}
-  //     minW={0}>
-  //     <Avatar
-  //       size={'sm'}
-  //       name={user?.nickname ?? undefined}
-  //       src={user?.picture ?? undefined}
-  //     />
-  //   </MenuButton>
-  //   {
-  //     user &&
-  //     <MenuList alignItems={'center'}>
-  //       <br />
-  //       <Center>
-  //         <Avatar colorScheme="blackAlpha"
-  //           name={user?.nickname ?? undefined}
-  //           src={user?.picture ?? undefined}
-  //         />
-  //       </Center>
-  //       <br />
-  //       <Stack whiteSpace="pre-line">
-  //         <p>{user.nickname}</p>
-  //         <br/>
-  //         <p>{user.name}</p>
-  //       </Stack>
-  //       <br />
-  //       <MenuDivider />
-  //       <MenuItem>Account Settings</MenuItem>
-  //       <NextLink href='/api/auth/logout' passHref>Logout</NextLink>
-  //     </MenuList>
-  //   }
-  //   {
-  //     !user &&
-  //     <MenuList alignItems={'center'}>
-  //       <MenuItem>
-  //         <NextLink href='/api/auth/login' passHref>Login</NextLink>
-  //       </MenuItem>
-  //     </MenuList>
-  //   }
-    
-  // </Menu>
 }
 
-export default UserMenu
+export default NavUser
+
+{/* <Button onClick={toggleColorMode} size="sm">
+	<Icon as={colorMode==="light" ? MdWbSunny : MdNightlight}/>
+</Button> */}

@@ -5,6 +5,7 @@ import {
     GridItem,
     Flex,
     Input,
+		useColorModeValue
 } from '@chakra-ui/react'
 import Scaffold from '../src/components/scaffold'
 import { Project } from '.prisma/client'
@@ -41,7 +42,12 @@ const Browse = (props: {projects: Project[]}) => {
 
     return (
 			<Scaffold>
-				<Box p="6rem" bg="gray.1000" height="100%" overflowY="scroll">
+				<Box 
+					p="8rem" 
+					bg={useColorModeValue("gray.50", 'gray.1000')}  
+					height="100%" 
+					overflowY="scroll"
+				>
 					<Flex justifyContent="center" mb="2rem">
 							<Input type="search">
 							</Input>
@@ -53,7 +59,7 @@ const Browse = (props: {projects: Project[]}) => {
 						templateRows='repeat(6, 1fr)'
 						templateColumns='repeat(3, 1fr)' 
 						height="300%" 
-						gap="2rem"
+						gap="3rem"
 				>
 						{
 							projects.map((p: Project, idx: number) => {

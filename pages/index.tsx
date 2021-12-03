@@ -1,5 +1,5 @@
 import type { NextPage } from 'next'
-import { ReactNode, useEffect, useState } from 'react'
+import React, { ReactNode, useEffect, useState } from 'react'
 import { 
   Box, 
   useColorModeValue,
@@ -14,6 +14,32 @@ import {MdOutlineConnectWithoutContact, MdCable} from 'react-icons/md'
 
 import Scaffold from '../src/components/scaffold'
 import "@fontsource/jetbrains-mono"
+import ProjectCard from '../src/components/reusable/projectCard'
+import prisma from '../lib/prisma'
+
+
+export const getStaticProps = async (context) => {
+  const projects = await prisma.project.findMany({
+    take: 1,
+    include: {
+        shaders: true,
+        author: {
+            select: {
+                name: true
+            }
+        }
+    }
+  })
+  projects.forEach(p => {
+    p.createdAt = p.createdAt.toISOString()
+    p.updatedAt = p.updatedAt.toISOString()
+  })
+  return {
+    props: {
+      project: projects[0]
+    },
+  };
+}
 
 
 const Card = (props: {head: string, icon: ReactNode,children: string}) => {
@@ -34,9 +60,9 @@ const Card = (props: {head: string, icon: ReactNode,children: string}) => {
       <Heading fontSize={35} fontWeight="extrabold" textAlign='left' p='2.2rem' width="18rem">
         {props.head}
       </Heading>
-      <Box bg={useColorModeValue("#EBEBEB", 'gray.1000')} height="100%" width="1rem" position="relative">
+      <Box bg={useColorModeValue("gray.0", 'gray.1000')} height="100%" width="1rem" position="relative">
         <Box 
-          bg={useColorModeValue("#EBEBEB", 'gray.1000')} 
+          bg={useColorModeValue("gray.0", 'gray.1000')} 
           width="fit-content" height="fit-content" 
           borderRadius="40%" p={4} 
           position="absolute" 
@@ -54,7 +80,7 @@ const Card = (props: {head: string, icon: ReactNode,children: string}) => {
   )
 }
 
-const Home: NextPage = () => {
+const Home: NextPage = (props) => {
 
   const [headerIndex, setHeaderIndex] = useState(0)
 
@@ -71,9 +97,9 @@ const Home: NextPage = () => {
       <Head>
         <title>GPUToy</title>
       </Head>
-      <Flex width="100%" height="100%" bg="gray.1000">
-        <Box className="bg" zIndex="0"/>
-        <Flex direction="column" alignItems="center"  width="fit-content" bg={useColorModeValue("blackAlpha.200", 'gray.1000')}  h='100%' pt="5rem" p="5rem">
+      <Flex width="100%" height="100%" bg={useColorModeValue("gray.50", 'gray.1000')}>
+        {/* <Box className="bg" zIndex="0"/> */}
+        <Flex direction="column" alignItems="center"  width="fit-content" h='100%' pt="5rem" p="5rem">
           <Heading m="3rem" _after={{
             content: '" "',
             backgroundColor: "gray.200",
@@ -96,6 +122,10 @@ const Home: NextPage = () => {
             A shader prototyping tool for the future. GPUToy's interface takes inspiration from Blender.
           </Card>
         </Flex>
+        <Box width="100%" height="100%" p="5rem">
+          <ProjectCard project={props.project} autoplay bgScale={1.01} blur={32}/>
+        </Box>
+        
       </Flex>
     </Scaffold>
   )

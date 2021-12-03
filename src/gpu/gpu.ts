@@ -86,7 +86,7 @@ class _GPU {
                 this.initCalled = true
                 let status = await GPU.init(logger)
                 if (status === 'incompatible') {
-                    logger?.debug('GPU', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
+                    logger?.fatal('GPU', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
                     return null
                 }
                 if (status === 'error') {
