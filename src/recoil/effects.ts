@@ -1,6 +1,5 @@
 import { DefaultValue } from 'recoil';
 
-
 const localStorageEffect = (key: string) => ({setSelf, onSet}) => {
   setSelf(() => {
     if (typeof window === 'undefined')

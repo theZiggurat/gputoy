@@ -7,7 +7,8 @@ import {
   InputLeftElement,
   InputRightElement,
   Button,
-  useToast
+  useToast,
+  useColorModeValue
 } from "@chakra-ui/react";
 
 import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa'
@@ -88,25 +89,32 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
   return(
     <Panel {...props}>
       <PanelContent 
-        fontFamily='"Fira code", "Fira Mono", monospace' 
+        fontFamily='"JetBrains Mono", "Fira code", "Fira Mono", monospace' 
         fontSize="sm" 
       >
         {console.map((message: Message, idx) => 
             <Box 
               key={idx}
-              //backgroundColor={idx%2==0?'':'blackAlpha.100'}
               p={1} 
               flex="0 0 auto" 
               whiteSpace="pre-wrap"
             >
               <Text ml={1}>
-                <chakra.span fontWeight="hairline">
-                {formatTime(message.time)}&nbsp;&nbsp;
-                </chakra.span>
-                <chakra.span color={colors[message.type].concat('.200')} fontWeight="black">
+                <Text fontWeight="hairline" display="inline">
+                  {formatTime(message.time)}&nbsp;&nbsp;
+                </Text>
+                <Text 
+                  color={colors[message.type].concat(useColorModeValue('.600', '.200'))}
+                  fontWeight={useColorModeValue('bold', 'medium')}
+                  transition="0.2s ease"  
+                  display="inline"
+                >
                   {prehead[message.type]}{message.header}:&nbsp;
-                </chakra.span>
-                {message.body}
+                </Text>
+                <Text display="inline">
+                  {message.body}
+                </Text>
+                
               </Text>
             </Box>
         )}
@@ -115,13 +123,13 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
       <PanelBar>
         {/* search & type filters */}
         <PanelBarMiddle>
-          <InputGroup size="sm" variant="filled" maxWidth="500" minWidth="100">
+          <InputGroup maxWidth="500" minWidth="100">
             <InputLeftElement
               children={<FaSearch/>}
             />
             <Input
+              borderStartRadius="md"
               borderEndRadius="0"
-              borderRadius="md"
               value={instanceState.keywordFilter}
               onChange={ev => setKeywordFilter(ev.target.value)}
             />

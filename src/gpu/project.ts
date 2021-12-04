@@ -2,19 +2,23 @@ import { Logger } from '../recoil/console'
 
 import Compiler from './compiler'
 import * as types from './types'
-import GPU from './gpu'
+import GPU, { AttachResult } from './gpu'
 import Params from './params'
 import staticdecl from './staticdecl'
 import { SetterOrUpdater } from 'recoil'
 import { FileErrors } from '../recoil/project'
+import { Project as DBProject } from '.prisma/client'
 
 export class Project {
 
   static _instance: Project
 
   static instance = (): Project => {
-    if (Project._instance === undefined) 
+    if (Project._instance === undefined) {
+      console.log('making new instance')
       Project._instance = new Project()
+    }
+      
     return Project._instance
   }
 
@@ -33,42 +37,42 @@ export class Project {
   // needs update
   shaderDirty = true
 
-  constructor() {
-    Compiler.instance()
-  }
+  gpuAttach!: AttachResult
 
   // attaches canvas to current GPU device if there is one
   // if there is no device, it will try to init
   // if browser is incompatable, it will return
-  attachCanvas = async (canvasId: string, logger: Logger): Promise<boolean> => {
-    return await GPU.attachCanvas(canvasId, logger)
+  attachCanvas = async (canvasId: string, logger?: Logger): Promise<boolean> => {
+    const result = await GPU.attachCanvas(canvasId, logger)
+    if (result == null) return false
+    this.gpuAttach = result
+    return true
   }
 
   // starts project
-  prepareRun = (state: types.ProjectStatus, logger: Logger, setFileErrors: SetterOrUpdater<FileErrors>): boolean => {
+  prepareRun = (state: types.ProjectStatus, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): boolean => {
     if(!GPU.isInitialized()){
-      logger.err('Project', 'GPU not initialized. Cancelling run')
+      logger?.err('Project', 'GPU not initialized. Cancelling run')
       return false
     }
 
     // project is starting or restarted
     if (state.frameNum == 0 || this.shaderDirty) {
-      logger.trace('Project', 'Preparing run')
+      logger?.trace('Project', 'Preparing run')
       if (this.shaderDirty) {
         if (!Compiler.instance().isReady()) {
-          logger.err('Compiler', 'Compiler module not ready')
+          logger?.err('Compiler', 'Compiler module not ready')
           return false
         }
         if (!this.compileShaders(logger, setFileErrors)) {
-          //logger.err('Project', 'Shader compilation failed')
           return false
         }
         this.shaderDirty = false
       }
-      logger.trace('Project', 'Creating Pipeline..')
+      logger?.trace('Project', 'Creating Pipeline..')
       this.mapBuffers()
       this.createPipeline()
-      logger.trace('Project', 'Ready')
+      logger?.trace('Project', 'Ready')
     }
     return true
   }
@@ -77,26 +81,85 @@ export class Project {
     this.encodeCommands()
   }
 
-  updateDefaultParams = (paramDesc: types.ParamDesc[], logger: Logger) => {
+  renderPreview = async (project: DBProject) => {
+    while(!Compiler.instance().isReady()) {
+      console.log('compiler not ready yet')
+      await sleep(50)
+    }
+    
+    if(!GPU.isInitialized() || !project || !project.shaders)
+      return
+
+    if (this.included.isEmpty()) {
+      this.included.set([
+        {paramName: 'time', paramType: 'float', param: [0]},
+        {paramName: 'dt',   paramType: 'float', param: [0]},
+        {paramName: 'frame', paramType: 'int', param: [0]},
+        {paramName: 'mouseNorm', paramType: 'vec2f', param: [0.5, 0.5]},
+        {paramName: 'aspectRatio', paramType: 'float', param: [1]},
+        {paramName: 'res', paramType: 'vec2i', param: [300, 300]},
+        {paramName: 'mouse', paramType: 'vec2i', param: [150, 150]},
+      ], GPU.device)
+    }
+
+    if (project.params)
+      this.updateParams(JSON.parse(project.params))
+    
+    const shdrs = project.shaders.map(s => {
+      return {
+        filename: s.name,
+        file: s.source,
+        lang: s.lang,
+        isRender: s.isRender,
+      }
+    })
+
+    this.shaders = shdrs
+    this.compileShaders()
+    this.mapBuffers()
+    this.createPipeline()
+    this.encodeCommands()
+    
+    return this.gpuAttach.canvas.toDataURL('image/png')
+  }
+
+  setFromDbDirect = (project: DBProject) => {
+    if (project.params)
+      this.updateParams(JSON.parse(project.params))
+    else
+      this.updateParams([])
+
+    this.updateShaders(project.shaders.map(s => {
+      return {
+        filename: s.name,
+        file: s.source,
+        lang: s.lang,
+        isRender: s.isRender,
+      }
+    }))
+  }
+
+  updateDefaultParams = (paramDesc: types.ParamDesc[], logger?: Logger) => {
     if(GPU.isInitialized()) 
       this.shaderDirty = this.included.set(paramDesc, GPU.device) || this.shaderDirty
   }
 
-  updateParams = (paramDesc: types.ParamDesc[], logger: Logger) => {
+  updateParams = (paramDesc: types.ParamDesc[], logger?: Logger) => {
     if(GPU.isInitialized()) 
       this.shaderDirty = this.params.set(paramDesc, GPU.device) || this.shaderDirty
-    console.log(this.shaderDirty)
+    //console.log(this.shaderDirty)
   }
 
-  updateShaders = (files: types.CodeFile[], logger: Logger) => {
+  updateShaders = (files: types.CodeFile[], logger?: Logger) => {
     this.shaders = files
     this.shaderDirty = true
   }
 
-  compileShaders = (logger: Logger, setFileErrors: SetterOrUpdater<FileErrors>): boolean => {
+  compileShaders = (logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): boolean => {
+    //console.log(this.shaders)
     let srcFile = this.shaders.find(f => f.isRender)
     if (srcFile === undefined) {
-      logger.err('Project', 'Cannot compile. No \'render\' shader in files!')
+      logger?.err('Project', 'Cannot compile. No \'render\' shader in files!')
       return false
     }
     let decls = this.included.getShaderDecl()
@@ -168,7 +231,7 @@ export class Project {
         entryPoint: "main",
         targets: [
           {
-            format: GPU.preferredFormat,
+            format: this.gpuAttach.preferredFormat,
           }
         ]
       },
@@ -180,11 +243,11 @@ export class Project {
   }
 
   encodeCommands = () => {
-    if (!GPU.isInitialized())
+    if (!GPU.isInitialized() || !this.pipeline)
       return
 
-    GPU.targetTexture = GPU.canvasContext.getCurrentTexture()
-    const targetTextureView = GPU.targetTexture.createView()
+    this.gpuAttach.targetTexture = this.gpuAttach.canvasContext.getCurrentTexture()
+    const targetTextureView = this.gpuAttach.targetTexture.createView()
 
     const renderPassDesc: GPURenderPassDescriptor = {
       label: "render",
@@ -207,6 +270,10 @@ export class Project {
 
     GPU.device.queue.submit([commandEncoder.finish()])
   }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 const WorkingProject = new Project()

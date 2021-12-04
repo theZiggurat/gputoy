@@ -24,17 +24,18 @@ class Compiler {
 
   private ready: boolean = false
 
-  compileWGSL?: (device: GPUDevice, src: CodeFile, decls: string, logger: Logger, setFileErrors: SetterOrUpdater<FileErrors>) => GPUShaderModule | null
+  compileWGSL?: (device: GPUDevice, src: CodeFile, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>) => GPUShaderModule | null
   compileGLSL?: (device: GPUDevice, src: string, stage: ShaderStage, logger: Logger) => GPUShaderModule | null
 
   constructor() {
     init().then(() => {
-      this.compileWGSL = (device: GPUDevice, src: CodeFile, decls: string, logger: Logger, setFileErrors: SetterOrUpdater<FileErrors>): GPUShaderModule | null => {
-        setFileErrors({})
+      this.compileWGSL = (device: GPUDevice, src: CodeFile, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): GPUShaderModule | null => {
+        if (setFileErrors) setFileErrors({})
         let fullsrc = decls.concat(src.file)
         let module = compile_wgsl(fullsrc)
         if (module) {
-          //logger.trace('NAGA COMPILER', `${src.filename}.${src.lang} compiled successfully`)
+          logger?.trace('NAGA COMPILER', `${src.filename}.${src.lang} compiled successfully`)
+          //logger?.trace('NAGA COMPILER', get_ir())
           return device.createShaderModule({
             code: module
           })
@@ -47,8 +48,8 @@ class Compiler {
             let spacesToAdd = numStr.length - newNumStr.length
             err = err.replace(/(?<=wgsl:)\d*(?=:\d*)/g, newNumStr)
             err = err.replace(/\d+(?= │|│)/g, newNumStr + " ".repeat(spacesToAdd))
-            logger.err('NAGA COMPILER', err)
-            setFileErrors(old => {
+            logger?.err('NAGA COMPILER', err)
+            if (setFileErrors) setFileErrors(old => {
               let n = {...old}
               n[src.filename] = Number(newNumStr)
               return n

@@ -18,9 +18,11 @@ import {
   PopoverContent,
   Text,
   Portal,
-  Divider
+  Divider,
+  useColorModeValue
 } from '@chakra-ui/react'
 import useInstance, { useInstanceCleaner, useInstances } from '../../recoil/instance'
+import { RowButton } from '../reusable/rowButton'
 
 
 // --------- CUSTOM PANEL INTERFACES  --------------
@@ -147,7 +149,7 @@ export const PanelBar = (props: PanelBarProps) => {
   return (
     <Flex 
       maxHeight={12}
-      backgroundColor='gray.850'
+      backgroundColor={useColorModeValue('light.a2', 'dark.a2')}
       direction="row"
       alignItems="center"
       flex="0 0 auto"
@@ -175,13 +177,8 @@ export const PanelBar = (props: PanelBarProps) => {
           <PopoverTrigger>
             <Button 
               size="sm"
-              width={12}
-              pl={0}
-              pr={1}
-              leftIcon={<RiArrowDropUpLine size={15}/>}
               rightIcon={props.panelDesc![props.panelIndex!].icon} 
               iconSpacing={0}
-              variant="solid"  
               aria-label="Choose panel"
               title="Choose panel"
               borderEndRadius="0"
@@ -190,8 +187,8 @@ export const PanelBar = (props: PanelBarProps) => {
           <Portal>
             <PopoverContent 
               width="fit-content"
-              backgroundColor="gray.850"
-              borderColor="blackAlpha.100"
+              backgroundColor={useColorModeValue('light.a2','dark.a2')}
+              borderColor="transparent"
             >
               <Flex direction="column">
                 {
@@ -213,14 +210,11 @@ export const PanelBar = (props: PanelBarProps) => {
         </Popover>
         <IconButton 
           size="sm"
-          icon={<VscClose/>} 
-          variant="solid"  
+          icon={<VscClose/>}
           aria-label="Close Panel"
           title="Close Panel"
-          borderEndRadius="25%"
-          borderStartRadius="0%"
-          borderLeft="1px"
-          borderColor="blackAlpha.300"
+          borderEndRadius="md"
+          borderStartRadius="0px"
           onClick={onHandleCombine}
           disabled={props.path==''}
         />
@@ -271,8 +265,9 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
     <>
       <Flex justifyContent="end">
         <Button 
+          aria-label={`Replace panel with ${props.title}`}
+          title={`Replace panel with ${props.title}`}
           flex="1 1 auto"
-          backgroundColor="whiteAlpha.100"
           size="sm"
           leftIcon={props.icon}
           border="none"
@@ -282,13 +277,12 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           borderStartRadius={props.first?"":"0"}
           borderBottomRadius="0"
           onClick={props.onSwitch}
-          pl={2}
+          pl={3}
           disabled={props.disabled}
         >
           <Text fontSize="xs" fontWeight="thin">{props.title}</Text>
         </Button>
         <IconButton 
-          backgroundColor="whiteAlpha.100"
           size="sm"
           icon={<VscSplitHorizontal/>} 
           aria-label="Split panel horizontally"
@@ -299,7 +293,6 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           disabled={props.disabled}
         />
         <IconButton 
-          backgroundColor="whiteAlpha.100"
           size="sm"
           icon={<VscSplitVertical/>} 
           aria-label="Split panel vertically"

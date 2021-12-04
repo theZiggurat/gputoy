@@ -9,7 +9,10 @@ import {
     Portal,
     Flex,
     Box,
+    useColorModeValue,
+    useColorModePreference
 } from '@chakra-ui/react'
+import Head from 'next/head'
 
 import Editor from 'react-simple-code-editor'
 
@@ -45,6 +48,8 @@ interface EditorProps {
 }
 
 const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
+
+    const pref = useColorModePreference()
 
     const [ instanceState, setInstanceState ] = useInstance<EditorInstanceState>(props)
     const { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName } = useEditorPanel()
@@ -89,7 +94,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                         highlight={code => hightlightWithLineNumbers(code, languages.rust, currentFile.filename, fileErrorValue)}
                         padding={20}
                         style={{
-                            fontFamily: '"Fira code", "Fira Mono", monospace',
+                            fontFamily: '"JetBrains Mono","Fira code", "Fira Mono", monospace',
                             fontSize: 13,
                         }}
                     />
@@ -98,13 +103,11 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
             </PanelContent>
             <PanelBar preventScroll={isFileDrawerOpen}>
                 <PanelBarMiddle zIndex="3">
-                    <IconButton
-                        aria-label="Browse files"
-                        title="Browse files"
-                        size="sm"
-                        borderEndRadius="0"
+                    <RowButton
+                        purpose="Browse files"
                         icon={isFileDrawerOpen ? <RiArrowDropDownLine size={17}/> : <RiArrowDropUpLine size={17}/>}
                         onClick={toggleDrawer}
+                        first
                     />
                     <Popover
                         placement='top-start'
@@ -123,8 +126,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                     >
                         <PopoverTrigger>
                             <Input
-                                size="sm" 
-                                variant="filled" 
+                                size="sm"
                                 maxWidth="500" 
                                 minWidth="200" 
                                 width="200"
@@ -132,29 +134,35 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                                 onChange={onHandleFilenameChange}
                                 value={currentFile ? currentFile.filename : ''}
                                 fontWeight="light"
+                                autoCorrect="off"
+                                spellCheck="false"
                             />
                         </PopoverTrigger>
                         <Portal>
                             <PopoverContent 
                                 zIndex="10"
                                 width="fit-content"
-                                backgroundColor="gray.900"
                                 border={0}
                             >
-                                <Flex direction="column" width="200px" backgroundColor="gray.850">
+                                <Flex 
+                                    direction="column" 
+                                    width="200px" 
+                                    backgroundColor={useColorModeValue("light.a2", 'dark.a2')}
+                                    borderTopRadius="6px"
+                                >
                                 {
                                     files.map((file, idx) => 
                                         <Button
                                             size="sm"
-                                            backgroundColor={idx==instanceState.currentFileIndex ? "whiteAlpha.300": "whiteAlpha.50"}
-                                            borderBottom="1px"
-                                            borderBottomRadius="0"
-                                            borderTopRadius={idx!=0 ? "inherit" : ""}
-                                            borderColor="whiteAlpha.200"
+                                            bg={ idx==instanceState.currentFileIndex ? 
+                                                useColorModeValue("light.inputHovered", 'dark.inputHovered'): 
+                                                useColorModeValue("light.input", 'dark.input')
+                                            }
+                                            borderBottomRadius="0px"
+                                            borderTopRadius={idx!=0 ? "0px" : "5px"}
                                             fontWeight="light"
                                             onClick={() => onHandleSelectFile(idx)}
                                             justifyContent="start"
-                                            //iconLeft={desc.icon} 
                                         >
                                         {`${file.filename}.${file.lang}`}
                                     </Button>
@@ -164,20 +172,15 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                             </PopoverContent>
                         </Portal>
                     </Popover>
-                    <IconButton
-                        aria-label="Add file"
-                        title="Add file"
-                        size="sm"
-                        borderRadius="0"
+                    <RowButton
+                        purpose="Add file"
                         onClick={onHandleAddFile}
                         icon={<MdAdd size={17}/>}
                     />
-                    <IconButton
-                        aria-label="Remove file from workspace"
-                        title="Remove file from workspace"
-                        size="sm"
-                        borderStartRadius="0"
+                    <RowButton
+                        purpose="Remove file from workspace"
                         icon={<MdClose size={17}/>}
+                        last
                     />
                 </PanelBarMiddle>
                 <PanelBarEnd>
@@ -198,7 +201,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                     />
                 </PanelBarEnd>
             </PanelBar>
-        </Panel>                
+        </Panel>
     )
 }
 

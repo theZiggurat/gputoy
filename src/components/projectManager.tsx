@@ -1,13 +1,20 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import React, { useEffect, useRef } from 'react'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { useLogger } from '../recoil/console'
 
 import GPU from '../gpu/gpu'
-import useGPUError from '../gpu/error'
-
 import { Project } from '../gpu/project'
-import { canvasInitialized, codeFiles, defaultParams, fileErrors, params, projectControl, projectStatus, useProjectControls } from '../recoil/project'
-import { includes, throttle } from 'lodash'
+
+import { 
+  canvasInitialized, 
+  codeFiles, 
+  defaultParams, 
+  fileErrors, 
+  params, 
+  projectControl, 
+  projectStatus, 
+  useProjectControls 
+} from '../recoil/project'
 
 
 
@@ -71,7 +78,6 @@ const ProjectManager = () => {
    * Apply these to the project instance once their respective recoil states have changed
    */
   useEffect(() => {
-    Project.instance().updateDefaultParams(defaultParamState, logger)
     if(projectStatusState.frameNum > 0 && !projectStatusState.running){
       Project.instance().renderFrame()
     }
