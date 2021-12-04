@@ -1,0 +1,103 @@
+.token.comment {
+  color: #008000;
+  
+}
+
+.token.builtin {
+  color: #0000FF;
+  
+}
+
+.token.function {
+  color: #0000FF;
+  
+}
+
+.token.keyword {
+  color: #0000FF;
+  
+}
+
+.token.number {
+  color: #098658;
+  
+}
+
+.token.variable {
+  color: #098658;
+  
+}
+
+.token.inserted {
+  color: #098658;
+  
+}
+
+.token.operator {
+  color: #000000;
+  
+}
+
+.token.constant {
+  color: #811F3F;
+  
+}
+
+.token.hexcode {
+  color: #811F3F;
+  
+}
+
+.token.regex {
+  color: #811F3F;
+  
+}
+
+.token.tag {
+  color: #800000;
+  
+}
+
+.token.attr-name {
+  color: #FF0000;
+  
+}
+
+.token.selector {
+  color: #FF0000;
+  
+}
+
+.token.property {
+  color: #FF0000;
+  
+}
+
+.token.deleted {
+  color: #A31515;
+  
+}
+
+.token.string {
+  color: #A31515;
+  
+}
+
+.token.changed {
+  color: #0451A5;
+  
+}
+
+.token.punctuation {
+  color: #0451A5;
+  
+}
+
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
+}

@@ -7,7 +7,8 @@ import {
   InputLeftElement,
   InputRightElement,
   Button,
-  useToast
+  useToast,
+  useColorModeValue
 } from "@chakra-ui/react";
 
 import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa'
@@ -102,7 +103,12 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
                 <Text fontWeight="hairline" display="inline">
                   {formatTime(message.time)}&nbsp;&nbsp;
                 </Text>
-                <Text color={colors[message.type].concat('.200')} fontWeight="medium" display="inline">
+                <Text 
+                  color={colors[message.type].concat(useColorModeValue('.600', '.200'))}
+                  fontWeight={useColorModeValue('bold', 'medium')}
+                  transition="0.2s ease"  
+                  display="inline"
+                >
                   {prehead[message.type]}{message.header}:&nbsp;
                 </Text>
                 <Text display="inline">

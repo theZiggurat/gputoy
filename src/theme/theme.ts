@@ -16,15 +16,15 @@ const theme = extendTheme({
       inputHovered: 'rgba(255, 255, 255, 0.06)', //'whiteAlpha.100'
     },
     light: {
-      p: '#F2F2F2',
-      a1: '#DFDFDF',
-      a2: '#DBDBDB',
-      bg: '#EBEBEB',
-      button: 'rgba(255, 255, 255, 0.80)', //'whiteAlpha.800',
-      buttonHovered: 'rgba(255, 255, 255, 0.36)',//'whiteAlpha.500',
+      p: '#E2E2E2',
+      a1: '#D0D0D0',
+      a2: '#C5C5C5',
+      bg: '#DADADA',
+      button: 'rgba(255, 255, 255, 0.4)', //'whiteAlpha.800',
+      buttonHovered: 'rgba(255, 255, 255, 0.1)',//'whiteAlpha.500',
       divider: 'rgba(0, 0, 0, 0.08)', //'blackAlpha.200',
-      input: 'rgba(255, 255, 255, 0.48)', //'whiteAlpha.600',
-      inputHovered: 'rgba(255, 255, 255, 0.36)' //'whiteAlpha.500'
+      input: 'rgba(255, 255, 255, 0.2)', //'whiteAlpha.600',
+      inputHovered: 'rgba(255, 255, 255, 0.4)' //'whiteAlpha.500'
     }
   },
   fonts: {
@@ -33,18 +33,19 @@ const theme = extendTheme({
   styles: {
     global: (props) => ({
       body: {
-        bg: mode('light.p', 'dark.p')(props)
+        bg: mode('light.p', 'dark.p')(props),
       },
       button: {
-        bg: mode('whiteAlpha.800', 'whiteAlpha.100')(props),
+        color: mode('rgba(0, 0, 0, 0.72)', '')(props),
+        bg: mode('rgba(255, 255, 255, 0.4)', 'whiteAlpha.100')(props),
         _hover: {
-          bg: mode('whiteAlpha.500', 'whiteAlpha.300')(props)
+          bg: mode('rgba(255, 255, 255, 0.1)', 'whiteAlpha.300')(props)
         },
       },
       input: {
-        bg: mode('whiteAlpha.600', 'whiteAlpha.50')(props),
+        bg: mode('rgba(255, 255, 255, 0.2)', 'whiteAlpha.50')(props),
         _hover: {
-          bg: mode('whiteAlpha.500', 'whiteAlpha.100')(props)
+          bg: mode('rgba(255, 255, 255, 0.4)', 'whiteAlpha.100')(props)
         },
       }
     })

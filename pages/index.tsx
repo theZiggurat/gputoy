@@ -103,7 +103,7 @@ const Home: NextPage = (props) => {
         <Flex direction="column" alignItems="center"  width="fit-content" h='100%' pt="5rem" p="5rem">
           <Heading m="3rem" _after={{
             content: '" "',
-            backgroundColor: "light.a1",
+            backgroundColor: useColorModeValue('black', 'white'),
             width: "1rem",
             height:"2rem",
             position: 'absolute'
@@ -122,9 +122,6 @@ const Home: NextPage = (props) => {
           <Card head="Elegant" icon={<BiBrain size='4rem'/>}>
             A shader prototyping tool for the future. GPUToy's interface takes inspiration from Blender.
           </Card>
-          <Button>
-            Test
-          </Button>
         </Flex>
         <Box width="100%" height="100%" p="5rem">
           <ProjectCard project={props.project} autoplay bgScale={1.01} blur={32}/>

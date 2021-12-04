@@ -14,7 +14,7 @@ import {
 	Portal,
 	Spinner
 } from '@chakra-ui/react'
-import React, { useEffect, useState } from 'react'
+import React, { ReactElement, useState } from 'react'
 
 import NextLink from 'next/link';
 
@@ -22,6 +22,36 @@ import Link from 'next/link'
 import {useRouter} from 'next/router'
 import {signIn, signOut, signout, useSession} from 'next-auth/client'
 import { Session } from 'next-auth';
+
+import { RiProjector2Fill } from 'react-icons/ri'
+import { MdSettings } from 'react-icons/md';
+import { IoExit } from 'react-icons/io5'
+
+const MenuButton = (props: {
+	text: string, 
+	onClick?: () => void, 
+	icon?: ReactElement,
+	last?: boolean
+}) => {
+	return (
+		<Flex
+			as={Button} 
+			onClick={props.onClick}
+			width="100%" 
+			mt="0.5em" 
+			bg={useColorModeValue("light.input", 'dark.input')}
+			borderTopRadius="0px"
+			borderBottomRadius={props.last ? "md":"0px"}
+			textAlign="left"
+			px="1rem"
+			fontWeight="normal"
+			justifyContent="space-between"
+		>
+			{props.text}
+			{props.icon}
+		</Flex>
+	)
+}
 
 type UserMenuProps = {
 	session?: Session
@@ -56,12 +86,9 @@ const UserMenu = (props: UserMenuProps) => {
 	if (session) {
 		inner = (
 			<>
-				<Flex p='1rem'>
-					Hello
-				</Flex>
-				<Button onClick={() => signOut()} m="1rem" width="fit-content">
-					Sign out
-				</Button>
+				<MenuButton text="Projects" icon={<RiProjector2Fill/>}/>
+				<MenuButton text="Settings" icon={<MdSettings/>}/>
+				<MenuButton text="Sign Out" icon={<IoExit/>} last/>
 			</>
 		)
 	}
@@ -91,17 +118,21 @@ const NavUser = () => {
 
   return (
 		<Popover 
-			placement='bottom-start'
+			matchWidth
+			placement='bottom-end'
 			isOpen={isOpen}
-			gutter={7}
+			gutter={0}
 		>
 			<PopoverTrigger>
 				<Flex 
 					backgroundColor={isOpen ? activeColor : defaultColor}
-					borderEndRadius="50vh"
+					borderEndRadius="1rem"
+					borderBottomRightRadius={isOpen ? "":"1rem"}
+					userSelect="none"
 					alignItems="center"
 					cursor="pointer"
 					onClick={togglePopover}
+					transition="all 100ms ease"
 					_hover={{
 						backgroundColor: activeColor
 					}}
@@ -116,13 +147,15 @@ const NavUser = () => {
 						name={session?.user?.name ?? undefined}
 						src={session?.user?.image ?? undefined}
 						size="sm"
+						transition="transform 100ms ease"
+						transform={isOpen ? "scale(0.7)":"scale(0.9)"}
 					/>
 				</Flex>
 			</PopoverTrigger>
 			<Portal>
 				<PopoverContent 
-					width="fit-content"
-					backgroundColor={useColorModeValue('light.a2', 'dark.a2')}
+					width="100%"
+					backgroundColor={useColorModeValue('light.a1', 'dark.a1')}
 					borderColor="blackAlpha.100"
 					borderTopRadius="0px"
 					outline="none"
@@ -136,7 +169,3 @@ const NavUser = () => {
 }
 
 export default NavUser
-
-{/* <Button onClick={toggleColorMode} size="sm">
-	<Icon as={colorMode==="light" ? MdWbSunny : MdNightlight}/>
-</Button> */}

@@ -9,8 +9,10 @@ import {
     Portal,
     Flex,
     Box,
-    useColorModeValue
+    useColorModeValue,
+    useColorModePreference
 } from '@chakra-ui/react'
+import Head from 'next/head'
 
 import Editor from 'react-simple-code-editor'
 
@@ -47,6 +49,8 @@ interface EditorProps {
 
 const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
+    const pref = useColorModePreference()
+
     const [ instanceState, setInstanceState ] = useInstance<EditorInstanceState>(props)
     const { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName } = useEditorPanel()
     const fileErrorValue = useRecoilValue(fileErrors)
@@ -75,10 +79,6 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
             setWorkspace(prev => [...prev, idx])
         closeDrawer()
     }
-
-    useEffect(() => {
-        console.log(files)
-    }, [files])
 
     return (
         <Panel {...props}>
@@ -201,7 +201,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                     />
                 </PanelBarEnd>
             </PanelBar>
-        </Panel>                
+        </Panel>
     )
 }
 
