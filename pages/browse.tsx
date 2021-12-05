@@ -43,33 +43,40 @@ const Browse = (props: {projects: Project[]}) => {
     return (
 			<Scaffold>
 				<Box 
-					p="8rem" 
-					bg={useColorModeValue("light.p", 'dark.bg')}  
+					bg={useColorModeValue("light.p", 'dark.p')}  
 					height="100%" 
 					overflowY="scroll"
 				>
-					<Flex justifyContent="center" mb="2rem">
-							<Input type="search">
+					<Flex 
+						justifyContent="center" 
+						p="2rem"
+					>
+							<Input type="search" ml="6rem" mr="2rem">
 							</Input>
-							<Input type="date">
+							<Input type="date" mr="6rem">
 							</Input>
 					</Flex>
 					<Grid 
+						
+						bg={useColorModeValue("light.bg", 'dark.bg')}  
 						position="relative"
 						templateRows='repeat(6, 1fr)'
 						templateColumns='repeat(3, 1fr)' 
 						height="300%" 
 						gap="3rem"
+						px="8rem"
+						py="4rem"
 				>
 						{
 							projects.map((p: Project, idx: number) => {
 								return (
 									<GridItem 
+										key={p.id}
 										rowSpan={idx == 0 || idx == 7 ? 2 : 1} 
 										colSpan={idx == 0 || idx == 7 ? 2 : 1}
 										cursor="pointer"
 									>
-										<ProjectCard project={p} />
+										<ProjectCard project={p} bg/>
 									</GridItem>
 								)
 							})

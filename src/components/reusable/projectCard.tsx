@@ -1,6 +1,6 @@
 import { Project } from ".prisma/client"
 import React, { useRef, useState, useEffect } from "react"
-import ProjectDirect from "../../gpu/projectDirect"
+import ProjectDirect, { useProjectDirect } from "../../gpu/projectDirect"
 import { useProjectControlsDirect } from "../../recoil/controls"
 import { 
   Text, 
@@ -13,64 +13,33 @@ import {
 const ProjectCard = (props: {
   project: Project
   autoplay?: boolean
+  bg?: boolean
   bgScale?: number
   blur?: number
+  onHover?: (hovered: boolean) => void,
 }) => {
 
   const { 
     project, 
-    autoplay = false, 
+    autoplay = false,
+    bg = false,
     bgScale = 1,
-    blur = 24
+    blur = 24,
+    onHover
   } = props
 
-  const projectRef = useRef<ProjectDirect | undefined>(undefined)
-  const controls = useProjectControlsDirect(projectRef)
-  const [loading, setLoading] = useState(true)
+  const [loading, setPlaying] = useProjectDirect(project, autoplay, project.id, `${project.id}_bg`)
   const [hovered, setHovered] = useState(false)
-  const [playing, setPlaying] = useState(false)
-  const animationHandle = useRef(0)
-
   const textBg = useColorModeValue("light.bg", 'dark.bg')
 
-  useEffect(() => {
-      const init = async () => {
-          projectRef.current = new ProjectDirect()
-          await projectRef.current.init(
-            project, project.id, `${project.id}_bg`
-          )
-          setLoading(false)
-      }
-      init()
-      return () => {
-        cancelAnimationFrame(animationHandle.current)
-      }
-  }, [])
-
-  const render = () => {
-    controls.step()
-    projectRef.current?.renderFrame()
-    animationHandle.current = requestAnimationFrame(render)
-  }
-
-  useEffect(() => {
-    if (!loading) {
-      if (playing || autoplay) {
-        controls.play()
-        animationHandle.current = requestAnimationFrame(render)
-      } else {
-        controls.pause()
-      }
-    }
-    return () => cancelAnimationFrame(animationHandle.current)
-  }, [playing, loading])
-
   const onHandleHover = () => {
+    onHover ? onHover(true) : null
     setHovered(true)
     if (!autoplay) 
       setPlaying(true)
   }
   const onHandleLeave = () => {
+    onHover ? onHover(false) : null
     setHovered(false)
     if (!autoplay) 
       setPlaying(false)
@@ -87,7 +56,7 @@ const ProjectCard = (props: {
       transition="transform 0.2s ease"
       cursor="pointer"
       _hover={{
-        transform: 'scale(1.01)'
+        transform: 'scale(1.005)'
       }}
     >
       {
@@ -109,10 +78,11 @@ const ProjectCard = (props: {
           visibility: loading ? 'hidden':'visible',
           opacity: loading ? 0:1,
           transition: 'opacity 1.0s ease',
-          pointerEvents: 'none'
+          pointerEvents: 'none',
         }}
       />
-      <canvas
+      {
+        bg && <canvas
         id={`${project.id}_bg`}
         width="100%"
         height="100%"
@@ -129,7 +99,7 @@ const ProjectCard = (props: {
           pointerEvents: 'none'
         }}
       />
-
+      }
       <Text 
         position="relative" 
         display="block" 

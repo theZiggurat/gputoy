@@ -5,7 +5,7 @@ const theme = extendTheme({
   useSystemColorMode: true,
   colors: {
     dark: {
-      p: '#19191D',
+      p: '#1C1C1C',
       a1: '#17171A',
       a2: '#151517',
       bg: '#050505', 
@@ -28,7 +28,7 @@ const theme = extendTheme({
     }
   },
   fonts: {
-    heading: 'JetBrains Mono',
+    heading: 'Segoe UI',
   },
   styles: {
     global: (props) => ({

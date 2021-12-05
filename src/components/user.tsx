@@ -1,4 +1,3 @@
-import { Menu, MenuButton, MenuDivider, MenuItem,  MenuList } from '@chakra-ui/menu'
 import { 
 	Avatar, 
 	Flex,
@@ -73,12 +72,8 @@ const UserMenu = (props: UserMenuProps) => {
 	if (!session) {
 		inner = (
 			<>
-				<Button onClick={() => signIn('github')} m="0.5rem" width="fit-content">
-					Sign in with Github
-				</Button>
-				<Button onClick={() => signIn('google')} m="0.5rem" width="fit-content">
-					Sign in with Google
-				</Button>
+				<MenuButton text="Sign in with Github" onClick={() => signIn('github')}/>
+				<MenuButton text="Sign in with Google" onClick={() => signIn('google')} last/>
 			</>
 		)
 	}
@@ -88,7 +83,7 @@ const UserMenu = (props: UserMenuProps) => {
 			<>
 				<MenuButton text="Projects" icon={<RiProjector2Fill/>}/>
 				<MenuButton text="Settings" icon={<MdSettings/>}/>
-				<MenuButton text="Sign Out" icon={<IoExit/>} last/>
+				<MenuButton text="Sign Out" icon={<IoExit/>} last onClick={() => signOut()}/>
 			</>
 		)
 	}

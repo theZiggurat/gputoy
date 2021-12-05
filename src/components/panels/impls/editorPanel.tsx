@@ -32,7 +32,7 @@ import { codeFiles, fileErrors } from '../../../recoil/project';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import * as types from '../../../gpu/types'
 
-const hightlightWithLineNumbers = (input, language, filename, fileErrors) =>
+export const hightlightWithLineNumbers = (input, language, filename, fileErrors) =>
   highlight(input, language)
     .split("\n")
     .map((line: string, i: number) => i==fileErrors[filename]-1 ? `<span class="editorLineNumberTest">${line}</span>`: line)

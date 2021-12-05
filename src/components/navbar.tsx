@@ -75,31 +75,37 @@ export default function Nav(props: {children?: ReactNode}) {
       alignItems='center'
       zIndex="1"
     >
-      <HStack 
+      <Flex 
         flex="1"
         marginRight="auto"
         minW="min-content"
+        alignItems="center"
+        justifyContent="center"
         px="1rem"
       >
-        <NextLink href="/">
-          <Text fontSize={22} fontWeight="extrabold" cursor="pointer">
-            GPUTOY
-          </Text>
-        </NextLink>
-        <Badge colorScheme="blue" fontSize="0.6em" cursor="default" style={{marginRight: '1rem'}}>
-          Dev
-        </Badge>
         <NavLink href="/browse" text="Browse" currentPath={router.pathname}/>
         <NavLink href="/create" text="Create" currentPath={router.pathname} />
         <NavLink href="/market" text="Market" currentPath={router.pathname}/>            
-      </HStack>
-
-      {props.children}
+      </Flex>
+      
+      {
+        props.children ??
+        <>
+          <NextLink href="/">
+            <Text fontSize={22} fontWeight="extrabold" cursor="pointer">
+              GPUTOY
+            </Text>
+          </NextLink>
+          <Badge colorScheme="blue" fontSize="0.6em" cursor="default" style={{marginRight: '1rem'}}>
+            Dev
+          </Badge>
+        </>
+      }
     
       <Flex 
         flex="1"
         alignItems={'center'} 
-        justifyContent='end'
+        justifyContent='center'
         marginLeft="auto"
         minW="min-content"
         px="1rem"

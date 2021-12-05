@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="109.09mm" height="111.94mm" version="1.1" viewBox="0 0 109.09 111.94" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <linearGradient id="linearGradient110112" x1="87.923" x2="155.34" y1="115.67" y2="59.998" gradientTransform="matrix(1 0 0 .88177 -44.281 -17.877)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#0226de" offset="0"/>
+   <stop stop-color="#a2419f" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="translate(-26.422 -25.341)">
+  <text transform="scale(1.0213 .97918)" x="25.48333" y="126.42896" fill="#000000" font-family="'Segoe UI'" font-size="49.742px" font-weight="bold" letter-spacing="1.4016px" stroke-width=".25907" style="line-height:1.25" xml:space="preserve"><tspan x="25.48333" y="126.42896" font-family="'Segoe UI'" font-size="49.742px" font-weight="bold" stroke-width=".25907">wgsl</tspan></text>
+  <g stroke-width="0">
+   <rect x="37.697" y="25.341" width="85.381" height="57.019" rx="0" ry="0" fill="url(#linearGradient110112)" style="mix-blend-mode:normal;paint-order:markers stroke fill"/>
+   <path d="m117.42 30.126-73.777 61.868h53.417z" fill="#2c2a2c"/>
+   <path d="m117.42 30.126-44.222 37.097-16.265-35.62 23.775 9.7188z" fill="#515252"/>
+   <path d="m80.707 41.322-7.5098 25.901-16.265-35.62z" fill="#6d6d6c"/>
+   <path d="m73.197 67.222-14.189 11.873-2.0764-47.492z" fill="#7d7e7d"/>
+  </g>
+ </g>
+</svg>
