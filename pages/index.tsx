@@ -12,20 +12,21 @@ import {
   useColorModePreference,
   Stack,
   Divider,
+  SlideFade,
+  HStack,
 } from '@chakra-ui/react'
 import Head from 'next/head'
-import {BiBrain, BiGitRepoForked} from 'react-icons/bi'
-import {GrAction} from 'react-icons/gr'
-import {MdOutlineConnectWithoutContact, MdCable} from 'react-icons/md'
+
 
 import Scaffold from '../src/components/scaffold'
 import "@fontsource/jetbrains-mono"
-import ProjectCard from '../src/components/reusable/projectCard'
 import prisma from '../lib/prisma'
-import { useProjectDirect } from '../src/gpu/projectDirect'
 import EditorDemo from '../src/components/index/editorDemo'
 import Typer from '../src/components/reusable/typer'
 
+import {AiFillGithub, AiFillRedditCircle, AiFillTwitterCircle} from 'react-icons/ai'
+import { BsClipboardData } from 'react-icons/bs'
+import { BiPaint } from 'react-icons/bi'
 
 export const getStaticProps = async (context) => {
   const projects = await prisma.project.findMany({
@@ -98,14 +99,17 @@ const Card = (props: {head: string, icon: ReactNode,children: string}) => {
 const Home: NextPage = (props) => {
 
   const [tran, setTran] = useState(false)
-  const [ptr1, setPtr1] = useState(1)
+  const [scrollPosition, setScrollPosition] = useState(0)
 
-  const [headerIndex, setHeaderIndex] = useState(0)
-  const [hovered, setHovered] = useState(false)
+  const handleScroll = (ev) => {
+    setScrollPosition(ev.target.scrollTop)
+  };
 
-  //const x = useProjectDirect(props.project, false, 'bg')
+  useEffect(() => {
+  }, [scrollPosition])
 
-  useEffect(() => {setTimeout(() => setTran(true), 5)}, [])
+
+  useEffect(() => {setTimeout(() => setTran(true), 500)}, [])
 
   return (
     <Scaffold>
@@ -120,12 +124,32 @@ const Home: NextPage = (props) => {
           transition: 'opacity 1s ease, transform 0.1s ease',
           filter: "blur(0px)"
         }}/> */}
-      <Flex width="100%" height="100%" position="relative" overflowY="scroll" overflowX="hidden" direction="column" flex="1 1 auto">
+      <Flex width="100%" height="100%" position="relative" overflowY="scroll" overflowX="hidden" direction="column" flex="1 1 auto" onScroll={handleScroll}>
         <Flex flex="1" w="100vw" bg={useColorModeValue('light.p', 'dark.p')} direction="column" textAlign="center">
 
 
-
-          <Flex height="100%" direction="column" justifyContent="center" alignItems="center" textAlign="center" mt="10vh" mb="10vh" flexWrap="wrap">
+          <Flex 
+            height="100%" 
+            direction="column" 
+            justifyContent="center" 
+            alignItems="center" 
+            textAlign="center" 
+            position="relative"
+            mt="10vh" 
+            mb="10vh" 
+            opacity={tran ? 1:0}
+            transition="opacity 1.5s ease-out"
+          >
+            <Box 
+              position="absolute" 
+              minH="40%" 
+              minW="100vw" 
+              top="50%" 
+              bg="red.500"
+              clipPath={tran ? "polygon(0 10%, 100% 0, 100% 90%, 0% 100%)": "polygon(0 0%, 100% 0, 100% 100%, 0% 100%)"}
+              bgGradient="linear(to-r, red.400, orange.400)"
+              transition="all 2s ease"
+            />
             <Stack m="1rem">
               <Heading fontFamily="'Segoe UI'" fontSize="3.8rem" pb="2rem" fontWeight="black">
                 Convey your imagination <br/>
@@ -190,9 +214,6 @@ const Home: NextPage = (props) => {
             <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
               Has a project impressed you? Inspect it in the editor.
             </Text>
-            <Button mt="5rem" size="lg" bg="red.600">
-              Take a look
-            </Button>
           </Flex>
 
           <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
@@ -214,10 +235,74 @@ const Home: NextPage = (props) => {
               <Image src={useColorModeValue("/wgslLogo.svg", "/wgslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)"/>
               <Image src={useColorModeValue("/glslLogo.svg", "/glslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)"/>
             </Flex>
-            <Button mt="5rem" size="lg" bg="red.600">
-              Start shading for free
+            
+          </Flex>
+          <Flex bgGradient="linear(to-r, red.400, orange.400)" alignItems="center" justifyContent="center" p="5rem" gridGap="1rem">
+            <Button size="lg" bg={useColorModeValue('light.p', 'dark.p')} rightIcon={<BiPaint/>}>
+                Start Shading 
+            </Button>
+            <Button size="lg" bg={useColorModeValue('light.p', 'dark.p')} rightIcon={<BsClipboardData/>}>
+                Sign Up for Free
             </Button>
           </Flex>
+
+          <Flex flexDir="row" justifyContent="center" py="5rem" gridGap="10vw" flexWrap="wrap">
+            <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
+              <Text fontSize="2rem" fontWeight="extrabold" cursor="pointer" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} lineHeight="2rem">
+                GPUTOY
+              </Text>
+              <Flex gridGap="0.5rem" pt="1rem">
+                <AiFillTwitterCircle size={30}/>
+                <AiFillRedditCircle size={30}/>
+                <AiFillGithub size={30}/>
+              </Flex>
+            </Flex>
+            <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
+              <Text fontSize="1.2rem" pb="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} fontWeight="bold">
+                Resources
+              </Text>
+              <Text fontSize="1rem">
+                Tutorial
+              </Text>
+              <Text fontSize="1rem">
+                Documentation
+              </Text>
+            </Flex>
+            <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
+              <Text fontSize="1.2rem" pb="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} fontWeight="bold">
+                About
+              </Text>
+              <Text fontSize="1rem">
+                About us
+              </Text>
+              <Text fontSize="1rem">
+                Roadmap
+              </Text>
+            </Flex>
+            <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
+              <Text fontSize="1.2rem" pb="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} fontWeight="bold">
+                Contact
+              </Text>
+              <Text fontSize="1rem">
+                Email us
+              </Text>
+              <Text fontSize="1rem">
+                Submit an issue
+              </Text>
+            </Flex>
+              
+          </Flex>
+          <Divider borderColor={useColorModeValue("blackAlpha.300", "whiteAlpha.500")}/>
+          <HStack gridGap="10rem" margin="auto">
+            <Text fontSize="0.8rem" py="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")}>
+                Privacy Policy
+            </Text>
+            <Text fontSize="0.8rem" py="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")}>
+                Terms of Service
+            </Text>
+          </HStack>
+
+
           
         </Flex>
       </Flex>

@@ -56,6 +56,10 @@ const theme = extendTheme({
       variants: {
         base: {
           bg: '',
+        },
+        dark: {
+          bg: '#333333',
+          color: 'white'
         }
       },
       defaultProps: {
