@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect } from 'react'
+import React, { useCallback } from 'react'
 import { 
     Input,
-    IconButton,
     Button,
     Popover,
     PopoverTrigger,
@@ -10,9 +9,7 @@ import {
     Flex,
     Box,
     useColorModeValue,
-    useColorModePreference
 } from '@chakra-ui/react'
-import Head from 'next/head'
 
 import Editor from 'react-simple-code-editor'
 
@@ -22,15 +19,16 @@ import "prismjs";
 import { highlight, languages } from "prismjs/components/prism-core";
 import "prismjs/components/prism-rust";
 
-import { Panel, PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd, PanelProps, DynamicPanelProps} from '../panel'
+import { Panel, PanelBar, PanelContent, PanelBarMiddle, PanelBarEnd, DynamicPanelProps} from '../panel'
 import { RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
 import { FaRegTrashAlt} from 'react-icons/fa'
 import { MdAdd, MdClose, MdCode, MdSettings } from 'react-icons/md'
 import useInstance, { EditorInstanceState } from '../../../recoil/instance'
 import { RowButton } from '../../reusable/rowButton';
-import { codeFiles, fileErrors } from '../../../recoil/project';
+import { codeFiles, fileErrors, workingProjectID } from '../../../recoil/project';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import * as types from '../../../gpu/types'
+import { themed } from '../../../theme/theme';
 
 export const hightlightWithLineNumbers = (input, language, filename, fileErrors) =>
   highlight(input, language)
@@ -48,8 +46,6 @@ interface EditorProps {
 }
 
 const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
-
-    const pref = useColorModePreference()
 
     const [ instanceState, setInstanceState ] = useInstance<EditorInstanceState>(props)
     const { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName } = useEditorPanel()
@@ -131,6 +127,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                                 minWidth="200" 
                                 width="200"
                                 borderRadius="0"
+                                borderLeft="0"
                                 onChange={onHandleFilenameChange}
                                 value={currentFile ? currentFile.filename : ''}
                                 fontWeight="light"
@@ -142,12 +139,12 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                             <PopoverContent 
                                 zIndex="10"
                                 width="fit-content"
-                                border={0}
+                                border="0"
                             >
                                 <Flex 
                                     direction="column" 
                                     width="200px" 
-                                    backgroundColor={useColorModeValue("light.a2", 'dark.a2')}
+                                    backgroundColor={themed('a2')}
                                     borderTopRadius="6px"
                                 >
                                 {
@@ -159,6 +156,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
                                                 useColorModeValue("light.input", 'dark.input')
                                             }
                                             borderBottomRadius="0px"
+                                            borderBottom="0"
                                             borderTopRadius={idx!=0 ? "0px" : "5px"}
                                             fontWeight="light"
                                             onClick={() => onHandleSelectFile(idx)}
@@ -207,7 +205,8 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
 export const useEditorPanel = (): EditorProps => {
 
-    const [filesState, setFiles] = useRecoilState<types.CodeFile[]>(codeFiles)
+    const projectID = useRecoilValue(workingProjectID)
+    const [filesState, setFiles] = useRecoilState(codeFiles(projectID))
 
     const onEditCode = useCallback((idx: number, code: string) => {
         setFiles(prevCode => {

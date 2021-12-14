@@ -7,7 +7,7 @@ import {
 import Head from 'next/head'
 import descriptors from '../src/components/panels/descriptors'
 import { usePanels, Panels } from '../src/components/panels/panel'
-import ProjectManager from '../src/components/projectManager'
+import ProjectManager from '../src/components/create/projectManager'
 
 
 const Inner = () => {

@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { useLogger } from '../recoil/console'
+import { useLogger } from '../../recoil/console'
 
-import GPU from '../gpu/gpu'
-import { Project } from '../gpu/project'
+import GPU from '../../gpu/gpu'
+import { Project } from '../../gpu/project'
 
 import { 
   canvasInitialized, 
@@ -13,8 +13,9 @@ import {
   params, 
   projectControl, 
   projectStatus, 
-  useProjectControls 
-} from '../recoil/project'
+  useProjectControls, 
+  workingProjectID
+} from '../../recoil/project'
 
 
 
@@ -27,8 +28,10 @@ const ProjectManager = () => {
   const { play, pause, stop, step } = useProjectControls()
 
   const defaultParamState = useRecoilValue(defaultParams)
-  const paramState = useRecoilValue(params)
-  const files = useRecoilValue(codeFiles)
+
+  const projectID = useRecoilValue(workingProjectID)
+  const paramState = useRecoilValue(params(projectID))
+  const files = useRecoilValue(codeFiles(projectID))
 
   const logger = useLogger()
 

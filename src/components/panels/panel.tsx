@@ -1,7 +1,7 @@
 import React, { LegacyRef, ReactElement, ReactNode, useCallback, useEffect, useRef } from 'react'
 import SplitPane from 'react-split-pane'
 import { DefaultValue, useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
-import { layoutState } from '../../recoil/atoms'
+import { layoutState, PanelProps } from '../../recoil/layout'
 import { set } from 'lodash/fp'
 import { get } from 'lodash'
 import { nanoid } from 'nanoid'
@@ -19,10 +19,10 @@ import {
   Text,
   Portal,
   Divider,
-  useColorModeValue
 } from '@chakra-ui/react'
 import useInstance, { useInstanceCleaner, useInstances } from '../../recoil/instance'
 import { RowButton } from '../reusable/rowButton'
+import { themed } from '../../theme/theme'
 
 
 // --------- CUSTOM PANEL INTERFACES  --------------
@@ -149,7 +149,7 @@ export const PanelBar = (props: PanelBarProps) => {
   return (
     <Flex 
       maxHeight={12}
-      backgroundColor={useColorModeValue('light.a2', 'dark.a2')}
+      backgroundColor={themed('a2')}
       direction="row"
       alignItems="center"
       flex="0 0 auto"
@@ -175,32 +175,30 @@ export const PanelBar = (props: PanelBarProps) => {
           ]}
         >
           <PopoverTrigger>
-            <Button 
-              size="sm"
-              rightIcon={props.panelDesc![props.panelIndex!].icon} 
-              iconSpacing={0}
-              aria-label="Choose panel"
-              title="Choose panel"
-              borderEndRadius="0"
+            <IconButton 
+              icon={props.panelDesc![props.panelIndex!].icon}
+              borderRightRadius="0"
+              purpose="Choose panel"
             />
           </PopoverTrigger>
           <Portal>
             <PopoverContent 
               width="fit-content"
-              backgroundColor={useColorModeValue('light.a2','dark.a2')}
+              backgroundColor={themed('a2')}
               borderColor="transparent"
             >
               <Flex direction="column">
                 {
                   props.panelDesc!.map((desc, idx) => 
+                  idx !== 0 &&
                   <PanelSelectorButton 
                     icon={desc.icon} 
                     title={desc.name}
-                    onSwitch={() => onHandleSwitch(desc.index)}
+                    onSwitch={() => onHandleSwitch(desc.index+1)}
                     onHandleSplitHorizontal={() => onHandleSplitHorizontal(idx)}
                     onHandleSplitVertical={() => onHandleSplitVertical(idx)}
                     last={idx==props.panelDesc!.length-1}
-                    first={idx==0}
+                    first={idx==1}
                     disabled={instances.map(sel => sel.index).includes(idx) && desc.single}
                   />)
                 }                  
@@ -208,15 +206,12 @@ export const PanelBar = (props: PanelBarProps) => {
             </PopoverContent>
           </Portal>
         </Popover>
-        <IconButton 
-          size="sm"
+        <RowButton 
           icon={<VscClose/>}
-          aria-label="Close Panel"
-          title="Close Panel"
-          borderEndRadius="md"
-          borderStartRadius="0px"
+          purpose="Close Panel"
           onClick={onHandleCombine}
           disabled={props.path==''}
+          last
         />
       </Flex>
       {children}
@@ -312,12 +307,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
 
 // --------- PANEL HOOK --------------
 
-export interface PanelProps {
-    panelLayout: any,
-    onSplitPanel: (path: string, direction: 'horizontal' | 'vertical', panelIndex: number) => void,
-    onCombinePanel: (path: string) => void,
-    onSwitchPanel: (path: string, panelIndex: number) => void,
-}
+
 
 export interface PanelDescriptorProps {
     descriptors: PanelDescriptor[]
@@ -329,69 +319,6 @@ export const Panels = (props: PanelProps & PanelDescriptorProps) => {
     const { panelLayout, ...rest } = panelProps
 
     return _render(panelLayout, descriptors, rest as PanelProps, '')
-}
-
-export const usePanels = (): PanelProps => {
-
-    const [panelTreeLayout, setPanelTreeLayout] = useRecoilState(layoutState)
-    const cleaner = useInstanceCleaner()
-
-    // load layout from localstorage
-    useEffect(() => {
-        const layout = window.localStorage.getItem('layout')
-        trySetLayout(layout != null ? JSON.parse(layout): undefined)
-    }, [])
-
-    // save layout to local storage on change
-    useEffect(() => {
-        window.localStorage.setItem('layout', JSON.stringify(panelTreeLayout))
-        cleaner(instances(panelTreeLayout))
-    }, [panelTreeLayout])
-
-    const trySetLayout = (layout: any | undefined) => { if(layout !== undefined) setPanelTreeLayout(layout) }
-    const onSplit = (path: string, direction: 'horizontal' | 'vertical', panelIndex: number) => {
-        trySetLayout(replaceAtPath(panelTreeLayout, path, layout => {
-            const obj: any = {}
-            obj['left'] = {instanceID: layout['instanceID'],index: layout['index'], type: 'leaf'}
-            obj['right'] = {instanceID: genID(), index: panelIndex, type: 'leaf'}
-            obj['index'] = -1
-            obj['type'] = direction
-            obj['instanceID']= genID()
-            return obj
-        }))
-    }
-
-    const onCombine= (path: string) => {
-        const dir = path.charAt(path.length-1) === 'r' ? 'left':'right'
-        trySetLayout(replaceAtPath(panelTreeLayout, path.substr(0, path.length-1), layout => {
-            const obj: any = {}
-            const child = layout[dir]
-            obj['index'] = child['index']
-            obj['instanceID'] = child['instanceID']
-            obj['type'] = child['type']
-            obj['left'] = child['left']
-            obj['right'] = child['right']
-            return obj
-        }))
-    }
-
-    const onSwitch = (path: string, panelIndex: number) => {
-        if(get(panelTreeLayout, arrpath(path).concat('index')) === panelIndex) return
-        trySetLayout(replaceAtPath(panelTreeLayout, path, layout => {
-            const obj: any = {}
-            obj['index'] = panelIndex
-            obj['type'] = 'leaf'
-            obj['instanceID'] = genID()
-            return obj
-        }))
-    }
-
-    return {
-        panelLayout: panelTreeLayout,
-        onCombinePanel: onCombine,
-        onSplitPanel: onSplit,
-        onSwitchPanel: onSwitch
-    }
 }
 
 const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, path: string): React.ReactElement<any> => {
@@ -431,7 +358,7 @@ const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, pa
                 {
                     key: obj['instanceID'],
                     split: obj['type'], 
-                    defaultSize: "65%", 
+                    defaultSize: obj['size'] ?? "50%", 
                     style: path=='' ? {
                         flex: '1 1 auto',
                         position: 'relative'
@@ -446,24 +373,3 @@ const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, pa
     else 
         return <div className="ERRORDIV_NOCHILDREN"/>
 }
-
-const arrpath = (path: string): string[] => Array.from(path).map(c=>c==='l'?'left':'right')
-
-const replaceAtPath = (obj: any, path: string, f: (obj: any) => void): any | undefined => {
-    const apath = arrpath(path)
-    const objAtPath = apath.length == 0 ? obj : get(obj, apath)
-    if (objAtPath === undefined) 
-        return false
-    return apath.length == 0 ? f(objAtPath): set(apath, f(objAtPath), obj)
-}
-
-const instances = (obj: any): any[] => {
-    const _instances = (obj: any, path: string): any[] => {
-        const selfID = get(obj, arrpath(path).concat('instanceID'))
-        const selfIndex = get(obj, arrpath(path).concat('index'))
-        return selfID === undefined ? [] : [{id: selfID, index: selfIndex}].concat(_instances(obj, path.concat('l'))).concat(_instances(obj, path.concat('r')))
-    }
-    return _instances(obj, '')
-}
-
-const genID = () => nanoid(8)

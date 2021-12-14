@@ -1,12 +1,9 @@
 import { 
 	Avatar, 
 	Flex,
-	Box,
 	Button, 
 	Center, 
-	Stack,
 	Text,
-	useColorModeValue,
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
@@ -15,16 +12,14 @@ import {
 } from '@chakra-ui/react'
 import React, { ReactElement, useState } from 'react'
 
-import NextLink from 'next/link';
-
-import Link from 'next/link'
 import {useRouter} from 'next/router'
-import {signIn, signOut, signout, useSession} from 'next-auth/client'
+import {signIn, signOut, useSession} from 'next-auth/client'
 import { Session } from 'next-auth';
 
 import { RiProjector2Fill } from 'react-icons/ri'
 import { MdSettings } from 'react-icons/md';
 import { IoExit } from 'react-icons/io5'
+import { themed } from '../theme/theme';
 
 const MenuButton = (props: {
 	text: string, 
@@ -38,7 +33,7 @@ const MenuButton = (props: {
 			onClick={props.onClick}
 			width="100%" 
 			mt="0.5em" 
-			bg={useColorModeValue("light.input", 'dark.input')}
+			bg={themed('input')}
 			borderTopRadius="0px"
 			borderBottomRadius={props.last ? "md":"0px"}
 			textAlign="left"
@@ -108,8 +103,8 @@ const NavUser = () => {
 	const [isOpen, setIsOpen] = useState(false)
 	const togglePopover = () => setIsOpen(o => !o)
 
-	const defaultColor = useColorModeValue('light.button', 'dark.button')
-	const activeColor = useColorModeValue('light.buttonHovered', 'dark.buttonHovered')
+	const defaultColor = themed('button')
+	const activeColor = themed('buttonHovered')
 
   return (
 		<Popover 
@@ -123,10 +118,14 @@ const NavUser = () => {
 					backgroundColor={isOpen ? activeColor : defaultColor}
 					borderEndRadius="1rem"
 					borderBottomRightRadius={isOpen ? "":"1rem"}
+					border="1px"
+					borderColor={themed('border')}
+					borderLeft="0px"
 					userSelect="none"
 					alignItems="center"
 					cursor="pointer"
 					onClick={togglePopover}
+					maxH="2rem"
 					transition="all 100ms ease"
 					_hover={{
 						backgroundColor: activeColor
@@ -135,6 +134,7 @@ const NavUser = () => {
 					<Text 
 						px="1em"
 						fontSize="0.9em"
+						textOverflow="ellipsis"
 					>
 						{session?.user?.name ?? 'Sign In'}
 					</Text>
@@ -150,7 +150,7 @@ const NavUser = () => {
 			<Portal>
 				<PopoverContent 
 					width="100%"
-					backgroundColor={useColorModeValue('light.a1', 'dark.a1')}
+					backgroundColor={themed('a1')}
 					borderColor="blackAlpha.100"
 					borderTopRadius="0px"
 					outline="none"

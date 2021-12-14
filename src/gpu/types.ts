@@ -50,3 +50,9 @@ export type Resolution = {
   width: number,
   height: number,
 }
+
+export type Project = {
+  title: string,
+  files: CodeFile[],
+  params: ParamDesc[],
+}

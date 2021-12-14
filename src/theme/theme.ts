@@ -1,5 +1,7 @@
-import { extendTheme } from '@chakra-ui/react'
+import { extendTheme, useColorModeValue } from '@chakra-ui/react'
 import { mode } from '@chakra-ui/theme-tools'
+
+export const themed = (key: string) => useColorModeValue(`light.${key}`, `dark.${key}`)
 
 const theme = extendTheme({
   useSystemColorMode: true,
@@ -14,6 +16,8 @@ const theme = extendTheme({
       divider: 'rgba(0, 0, 0, 0.24)',//'blackAlpha.400',
       input: 'rgba(255, 255, 255, 0.04)', //'whiteAlpha.50',
       inputHovered: 'rgba(255, 255, 255, 0.06)', //'whiteAlpha.100'
+      border: 'rgba(0, 0, 0, 0.2)',
+      textLight: 'rgba(255, 255, 255, 0.36)'
     },
     light: {
       p: '#E2E2E2',
@@ -21,10 +25,12 @@ const theme = extendTheme({
       a2: '#C5C5C5',
       bg: '#DADADA',
       button: 'rgba(255, 255, 255, 0.4)', //'whiteAlpha.800',
-      buttonHovered: 'rgba(255, 255, 255, 0.1)',//'whiteAlpha.500',
+      buttonHovered: 'rgba(0, 0, 0, 0.05)',//'whiteAlpha.500',
       divider: 'rgba(0, 0, 0, 0.08)', //'blackAlpha.200',
       input: 'rgba(255, 255, 255, 0.2)', //'whiteAlpha.600',
-      inputHovered: 'rgba(255, 255, 255, 0.4)' //'whiteAlpha.500'
+      inputHovered: 'rgba(255, 255, 255, 0.4)', //'whiteAlpha.500'
+      border: 'rgba(0, 0, 0, 0.2)',
+      textLight: 'rgba(0, 0, 0, 0.36)'
     }
   },
   fonts: {
@@ -38,15 +44,28 @@ const theme = extendTheme({
       button: {
         color: mode('rgba(0, 0, 0, 0.72)', '')(props),
         bg: mode('rgba(255, 255, 255, 0.4)', 'whiteAlpha.100')(props),
+        border: '1px',
+        borderColor: 'rgba(0, 0, 0, 0.2)',
         _hover: {
-          bg: mode('rgba(255, 255, 255, 0.1)', 'whiteAlpha.300')(props)
+          bg: mode('rgba(0, 0, 0, 0.05)', 'whiteAlpha.300')(props)
         },
       },
       input: {
         bg: mode('rgba(255, 255, 255, 0.2)', 'whiteAlpha.50')(props),
+        border: '1px',
+        borderColor: 'rgba(0, 0, 0, 0.2)',
         _hover: {
           bg: mode('rgba(255, 255, 255, 0.4)', 'whiteAlpha.100')(props)
         },
+      },
+      textarea: {
+        bg: mode('rgba(255, 255, 255, 0.2)', 'whiteAlpha.50')(props),
+        _hover: {
+          bg: mode('rgba(255, 255, 255, 0.4)', 'whiteAlpha.100')(props)
+        },
+      },
+      hr: {
+        borderColor: mode('blackAlpha.300', 'whiteAlpha.300')(props)
       }
     })
   },
@@ -78,7 +97,19 @@ const theme = extendTheme({
         variant: 'base',
         size: 'sm'
       }
-    }
+    },
+    Textarea: {
+      baseStyle: {},
+      variants: {
+        base: {
+          bg: '',
+        }
+      },
+      defaultProps: {
+        variant: 'base',
+        size: 'sm'
+      }
+    },
   }
 })
 

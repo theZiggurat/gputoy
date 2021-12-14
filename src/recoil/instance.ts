@@ -28,6 +28,9 @@ const defaultDynProps = [
 
   },
   {
+
+  },
+  {
     keywordFilter: '',
     nameErrors: []
   },

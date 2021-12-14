@@ -4,14 +4,14 @@ import {
     Grid,
     GridItem,
     Flex,
-    Input,
-		useColorModeValue
+    Input
 } from '@chakra-ui/react'
 import Scaffold from '../src/components/scaffold'
 import { Project } from '.prisma/client'
 import ProjectCard from '../src/components/reusable/projectCard'
 import prisma from '../lib/prisma'
 import { GetServerSideProps } from 'next'
+import { themed } from '../src/theme/theme'
 
 export const getServerSideProps: GetServerSideProps = async ({req, res}) => {
     const projects = await prisma.project.findMany({
@@ -43,7 +43,7 @@ const Browse = (props: {projects: Project[]}) => {
     return (
 			<Scaffold>
 				<Box 
-					bg={useColorModeValue("light.p", 'dark.p')}  
+					bg={themed('p')}  
 					height="100%" 
 					overflowY="scroll"
 				>
@@ -58,7 +58,7 @@ const Browse = (props: {projects: Project[]}) => {
 					</Flex>
 					<Grid 
 						
-						bg={useColorModeValue("light.bg", 'dark.bg')}  
+						bg={themed('bg')}  
 						position="relative"
 						templateRows='repeat(6, 1fr)'
 						templateColumns='repeat(3, 1fr)' 

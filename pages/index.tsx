@@ -27,6 +27,7 @@ import Typer from '../src/components/reusable/typer'
 import {AiFillGithub, AiFillRedditCircle, AiFillTwitterCircle} from 'react-icons/ai'
 import { BsClipboardData } from 'react-icons/bs'
 import { BiPaint } from 'react-icons/bi'
+import { lightEditor, darkEditor } from '../src/theme/consts'
 
 export const getStaticProps = async (context) => {
   const projects = await prisma.project.findMany({
@@ -49,51 +50,6 @@ export const getStaticProps = async (context) => {
       project: projects[0]
     },
   };
-}
-
-const CodeSpan = (props: {text: string}) => (
-  <chakra.span 
-    fontFamily="'JetBrains Mono'" 
-    color={useColorModeValue("whiteAlpha.800", 'black')} 
-    bg={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} 
-    px="0.2rem" 
-    fontSize="0.9em"
-  >
-    {props.text}
-  </chakra.span>
-)
-
-
-const Card = (props: {head: string, icon: ReactNode,children: string}) => {
-  return (
-    <Flex
-      alignItems="center"
-      justifyContent="center"
-      backgroundColor={useColorModeValue("light.input", 'dark.divider')} 
-      backdropFilter="blur(20px)"
-      width="100%"
-      m="1rem"
-      px="5rem"
-      transition="box-shadow 500ms ease"
-      zIndex={1}
-      mixBlendMode="hard-light"
-      _hover={{
-        shadow: '0px 0px 10px 10px rgba(30, 30, 255, 0.1)'
-      }}
-    >
-      <Box flex="1" alignItems="end">
-        <Heading fontSize={35} fontWeight="extrabold" textAlign='left' width="25rem">
-          {props.head}
-        </Heading>
-      </Box>
-      <Box>
-        {props.icon}
-      </Box>
-      <Text fontSize={15} fontFamily="'JetBrains Mono'" width="25rem" flex="1">
-        {props.children}
-      </Text>
-    </Flex>
-  )
 }
 
 const Home: NextPage = (props) => {
@@ -172,6 +128,7 @@ const Home: NextPage = (props) => {
               minW="550px" 
               minH="473px"
               zIndex={2}
+              sx={useColorModeValue(lightEditor, darkEditor)}
               _before={{
                 content: "''",
                 position: 'absolute',

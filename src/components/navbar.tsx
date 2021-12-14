@@ -1,32 +1,19 @@
 import {
-  chakra,
-  Box,
   Flex,
-  Avatar,
   Button,
-  Menu,
-  MenuList,
-  MenuItem, 
-  MenuDivider,
-  useDisclosure,
-  useColorModeValue,
-  Stack,
   useColorMode,
-  Center,
-  HStack,
   Icon,
   Badge,
-  MenuButton,
-  Divider,
   Text
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { ReactChildren, ReactNode, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { MdNightlight, MdWbSunny} from 'react-icons/md'
 
 import { useResetRecoilState } from 'recoil';
-import { layoutState } from '../recoil/atoms';
+import { layoutState } from '../recoil/layout';
+import { themed } from '../theme/theme';
 import NavUser from './user';
 
 
@@ -34,6 +21,8 @@ interface NavLinkProps {
   href: string,
   text: string,
   currentPath: string,
+  first?: boolean,
+  last?: boolean
 }
 
 const NavLink = (props: NavLinkProps) => {
@@ -46,7 +35,9 @@ const NavLink = (props: NavLinkProps) => {
         userSelect="none" 
         p="1em"
         size="sm"
-        bg={ selected ? '' : 'transparent'}
+        borderLeftRadius={props.first ? "":"0px"}
+        borderLeft={props.first ? "":"0px"}
+        borderRightRadius={props.last ? "":"0px"}
       >
         {props.text}
       </Button>
@@ -69,11 +60,13 @@ export default function Nav(props: {children?: ReactNode}) {
 
   return (
     <Flex 
-      bg={useColorModeValue('light.a1', 'dark.a1')}
+      bg={themed('a1')}
       h='3rem' 
       justifyContent="center"
       alignItems='center'
       zIndex="1"
+      borderBottom="1px"
+      borderColor={themed('border')}
     >
       <Flex 
         flex="1"
@@ -83,9 +76,9 @@ export default function Nav(props: {children?: ReactNode}) {
         justifyContent="center"
         px="1rem"
       >
-        <NavLink href="/browse" text="Browse" currentPath={router.pathname}/>
+        <NavLink href="/browse" text="Browse" currentPath={router.pathname} first/>
         <NavLink href="/create" text="Create" currentPath={router.pathname} />
-        <NavLink href="/market" text="Market" currentPath={router.pathname}/>            
+        <NavLink href="/market" text="Market" currentPath={router.pathname} last/>            
       </Flex>
       
       {

@@ -162,12 +162,13 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
                         <Box 
                             position="absolute" 
                             left="20px" top="20px" 
-                            bg="blackAlpha.600" 
-                            borderRadius="lg" 
-                            width="fit-content" 
+                            bg={useColorModeValue("whiteAlpha.400", "blackAlpha.400")} 
+                            borderRadius="md" 
+                            width="fit-content"
+                            backdropFilter="blur(12px)"
                             p={3}
                         >
-                            {`Resolution: ${width} x ${height}`}
+                            {`Resolution: ${width?.toFixed(0)} x ${height?.toFixed(0)}`}
                         </Box>
                     </Fade>
                     <ViewportCanvas instanceID={props.instanceID} width={width} height={height}/>
