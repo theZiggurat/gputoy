@@ -136,6 +136,19 @@ class _GPU {
             preferredFormat
         }
     }
+
+    handleResize = (attachResult: AttachResult, newsize: number[]) => {
+        attachResult.targetTexture.destroy()
+        attachResult.canvasContext.configure({
+            device: this.device,
+            format: attachResult.canvasContext.getPreferredFormat(this.adapter),
+            size: newsize,
+        })
+        attachResult.targetTexture = attachResult.canvasContext.getCurrentTexture()
+        attachResult.presentationSize = newsize
+        
+        return attachResult
+    }
 }
 
 function sleep(ms) {

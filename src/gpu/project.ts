@@ -49,6 +49,16 @@ export class Project {
     return true
   }
 
+  handleResize = (newsize: number[]) => {
+    if (this.gpuAttach === undefined) return
+    if (
+      newsize[0] !== this.gpuAttach.presentationSize[0] || 
+      newsize[1] !== this.gpuAttach.presentationSize[1] 
+    ) {
+      this.gpuAttach = GPU.handleResize(this.gpuAttach, newsize)
+    }
+  }
+
   // starts project
   prepareRun = (state: types.ProjectStatus, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): boolean => {
     if(!GPU.isInitialized()){

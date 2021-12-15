@@ -104,15 +104,17 @@ export const Panel = (props: PanelInProps) => {
 // --------- PANEL CONTENT --------------
 
 interface PanelContentProps {
-  children: ReactNode
+  children: ReactNode,
+  noBg?: boolean
 }
 export const PanelContent = (props: PanelContentProps & any) => {
-  const {children, ...contentProps} = props
+  const {children, noBg, ...contentProps} = props
   return (
     <Box 
       flex="1 1 auto"
       overflowY="auto"
       overflowX="clip"
+      bg={noBg ? '':themed('p')}
       {...contentProps}
     >
       {props.children}

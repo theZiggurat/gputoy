@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, MutableRefObject } from 'react'
+import React, { useEffect, useRef, MutableRefObject, useState } from 'react'
 import {FaPlay, FaStop, FaPause } from 'react-icons/fa'
 import WorkingProject, { Project } from '../../../gpu/project';
 import { useResizeDetector } from 'react-resize-detector'
@@ -25,6 +25,8 @@ import { useLogger } from '../../../recoil/console';
 import useInstance from '../../../recoil/instance';
 import { throttle } from 'lodash';
 import consts from '../../../theme/consts';
+
+const canvasMargin = 0
 
 const StatusInfo = (props: {text: string, textColor?: string, first?: boolean, last?: boolean}) => (
     <Center 
@@ -97,7 +99,7 @@ const ViewportPanelBarEnd = () => {
     </>
 }
 
-const ViewportCanvas = (props: {instanceID: number, width?: number, height?: number}) => {
+const ViewportCanvas = (props: {instanceID: number, width?: number, height?: number, zoom: number, pan: number[]}) => {
 
     const setMousePos = useSetRecoilState(mousePos)
     const setCanvasInitialized = useSetRecoilState(canvasInitialized)
@@ -116,6 +118,10 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
     }, 30)
 
     useEffect(() => {
+        canvasRef.current?.style.transform = `scale(${props.zoom}) translate(${props.pan[0]}px, ${props.pan[1]}px)`
+    }, [props.zoom, props.pan])
+
+    useEffect(() => {
         const isInit = async () => {
             setCanvasInitialized(await Project.instance().attachCanvas(id, logger))
         }
@@ -123,10 +129,8 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
     }, [id])
 
     return <canvas id={id} ref={canvasRef} onMouseMove={onHandleMousePos} style={{
-        width: props.width - 2,
-        height: props.height - 2,
-        marginLeft: "1px",
-        marginTop: "1px"
+        width: props.width,
+        height: props.height,
     }}/>
 
     
@@ -134,10 +138,16 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
 
 const ViewportPanel = (props: DynamicPanelProps & any) => {
 
-    const [showResolution, setShowResolution] = React.useState(false)
+    const [showResolution, setShowResolution] = useState(false)
     const setResolution = useSetRecoilState(resolution)
 
-    const onResize = () => setShowResolution(true)
+    const [zoom, setZoom] = useState(1)
+    const [pan, setPan] = useState([0, 0])
+    const [isMouseDown, setMouseDown] = useState(false)
+
+    const onResize = () => {
+        setShowResolution(true)
+    }
 
     const { width, height, ref } = useResizeDetector({
         refreshMode: "debounce",
@@ -149,9 +159,28 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
         }
     })
 
+    const onHandleZoom = (ev) => {
+        setZoom(curr => curr * (1 + -ev.deltaY / 3000))
+    }
+
+    const onHandleMouseDown = () => setMouseDown(true)
+    const onHandleMouseUp = () => setMouseDown(false)
+    const onHandleMouseMove = (ev) => {
+        console.log(ev)
+        if (!isMouseDown) return
+        setPan(curr => [
+            curr[0] + ev.movementX,
+            curr[1] + ev.movementY,
+        ])
+    }
+
     useEffect(() => {
-        if (width && height)
-            setResolution({width, height})
+        if (width && height) {
+            const actualW = width-canvasMargin*2
+            const actualH = height-canvasMargin*2
+            Project.instance().handleResize([actualW, actualH])
+            setResolution({width: actualW, height: actualH})
+        }
         const handle = setTimeout(() => setShowResolution(false), 2000)
         return () => clearTimeout(handle)
     }, [width, height])
@@ -159,7 +188,17 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
     return (
         <Panel {...props}>
             <PanelContent>
-                <Box bg="black" width="100%" height="100%" ref={ref} overflow="hidden">
+                <Box 
+                    bg="black" 
+                    width="100%" 
+                    height="100%" 
+                    ref={ref} 
+                    overflow="hidden" 
+                    onWheel={onHandleZoom} 
+                    onMouseDown={onHandleMouseDown}
+                    onMouseUp={onHandleMouseUp}
+                    onMouseMove={onHandleMouseMove}
+                >
                     <Fade in={showResolution}>
                         <Box 
                             position="absolute" 
@@ -173,7 +212,13 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
                             {`Resolution: ${width?.toFixed(0)} x ${height?.toFixed(0)}`}
                         </Box>
                     </Fade>
-                    <ViewportCanvas instanceID={props.instanceID} width={width} height={height}/>
+                    <ViewportCanvas 
+                        instanceID={props.instanceID} 
+                        width={width} 
+                        height={height}
+                        zoom={zoom}
+                        pan={pan}
+                    />
                 </Box>
             </PanelContent>
             <PanelBar>

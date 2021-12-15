@@ -45,6 +45,7 @@ type AccordionPanelProps = {
   initOpen?: boolean
   children: ReactElement<any>[] | ReactElement<any>,
   first?: boolean
+  last?:boolean
 }
 const AccordionPanel = (props: AccordionPanelProps) => {
 
@@ -61,9 +62,10 @@ const AccordionPanel = (props: AccordionPanelProps) => {
         onClick={onHandleClick}
         cursor="pointer"
         flex="0"
-        borderBottom="1px"
+        borderBottom={isOpen ? "1px": props.last ? '1px':'0px'}
         borderTop={first?"0px":"1px"}
         borderColor={themed('border')}
+        bg={themed('a1')}
         p="0.5rem"
         py="0.3rem"
         _hover={{
@@ -106,7 +108,7 @@ const SummaryPanel = (props) => {
         <AccordionPanel title="Shader Info" first>
           <ProjectInfo/>
         </AccordionPanel>
-        <AccordionPanel title="Shader Info">
+        <AccordionPanel title="Files" last>
           <Text>
             Test
           </Text>

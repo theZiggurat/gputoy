@@ -75,7 +75,12 @@ const ProjectMenu = () => {
   const [selfOpen, setSelfOpen] = useState(false)
   const [open, setOpen] = useState(-1)
 
-  const { addPanel, resetPanels, onUserPublish } = useMenu()
+  const { 
+    addPanel, 
+    resetPanels, 
+    onUserPublish,
+    onExit
+  } = useMenu()
 
   const onClose = () => {
     setOpen(-1)
@@ -122,7 +127,7 @@ const ProjectMenu = () => {
           <ProjectMenuItem leftText="Publish" onClick={onUserPublish}/>
           <ProjectMenuItem leftText="Fork"/>
           <Divider/>
-          <ProjectMenuItem leftText="Exit" rightText="Ctrl+Esc"/>
+          <ProjectMenuItem leftText="Exit" rightText="Ctrl+Esc" onClick={onExit}/>
         </ProjectMenuMenu>
         <ProjectMenuMenu leftText="Edit" isOpen={open==1} setOpen={() => setOpen(1)}>
           <ProjectMenuItem leftText="Undo" rightText="Ctrl+Z"/>
@@ -206,11 +211,16 @@ const useMenu = () => {
     router.replace(`/create/?id=${id}`)
   }
 
+  const onExit = () => {
+    router.replace('/')
+  }
+
 
   return {
     addPanel,
     resetPanels,
     onUserPublish,
+    onExit
   }
 }
 
