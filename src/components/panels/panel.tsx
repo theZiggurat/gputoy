@@ -19,10 +19,12 @@ import {
   Text,
   Portal,
   Divider,
+  useColorModeValue
 } from '@chakra-ui/react'
 import useInstance, { useInstanceCleaner, useInstances } from '../../recoil/instance'
 import { RowButton } from '../reusable/rowButton'
 import { themed } from '../../theme/theme'
+import { lightResizer, darkResizer } from '../../theme/consts'
 
 
 // --------- CUSTOM PANEL INTERFACES  --------------
@@ -358,7 +360,7 @@ const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, pa
                 {
                     key: obj['instanceID'],
                     split: obj['type'], 
-                    defaultSize: obj['size'] ?? "50%", 
+                    defaultSize: obj['size'] ?? "50%",
                     style: path=='' ? {
                         flex: '1 1 auto',
                         position: 'relative'

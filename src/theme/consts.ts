@@ -52,3 +52,87 @@ export const lightEditor = {
   ".token.important,\n.token.bold": { fontWeight: "bold" },
   ".token.italic": { fontStyle: "italic" }
 }
+
+export const darkResizer = {
+  ".Resizer": {
+    background: "rgba(255, 255, 255, 0.1)",
+    zIndex: 0,
+    MozBoxSizing: "border-box",
+    WebkitBoxSizing: "border-box",
+    boxSizing: "border-box",
+    MozBackgroundClip: "padding",
+    WebkitBackgroundClip: "padding",
+    backgroundClip: "padding-box"
+  },
+  ".Resizer:hover": {
+    WebkitTransition: "all 2s ease",
+    transition: "all 2s ease"
+  },
+  ".Resizer.horizontal": {
+    height: "11px",
+    margin: "-5px 0",
+    borderTop: "5px solid rgba(255, 255, 255, 0)",
+    borderBottom: "5px solid rgba(255, 255, 255, 0)",
+    cursor: "row-resize",
+    width: "100%"
+  },
+  ".Resizer.horizontal:hover": {
+    borderTop: "5px solid rgba(255, 255, 255, 0.2)",
+    borderBottom: "5px solid rgba(255, 255, 255, 0.2)"
+  },
+  ".Resizer.vertical": {
+    width: "11px",
+    margin: "0 -5px",
+    borderLeft: "5px solid rgba(255, 255, 255, 0)",
+    borderRight: "5px solid rgba(255, 255, 255, 0)",
+    cursor: "col-resize"
+  },
+  ".Resizer.vertical:hover": {
+    borderLeft: "5px solid rgba(255, 255, 255, 0.2)",
+    borderRight: "5px solid rgba(255, 255, 255, 0.2)"
+  },
+  ".Resizer.disabled": { cursor: "auto" },
+  ".Resizer.disabled:hover": { borderColor: "transparent" }
+}
+
+export const lightResizer = {
+  ".Resizer": {
+    background: "rgba(0, 0, 0, 0.2)",
+    zIndex: 0,
+    MozBoxSizing: "border-box",
+    WebkitBoxSizing: "border-box",
+    boxSizing: "border-box",
+    MozBackgroundClip: "padding",
+    WebkitBackgroundClip: "padding",
+    backgroundClip: "padding-box"
+  },
+  ".Resizer:hover": {
+    WebkitTransition: "all 2s ease",
+    transition: "all 2s ease"
+  },
+  ".Resizer.horizontal": {
+    height: "11px",
+    margin: "-5px 0",
+    borderTop: "5px solid rgba(0, 0, 0, 0)",
+    borderBottom: "5px solid rgba(0, 0, 0, 0)",
+    cursor: "row-resize",
+    width: "100%"
+  },
+  ".Resizer.horizontal:hover": {
+    borderTop: "5px solid rgba(0, 0, 0, 0.5)",
+    borderBottom: "5px solid rgba(0, 0, 0, 0.5)"
+  },
+  ".Resizer.vertical": {
+    width: "11px",
+    margin: "0 -5px",
+    borderLeft: "5px solid rgba(0, 0, 0, 0)",
+    borderRight: "5px solid rgba(0, 0, 0, 0)",
+    cursor: "col-resize"
+  },
+  ".Resizer.vertical:hover": {
+    borderLeft: "5px solid rgba(0, 0, 0, 0.5)",
+    borderRight: "5px solid rgba(0, 0, 0, 0.5)"
+  },
+  ".Resizer.disabled": { cursor: "auto"  },
+  ".Resizer.disabled:hover": { borderColor: "transparent" }
+}

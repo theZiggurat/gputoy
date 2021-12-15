@@ -13,11 +13,12 @@ const theme = extendTheme({
       bg: '#050505', 
       button: 'rgba(255, 255, 255, 0.06)',//'whiteAlpha.100',
       buttonHovered: 'rgba(255, 255, 255, 0.16)',//'whiteAlpha.300',
-      divider: 'rgba(0, 0, 0, 0.24)',//'blackAlpha.400',
+      divider: 'rgba(255, 255, 255, 0.1)',//'blackAlpha.400',
       input: 'rgba(255, 255, 255, 0.04)', //'whiteAlpha.50',
       inputHovered: 'rgba(255, 255, 255, 0.06)', //'whiteAlpha.100'
-      border: 'rgba(0, 0, 0, 0.2)',
-      textLight: 'rgba(255, 255, 255, 0.36)'
+      border: 'rgba(255, 255, 255, 0.1)',
+      textLight: 'rgba(255, 255, 255, 0.36)',
+      textMid: 'rgba(255, 255, 255, 0.8)'
     },
     light: {
       p: '#E2E2E2',
@@ -26,11 +27,12 @@ const theme = extendTheme({
       bg: '#DADADA',
       button: 'rgba(255, 255, 255, 0.4)', //'whiteAlpha.800',
       buttonHovered: 'rgba(0, 0, 0, 0.05)',//'whiteAlpha.500',
-      divider: 'rgba(0, 0, 0, 0.08)', //'blackAlpha.200',
+      divider: 'rgba(0, 0, 0, 0.2)', //'blackAlpha.200',
       input: 'rgba(255, 255, 255, 0.2)', //'whiteAlpha.600',
       inputHovered: 'rgba(255, 255, 255, 0.4)', //'whiteAlpha.500'
       border: 'rgba(0, 0, 0, 0.2)',
-      textLight: 'rgba(0, 0, 0, 0.36)'
+      textLight: 'rgba(0, 0, 0, 0.36)',
+      textMid: 'rgba(0, 0, 0, 0.72)'
     }
   },
   fonts: {
@@ -45,7 +47,7 @@ const theme = extendTheme({
         color: mode('rgba(0, 0, 0, 0.72)', '')(props),
         bg: mode('rgba(255, 255, 255, 0.4)', 'whiteAlpha.100')(props),
         border: '1px',
-        borderColor: 'rgba(0, 0, 0, 0.2)',
+        borderColor: mode('rgba(0, 0, 0, 0.2)', 'rgba(255, 255, 255, 0.05)')(props),
         _hover: {
           bg: mode('rgba(0, 0, 0, 0.05)', 'whiteAlpha.300')(props)
         },
@@ -53,7 +55,7 @@ const theme = extendTheme({
       input: {
         bg: mode('rgba(255, 255, 255, 0.2)', 'whiteAlpha.50')(props),
         border: '1px',
-        borderColor: 'rgba(0, 0, 0, 0.2)',
+        borderColor: mode('rgba(0, 0, 0, 0.2)', 'rgba(255, 255, 255, 0.05)')(props),
         _hover: {
           bg: mode('rgba(255, 255, 255, 0.4)', 'whiteAlpha.100')(props)
         },
@@ -65,7 +67,7 @@ const theme = extendTheme({
         },
       },
       hr: {
-        borderColor: mode('blackAlpha.300', 'whiteAlpha.300')(props)
+        borderColor: mode('rgba(0, 0, 0, 0.2)', 'rgba(255, 255, 255, 0)')(props)
       }
     })
   },

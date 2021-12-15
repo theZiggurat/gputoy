@@ -1,18 +1,16 @@
 import {
   Flex,
   Button,
-  useColorMode,
   Icon,
   Badge,
-  Text
+  Text,
+  chakra
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { ReactNode, useState } from 'react';
-import { MdNightlight, MdWbSunny} from 'react-icons/md'
+import { ReactNode } from 'react';
 
-import { useResetRecoilState } from 'recoil';
-import { layoutState } from '../recoil/layout';
+
 import { themed } from '../theme/theme';
 import NavUser from './user';
 
@@ -38,6 +36,7 @@ const NavLink = (props: NavLinkProps) => {
         borderLeftRadius={props.first ? "":"0px"}
         borderLeft={props.first ? "":"0px"}
         borderRightRadius={props.last ? "":"0px"}
+        bg={selected?themed('buttonHovered'):''}
       >
         {props.text}
       </Button>
@@ -47,26 +46,19 @@ const NavLink = (props: NavLinkProps) => {
 
 export default function Nav(props: {children?: ReactNode}) {
 
-  const { colorMode, toggleColorMode } = useColorMode();
   const router = useRouter();
   const isActive = router.pathname == '/'; 
 
-  const [toggled, st] = useState(false)
-  const oc = () => st(t =>  !t)
-
-  const resetLayout = useResetRecoilState(layoutState)
-
-  const onReset = () => resetLayout()
-
   return (
-    <Flex 
-      bg={themed('a1')}
+    <chakra.nav 
       h='3rem' 
       justifyContent="center"
       alignItems='center'
       zIndex="1"
       borderBottom="1px"
+      bg={themed('a1')}
       borderColor={themed('border')}
+      display="flex"
     >
       <Flex 
         flex="1"
@@ -94,24 +86,7 @@ export default function Nav(props: {children?: ReactNode}) {
           </Badge>
         </>
       }
-    
-      <Flex 
-        flex="1"
-        alignItems={'center'} 
-        justifyContent='center'
-        marginLeft="auto"
-        minW="min-content"
-        px="1rem"
-      >
-        <Button 
-          onClick={toggleColorMode} 
-          size="sm"
-          borderEndRadius={0}
-        >
-          <Icon as={colorMode==="light" ? MdWbSunny : MdNightlight}/>
-        </Button>
-        <NavUser/>
-      </Flex>
-    </Flex>
+      <NavUser/>
+    </chakra.nav>
   );
 }

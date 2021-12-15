@@ -14,14 +14,14 @@ import ProjectManager from '../src/components/create/projectManager'
 import ProjectMenu from '../src/components/create/menu'
 
 import { RowButton } from '../src/components/reusable/rowButton'
-import { MdOutlinePublish } from 'react-icons/md'
-import { CgGitFork } from 'react-icons/cg'
+
 import ProjectSerializer from '../src/components/create/projectSerializer'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { title, workingProjectID } from '../src/recoil/project'
 import { GetServerSideProps } from 'next'
 import { Project as ProjectDB } from '.prisma/client'
 import prisma from '../lib/prisma'
+import consts, { darkResizer } from '../src/theme/consts'
 
 export const getServerSideProps: GetServerSideProps = async ({query}) => {
 	if (query.id !== undefined) {
@@ -54,43 +54,13 @@ export const getServerSideProps: GetServerSideProps = async ({query}) => {
 	
 }
 
-const ProjectHeader = () => {
-
-	const projectID = useRecoilValue(workingProjectID)
-	const [projectTitle, setProjectTitle] = useRecoilState(title(projectID))
-
-	const onTitleChange = (ev) => setProjectTitle(ev.target.value)
-
-	return (
-		<>
-		<ProjectMenu/>
-		<Input 
-			maxWidth="15rem" 
-			borderLeft="0" 
-			placeholder="Unnamed Project" 
-			value={projectTitle} 
-			onChange={onTitleChange}
-		/>
-		<RowButton 
-			purpose="Fork"
-			icon={<CgGitFork size={17}/>}
-		/>
-		<RowButton 
-			purpose="Publish"
-			icon={<MdOutlinePublish size={17}/>}
-			last
-		/>
-		</>
-	)
-}
-
 const Create = (props: {projectID: string, project?: ProjectDB}) => {
 
 	const panelProps = usePanels()
 
 	return (
 		<Scaffold navChildren={
-			<ProjectHeader/>
+			<ProjectMenu/>
 		}>
 			{/* <Head>
 				<title>{`GPUToy :: Unnamed Project`}</title>

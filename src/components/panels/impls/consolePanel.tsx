@@ -90,7 +90,8 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
     <Panel {...props}>
       <PanelContent 
         fontFamily='"JetBrains Mono", "Fira code", "Fira Mono", monospace' 
-        fontSize="sm" 
+        fontSize="sm"
+        p="0.5rem"
       >
         {console.map((message: Message, idx) => 
             <Box 

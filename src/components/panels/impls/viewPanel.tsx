@@ -123,8 +123,10 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
     }, [id])
 
     return <canvas id={id} ref={canvasRef} onMouseMove={onHandleMousePos} style={{
-        width: props.width,
-        height: props.height
+        width: props.width - 2,
+        height: props.height - 2,
+        marginLeft: "1px",
+        marginTop: "1px"
     }}/>
 
     

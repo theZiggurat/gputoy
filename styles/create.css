@@ -1,6 +1,6 @@
 /* SPLIT PANE RESIZING */
 
-.Resizer {
+/* .Resizer {
   background: rgba(0, 0, 0, 0.2);
   z-index: 0;
   -moz-box-sizing: border-box;
@@ -47,7 +47,7 @@
 }
 .Resizer.disabled:hover {
   border-color: transparent;
-}
+} */
 
 /* EDITOR LINE NUMBERS */
 
