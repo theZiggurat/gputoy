@@ -30,7 +30,6 @@ class ProjectDirect {
   init = async (project: DBProject, ...canvasIDs: string[]) => {
 
     if (typeof window === 'undefined') {
-      console.log('here')
       return
     }
 
@@ -70,11 +69,12 @@ class ProjectDirect {
     })
 
     while(!Compiler.instance().isReady()) {
-      console.log('compiler not ready yet')
+      console.error('Cannot run project directly, compiler is not ready!')
       await sleep(50)
     }
     this.shaders = shdrs
-    this.compileShaders()
+    const shaderStatus = await this.compileShaders()
+    if (!shaderStatus) return
     this.mapBuffers()
 
     this.createPipeline()
@@ -84,7 +84,6 @@ class ProjectDirect {
   updateParams = (paramDesc: types.ParamDesc[]) => {
     if(GPU.isInitialized()) 
       this.shaderDirty = this.params.set(paramDesc, GPU.device) || this.shaderDirty
-    //console.log(this.shaderDirty)
   }
 
   updateShaders = (files: types.CodeFile[]) => {
@@ -97,8 +96,7 @@ class ProjectDirect {
       this.shaderDirty = this.included.set(paramDesc, GPU.device) || this.shaderDirty
   }
 
-  compileShaders = (): boolean => {
-    //console.log(this.shaders)
+  compileShaders = async (): Promise<boolean> => {
     let srcFile = this.shaders.find(f => f.isRender)
     if (srcFile === undefined) {
       return false
@@ -107,7 +105,7 @@ class ProjectDirect {
       .concat(staticdecl.vertex)
       .concat(this.params.getShaderDecl())
 
-    let module = Compiler.instance().compileWGSL!(GPU.device, srcFile, decls)
+    let module = await Compiler.instance().compileWGSL(GPU.device, srcFile, decls)
     if (!module)
       return false
     this.shaderModule = module

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import { useLogger } from '../../recoil/console'
 
 import GPU from '../../gpu/gpu'
@@ -22,7 +22,7 @@ import {
 const ProjectManager = () => {
 
   const projectStatusState= useRecoilValue(projectStatus)
-  const projectControlStatus = useRecoilValue(projectControl)
+  const [projectControlStatus, setProjectControlStatus] = useRecoilState(projectControl)
   const isCanvasInitialized = useRecoilValue(canvasInitialized)
   const setFileError = useSetRecoilState(fileErrors)
   const { play, pause, stop, step } = useProjectControls()
@@ -53,27 +53,36 @@ const ProjectManager = () => {
    * Handle play/pause/stop signals from the viewport panel
    */
   useEffect(() => {
-    if (projectControlStatus == 'play') {
-      play()
-      isRunning.current = true
-      if (Project.instance().prepareRun(projectStatusState, logger, setFileError)) 
-        window.requestAnimationFrame(renderStep)
-      else {
-
+    const onControlChange = async () => {
+      if (projectControlStatus == 'play') {
+        play()
+        isRunning.current = true
+        if (await Project.instance().prepareRun(projectStatusState, logger, setFileError)) 
+          window.requestAnimationFrame(renderStep)
+        else {
+          setProjectControlStatus('stop')
+        }
+          
+        return () => cancelAnimationFrame(intervalHandle.current)
+      } 
+      if (projectControlStatus == 'pause') {
+        pause()
+        isRunning.current = false
+      } 
+      if (projectControlStatus == 'stop') {
         stop()
-      }
-        
-      return () => cancelAnimationFrame(intervalHandle.current)
-    } 
-    if (projectControlStatus == 'pause') {
-      pause()
-      isRunning.current = false
-    } 
-    if (projectControlStatus == 'stop') {
-      stop()
-      isRunning.current = false
-    } 
+        isRunning.current = false
+      } 
+    }
+    onControlChange()
   }, [projectControlStatus])
+
+  useEffect(() => {
+    return () => {
+      console.log('cancelling project')
+      cancelAnimationFrame(intervalHandle.current)
+    }
+  }, [])
 
 
   /**
