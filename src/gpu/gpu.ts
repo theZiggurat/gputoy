@@ -146,7 +146,7 @@ class _GPU {
         })
         attachResult.targetTexture = attachResult.canvasContext.getCurrentTexture()
         attachResult.presentationSize = newsize
-        
+
         return attachResult
     }
 }

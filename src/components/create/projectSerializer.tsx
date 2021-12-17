@@ -2,6 +2,7 @@ import { Project as ProjectDB } from '.prisma/client'
 import React, { useEffect } from 'react'
 import { DefaultValue, useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
 import { clearConsole } from '../../recoil/console'
+import { layoutState } from '../../recoil/layout'
 import { projectState, projectStatus, workingProjectID } from '../../recoil/project'
 
 
@@ -20,6 +21,7 @@ const ProjectSerializer = (props: ProjectSerializerProps) => {
   const setProjectID = useSetRecoilState(workingProjectID)
   const setClearConsole = clearConsole()
   const resetProjectStatus = useResetRecoilState(projectStatus)
+  const setLayout = useSetRecoilState(layoutState)
 
   useEffect(() => {
     setClearConsole()
@@ -31,6 +33,7 @@ const ProjectSerializer = (props: ProjectSerializerProps) => {
         setProjectState(JSON.parse(projectLoad))
     } else {
       if (project) {
+        console.log('from db', project)
         setProjectState(() => {
           return {
             title: project.title,
@@ -42,9 +45,11 @@ const ProjectSerializer = (props: ProjectSerializerProps) => {
                 lang: s.lang,
                 isRender: s.isRender,
               }
-            })
+            }),
           }
         })
+        if (project.layout != null)
+          setLayout(project.layout)
       } 
     }
   }, [props])

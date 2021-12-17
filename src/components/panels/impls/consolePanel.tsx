@@ -19,6 +19,7 @@ import { MdSettings } from 'react-icons/md';
 import { Panel, PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd, DynamicPanelProps } from '../panel';
 import useInstance, { ConsoleInstanceState } from '../../../recoil/instance';
 import { RowButton, RowToggleButton} from '../../reusable/rowButton';
+import { themed } from '../../../theme/theme';
 
 const colors = [
   "green",
@@ -99,6 +100,8 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
               p={1} 
               flex="0 0 auto" 
               whiteSpace="pre-wrap"
+              borderBottom="1px dashed"
+              borderColor={themed('border')}
             >
               <Text ml={1}>
                 <Text fontWeight="hairline" display="inline">

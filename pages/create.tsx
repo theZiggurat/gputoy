@@ -56,7 +56,7 @@ export const getServerSideProps: GetServerSideProps = async ({query}) => {
 
 const Create = (props: {projectID: string, project?: ProjectDB}) => {
 
-	const panelProps = usePanels()
+	const panelProps = usePanels({})
 
 	return (
 		<Scaffold navChildren={

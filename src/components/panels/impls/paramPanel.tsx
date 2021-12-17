@@ -33,7 +33,6 @@ import { useDebounce } from '../../../utils/lodashHooks'
 import { RowButton } from '../../reusable/rowButton';
 import useInstance, { ParamInstanceState } from '../../../recoil/instance';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { layoutState } from '../../../recoil/layout';
 import { params, workingProjectID } from '../../../recoil/project';
 import * as types from '../../../gpu/types'
 import { debounce } from 'lodash';

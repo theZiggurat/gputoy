@@ -1,10 +1,11 @@
 import {atom} from 'recoil'
 import { DefaultValue, useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 import { set } from 'lodash/fp'
-import { get } from 'lodash'
+import { debounce, get } from 'lodash'
 import { nanoid } from 'nanoid'
-import { useEffect } from 'react'
+import { MutableRefObject, ReactElement, useEffect, useState } from 'react'
 import { useInstanceCleaner } from './instance'
+import { layout } from '@chakra-ui/styled-system'
 
 export const layoutState = atom<any>({
   key: 'layout',
@@ -22,7 +23,8 @@ export const layoutState = atom<any>({
         },
         "index": -1,
         "type": "horizontal",
-        "instanceID": "eNI3H93P"
+        "instanceID": "eNI3H93P",
+				"size": .65
     },
     "right": {
         "instanceID": "L0xhpauP",
@@ -31,8 +33,26 @@ export const layoutState = atom<any>({
     },
     "index": -1,
     "type": "vertical",
-    "instanceID": "UjsW244-"
-  }
+    "instanceID": "UjsW244-",
+		"size": .65
+  },
+  // effects_UNSTABLE: [
+  //   ({setSelf, onSet}) => {
+  //     setSelf(() => {
+  //       if (typeof window === 'undefined') return new DefaultValue
+  //       const layout = window.localStorage.getItem('layout')
+  //       if (layout == null)
+  //         return new DefaultValue
+  //       else
+  //         return JSON.parse(layout)
+  //     })
+  //     onSet((newValue, _, isReset) => {
+  //       !isReset ? 
+  //         window.localStorage.setItem('layout', JSON.stringify(newValue)): 
+  //         window.localStorage.removeItem('layout')
+  //     })
+  //   }
+  // ]
 })
 
 
@@ -43,27 +63,45 @@ export interface PanelProps {
   onSplitPanel: (path: string, direction: 'horizontal' | 'vertical', panelIndex: number) => void,
   onCombinePanel: (path: string) => void,
   onSwitchPanel: (path: string, panelIndex: number) => void,
+  onPanelSizeChange: (path: string, newSize: number, totalSize: number) => void,
   addPanel: (panelIndex: number, location: Location) => void,
   resetPanels: () => void,
+	layoutSize: number[],
+	windowGen: number
 }
 
-export const usePanels = (): PanelProps => {
+export const usePanels = (initialLayout?: any): PanelProps => {
 
   const [panelTreeLayout, setPanelTreeLayout] = useRecoilState(layoutState)
   const resetPanelTreeLayout = useResetRecoilState(layoutState)
+
+	const [layoutSize, setLayoutSize] = useState([0, 0])
+	const [windowGen, setWindowGen] = useState(0)
+
   const cleaner = useInstanceCleaner()
 
-//   // load layout from localstorage
-//   useEffect(() => {
-//       const layout = window.localStorage.getItem('layout')
-//       trySetLayout(layout != null ? JSON.parse(layout): undefined)
-//   }, [])
+	const handleWindowResize = debounce(() => {
+		setLayoutSize([window.innerWidth, window.innerHeight - 45])
+		setWindowGen(i => i+1)
+	}, 50, {leading: true, trailing: true})
+	useEffect(() => {
+		window.addEventListener('resize', handleWindowResize)
+		setLayoutSize([window.innerWidth, window.innerHeight - 45])
+		return () => window.removeEventListener('resize', handleWindowResize)
+	}, [])
 
-//   // save layout to local storage on change
-//   useEffect(() => {
-//       window.localStorage.setItem('layout', JSON.stringify(panelTreeLayout))
-//       cleaner(instances(panelTreeLayout))
-//   }, [panelTreeLayout])
+  // load layout from localstorage
+  useEffect(() => {
+		if(initialLayout !== undefined) return 
+		const layout = window.localStorage.getItem('layout')
+		trySetLayout(layout != null ? JSON.parse(layout): undefined)
+  }, [])
+
+  // save layout to local storage on change
+  useEffect(debounce(() => {
+		window.localStorage.setItem('layout', JSON.stringify(panelTreeLayout))
+		cleaner(instances(panelTreeLayout))
+  }, 1000), [panelTreeLayout])
 
   const trySetLayout = (layout: any | undefined) => { if(layout !== undefined) setPanelTreeLayout(layout) }
   const onSplit = (path: string, direction: 'horizontal' | 'vertical', panelIndex: number) => {
@@ -88,6 +126,7 @@ export const usePanels = (): PanelProps => {
           obj['type'] = child['type']
           obj['left'] = child['left']
           obj['right'] = child['right']
+					obj['size'] = child['size']
           return obj
       }))
   }
@@ -108,18 +147,27 @@ export const usePanels = (): PanelProps => {
       const newPanel = {
         index: panelIndex,
         type: 'leaf',
-        instanceID: nanoid(8)
+        instanceID: nanoid(8),
       }
       const newLayout = {
         index: -1,
         type: location == 'top' || location == 'bottom' ? 'horizontal':'vertical',
         instanceID: nanoid(8),
         left: location == 'top' || location == 'left' ? newPanel : {...old},
-        right: location == 'bottom' || location == 'right' ? newPanel : {...old}
+        right: location == 'bottom' || location == 'right' ? newPanel : {...old},
+				size: location == 'top' || location == 'left' ? 0.1:0.9,
       }
       return newLayout
     })
   }
+
+  const onPanelSizeChange = debounce((path: string, newSize: number, totalSize: number) => {
+    trySetLayout(replaceAtPath(panelTreeLayout, path, layout => {
+      const obj: any = {...layout}
+      obj['size'] = newSize / totalSize
+      return obj
+    }))
+  }, 100)
 
   const resetPanels = resetPanelTreeLayout
 
@@ -128,8 +176,11 @@ export const usePanels = (): PanelProps => {
       onCombinePanel: onCombine,
       onSplitPanel: onSplit,
       onSwitchPanel: onSwitch,
+      onPanelSizeChange,
       addPanel,
-      resetPanels
+      resetPanels,
+			layoutSize,
+			windowGen
   }
 }
 

@@ -55,7 +55,8 @@ const handlePost = async (req: NextApiRequest, res: NextApiResponse<any>) => {
             lang: s.lang,
             isRender: s.isRender
           }})
-        }
+        },
+        layout: body.layout ?? null
       }
     })
     res.status(200).send({ projectID: ret.id })

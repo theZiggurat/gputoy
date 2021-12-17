@@ -116,11 +116,7 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
             })
         }
     }, 30)
-
-    useEffect(() => {
-        canvasRef.current?.style.transform = `scale(${props.zoom}) translate(${props.pan[0]}px, ${props.pan[1]}px)`
-    }, [props.zoom, props.pan])
-
+    
     useEffect(() => {
         const isInit = async () => {
             setCanvasInitialized(await Project.instance().attachCanvas(id, logger))
@@ -141,10 +137,6 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
     const [showResolution, setShowResolution] = useState(false)
     const setResolution = useSetRecoilState(resolution)
 
-    const [zoom, setZoom] = useState(1)
-    const [pan, setPan] = useState([0, 0])
-    const [isMouseDown, setMouseDown] = useState(false)
-
     const onResize = () => {
         setShowResolution(true)
     }
@@ -158,21 +150,6 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
             trailing: true
         }
     })
-
-    const onHandleZoom = (ev) => {
-        setZoom(curr => curr * (1 + -ev.deltaY / 3000))
-    }
-
-    const onHandleMouseDown = () => setMouseDown(true)
-    const onHandleMouseUp = () => setMouseDown(false)
-    const onHandleMouseMove = (ev) => {
-        console.log(ev)
-        if (!isMouseDown) return
-        setPan(curr => [
-            curr[0] + ev.movementX,
-            curr[1] + ev.movementY,
-        ])
-    }
 
     useEffect(() => {
         if (width && height) {
@@ -193,11 +170,7 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
                     width="100%" 
                     height="100%" 
                     ref={ref} 
-                    overflow="hidden" 
-                    onWheel={onHandleZoom} 
-                    onMouseDown={onHandleMouseDown}
-                    onMouseUp={onHandleMouseUp}
-                    onMouseMove={onHandleMouseMove}
+                    overflow="hidden"
                 >
                     <Fade in={showResolution}>
                         <Box 
@@ -216,8 +189,6 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
                         instanceID={props.instanceID} 
                         width={width} 
                         height={height}
-                        zoom={zoom}
-                        pan={pan}
                     />
                 </Box>
             </PanelContent>

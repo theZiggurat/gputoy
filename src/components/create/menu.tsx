@@ -12,7 +12,7 @@ import { FiMoreVertical } from 'react-icons/fi'
 import { Divider } from '../reusable/micro'
 import { themed } from '../../theme/theme'
 import { useRecoilState, useRecoilValue } from "recoil"
-import { usePanels } from '../../recoil/layout'
+import { layoutState, usePanels } from '../../recoil/layout'
 import { projectState, title, workingProjectID } from '../../recoil/project'
 import { CgGitFork } from 'react-icons/cg'
 import { MdOutlinePublish } from 'react-icons/md'
@@ -190,6 +190,7 @@ const ProjectMenu = () => {
 const useMenu = () => {
   const projectID = useRecoilValue(workingProjectID)
   const projectValue = useRecoilValue(projectState(projectID))
+  const projectLayout = useRecoilValue(layoutState)
   const { addPanel, resetPanels } = usePanels()
   const router = useRouter()
 
@@ -204,11 +205,13 @@ const useMenu = () => {
         description: '',
         params: projectValue.params,
         shaders: projectValue.files,
+        layout: projectLayout,
         published: true
       })
     })
     const id = (await response.json()).projectID
-    router.replace(`/create/?id=${id}`)
+    if (id !== undefined)
+      router.replace(`/create/?id=${id}`)
   }
 
   const onExit = () => {

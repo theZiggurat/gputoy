@@ -1,12 +1,11 @@
 import  { atom, atomFamily, DefaultValue, selector, selectorFamily, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
-import localStorageEffect, { consoleLogEffect } from './effects'
 import * as types from '../gpu/types'
 
 // @ts-ignore
 import defaultShader from '../../shaders/basicShader.wgsl'
 
 import { layoutState } from './layout'
-import { useConsole, _console } from './console'
+import { _console } from './console'
 import { useEffect } from 'react'
 import { Project } from '../gpu/project'
 
@@ -94,7 +93,7 @@ export const projectState = selectorFamily<types.Project, string>({
     return {
       title: projectTitle,
       files: projectFiles,
-      params: projectParams
+      params: projectParams,
     }
   },
   set: (id) => ({set, reset}, proj) => {

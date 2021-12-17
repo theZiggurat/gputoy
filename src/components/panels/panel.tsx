@@ -3,7 +3,7 @@ import SplitPane from 'react-split-pane'
 import { DefaultValue, useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 import { layoutState, PanelProps } from '../../recoil/layout'
 import { set } from 'lodash/fp'
-import { get } from 'lodash'
+import { debounce, get } from 'lodash'
 import { nanoid } from 'nanoid'
 import useHorizontalScroll from '../../utils/scrollHook'
 import {RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
@@ -80,22 +80,22 @@ export const Panel = (props: PanelInProps) => {
       ref={bounds as LegacyRef<HTMLDivElement>}
     >
       {
-        React.Children.map(props.children, (elem: ReactElement<any>) => {
-        //if (elem.type === PanelBar)
-          return React.cloneElement(elem, {
-            location: barLocation, 
-            onChangeLocation: onChangeLocation,
-            path: props.path,
-            onSplitPanel: props.onSplitPanel,
-            onCombinePanel: props.onCombinePanel,
-            onSwitchPanel: props.onSwitchPanel,
-            panelDesc: props.panelDesc,
-            panelIndex: props.panelIndex,
-            clippingBoundary: bounds.current,
-            instanceID: props.instanceID
-          })
-        //else
-          //return elem
+        React.Children.map(props.children, (elem: ReactElement<any>, idx: number) => {
+          if (idx === 0)
+            return elem
+          else
+            return React.cloneElement(elem, {
+              location: barLocation, 
+              onChangeLocation: onChangeLocation,
+              path: props.path,
+              onSplitPanel: props.onSplitPanel,
+              onCombinePanel: props.onCombinePanel,
+              onSwitchPanel: props.onSwitchPanel,
+              panelDesc: props.panelDesc,
+              panelIndex: props.panelIndex,
+              clippingBoundary: bounds.current,
+              instanceID: props.instanceID
+            })
       })}
     </Flex>
   )
@@ -143,12 +143,25 @@ export const PanelBar = (props: PanelBarProps) => {
 
   const instances = useInstances()
 
-  const scrollRef = useHorizontalScroll(Boolean(props.preventScroll))
-  const onHandleSplitVertical = (idx: number) => props.onSplitPanel!(props.path!, 'horizontal', idx)
-  const onHandleSplitHorizontal = (idx: number) => props.onSplitPanel!(props.path!, 'vertical', idx)
-  const onHandleCombine = () => props.onCombinePanel!(props.path!)
-  const onHandleSwitch = (index: number) => props.onSwitchPanel!(props.path!, index)
-  const {children, location, onChangeLocation, ...barProps} = props
+  const {
+    children, 
+    location, 
+    onChangeLocation,
+    onSplitPanel,
+    onSwitchPanel,
+    onCombinePanel,
+    panelDesc,
+    path,
+    preventScroll,
+    ...barProps
+  } = props
+
+  const scrollRef = useHorizontalScroll(Boolean(preventScroll))
+  const onHandleSplitVertical = (idx: number) => onSplitPanel!(path!, 'horizontal', idx)
+  const onHandleSplitHorizontal = (idx: number) => onSplitPanel!(path!, 'vertical', idx)
+  const onHandleCombine = () => onCombinePanel!(path!)
+  const onHandleSwitch = (index: number) => onSwitchPanel!(path!, index)
+  
 
   return (
     <Flex 
@@ -198,6 +211,7 @@ export const PanelBar = (props: PanelBarProps) => {
                   <PanelSelectorButton 
                     icon={desc.icon} 
                     title={desc.name}
+                    key={desc.name}
                     onSwitch={() => onHandleSwitch(desc.index+1)}
                     onHandleSplitHorizontal={() => onHandleSplitHorizontal(idx)}
                     onHandleSplitVertical={() => onHandleSplitVertical(idx)}
@@ -320,12 +334,20 @@ export interface PanelDescriptorProps {
 export const Panels = (props: PanelProps & PanelDescriptorProps) => {
 
     const { descriptors, ...panelProps } = props
-    const { panelLayout, ...rest } = panelProps
+    const { panelLayout, layoutSize, ...rest } = panelProps
 
-    return _render(panelLayout, descriptors, rest as PanelProps, '')
+    return _render(panelLayout, descriptors, rest as PanelProps, '', layoutSize)
 }
 
-const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, path: string): React.ReactElement<any> => {
+const _render = (
+  obj: any, 
+  descriptors: PanelDescriptor[], 
+  props: PanelProps,
+  path: string, 
+  localLayoutSize: number[]
+): React.ReactElement<any> => {
+
+    const totalSize = localLayoutSize[obj['type'] == 'vertical' ? 0:1]
 
     if (obj['instanceID'] === undefined) 
         return <div className="ERRORDIV_NOINSTANCE"/>
@@ -355,25 +377,51 @@ const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, pa
                 }
             )
         )
-    else if ('left' in obj && 'right' in obj)
-        return (
-            React.createElement(
-                SplitPane,
-                {
-                    key: obj['instanceID'],
-                    split: obj['type'], 
-                    defaultSize: obj['size'] ?? "50%",
-                    style: path=='' ? {
-                        flex: '1 1 auto',
-                        position: 'relative'
-                    } : {}
-                },
-                [
-                    _render(obj['left'], descriptors, props, path.concat('l')), 
-                    _render(obj['right'], descriptors, props, path.concat('r'))
-                ]
-            )   
-        )
+    else if ('left' in obj && 'right' in obj) {
+      console.log(path, props.windowGen)
+      // console.log(path, totalSize, localLayoutSize)
+      // console.log(path, obj['size'])
+      return (
+          React.createElement(
+              SplitPane,
+              {
+                  key: `${obj['instanceID']}${props.windowGen}`,
+                  split: obj['type'], 
+                  defaultSize: obj['size'] ? obj['size'] * totalSize:"50%",
+                  minSize: 100,
+                  maxSize: totalSize * 0.9,
+                  onChange: (newSize: number) => 
+                    props.onPanelSizeChange(path, newSize, totalSize),
+                  style: path=='' ? {
+                      flex: '1 1 auto',
+                      position: 'relative'
+                  } : {
+                    overflow: "hidden"
+                  }
+              },
+              [
+                  _render(obj['left'], descriptors, props, path.concat('l'), newLayoutSize(obj, localLayoutSize, true)), 
+                  _render(obj['right'], descriptors, props, path.concat('r'), newLayoutSize(obj, localLayoutSize))
+              ]
+          )   
+      )
+      }
     else 
         return <div className="ERRORDIV_NOCHILDREN"/>
+}
+
+const newLayoutSize = (obj: any, layoutSize: number[], left?: boolean): number[] => {
+  if (left) {
+    if (obj['type'] == 'vertical') {
+      return [layoutSize[0] * (obj['size'] ?? 0.5), layoutSize[1]]
+    } else {
+      return [layoutSize[0], layoutSize[1] * (obj['size'] ?? 0.5)]
+    }
+  } else {
+    if (obj['type'] == 'vertical') {
+      return [layoutSize[0] * (1 - (obj['size'] ?? 0.5)), layoutSize[1]]
+    } else {
+      return [layoutSize[0], layoutSize[1] * (1 - (obj['size'] ?? 0.5))]
+    }
+  }
 }
