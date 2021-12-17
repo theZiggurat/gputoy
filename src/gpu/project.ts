@@ -15,7 +15,6 @@ export class Project {
 
   static instance = (): Project => {
     if (Project._instance === undefined) {
-      console.log('making new instance')
       Project._instance = new Project()
     }
       
@@ -85,7 +84,6 @@ export class Project {
           return false
         }
         const continueRun = await this.compileShaders(logger, setFileErrors)
-        console.log('continueRun', continueRun)
         if (!continueRun) {
           return false
         }
@@ -111,7 +109,6 @@ export class Project {
   updateParams = (paramDesc: types.ParamDesc[], logger?: Logger) => {
     if(GPU.isInitialized()) 
       this.shaderDirty = this.params.set(paramDesc, GPU.device) || this.shaderDirty
-    //console.log(this.shaderDirty)
   }
 
   updateShaders = (files: types.CodeFile[], logger?: Logger) => {
@@ -120,7 +117,6 @@ export class Project {
   }
 
   compileShaders = async (logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<boolean> => {
-    //console.log(this.shaders)
     let srcFile = this.shaders.find(f => f.isRender)
     if (srcFile === undefined) {
       logger?.err('Project', 'Cannot compile. No \'render\' shader in files!')
@@ -131,7 +127,6 @@ export class Project {
       .concat(this.params.getShaderDecl())
 
     let module = await Compiler.instance().compileWGSL(GPU.device, srcFile, decls, logger, setFileErrors)
-    console.log(module)
     if (module == null)
       return false
     this.shaderModule = module

@@ -378,9 +378,6 @@ const _render = (
             )
         )
     else if ('left' in obj && 'right' in obj) {
-      console.log(path, props.windowGen)
-      // console.log(path, totalSize, localLayoutSize)
-      // console.log(path, obj['size'])
       return (
           React.createElement(
               SplitPane,

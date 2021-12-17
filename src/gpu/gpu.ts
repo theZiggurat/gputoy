@@ -28,8 +28,6 @@ class _GPU {
 
     async init(logger?: Logger): Promise<GPUInitResult> {
 
-        console.log('device init')
-
         if (!navigator.gpu)
             return 'incompatible'
 
@@ -73,8 +71,6 @@ class _GPU {
 
     attachCanvas = async (canvasID : string, logger?: Logger): Promise<AttachResult | null> => {
 
-
-        //console.log('attaching', canvasID)
         if (!GPU.isInitialized()) 
             logger?.debug('GPU', 'Trying to attach canvas without GPU initialized. Initializing now')  
 

@@ -77,6 +77,13 @@ const ProjectManager = () => {
     onControlChange()
   }, [projectControlStatus])
 
+  useEffect(() => {
+    return () => {
+      console.log('cancelling project')
+      cancelAnimationFrame(intervalHandle.current)
+    }
+  }, [])
+
 
   /**
    * Handle uniform and shader updates

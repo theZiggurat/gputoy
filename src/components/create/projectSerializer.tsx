@@ -3,7 +3,7 @@ import React, { useEffect } from 'react'
 import { DefaultValue, useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
 import { clearConsole } from '../../recoil/console'
 import { layoutState } from '../../recoil/layout'
-import { projectState, projectStatus, workingProjectID } from '../../recoil/project'
+import { projectControl, projectState, projectStatus, workingProjectID } from '../../recoil/project'
 
 
 type ProjectSerializerProps = {
@@ -19,13 +19,24 @@ const ProjectSerializer = (props: ProjectSerializerProps) => {
 
   const [projectStateValue, setProjectState] = useRecoilState(projectState(projectID))
   const setProjectID = useSetRecoilState(workingProjectID)
+
   const setClearConsole = clearConsole()
   const resetProjectStatus = useResetRecoilState(projectStatus)
+  const setProjectControls = useSetRecoilState(projectControl)
+
   const setLayout = useSetRecoilState(layoutState)
 
   useEffect(() => {
-    setClearConsole()
-    resetProjectStatus()
+    return () => {
+      console.log('clearing')
+      setClearConsole()
+      setProjectControls('stop')
+    }
+    
+    //resetProjectStatus()
+  }, [])
+
+  useEffect(() => {
     setProjectID(projectID)
     if (projectID == 'local') {
       const projectLoad = localStorage.getItem('project_local')
