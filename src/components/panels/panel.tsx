@@ -1,9 +1,9 @@
 import React, { LegacyRef, ReactElement, ReactNode, useCallback, useEffect, useRef } from 'react'
 import SplitPane from 'react-split-pane'
 import { DefaultValue, useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
-import { layoutState } from '../../recoil/atoms'
+import { layoutState, PanelProps } from '../../recoil/layout'
 import { set } from 'lodash/fp'
-import { get } from 'lodash'
+import { debounce, get } from 'lodash'
 import { nanoid } from 'nanoid'
 import useHorizontalScroll from '../../utils/scrollHook'
 import {RiArrowDropUpLine, RiArrowDropDownLine } from 'react-icons/ri'
@@ -23,6 +23,8 @@ import {
 } from '@chakra-ui/react'
 import useInstance, { useInstanceCleaner, useInstances } from '../../recoil/instance'
 import { RowButton } from '../reusable/rowButton'
+import { themed } from '../../theme/theme'
+import { lightResizer, darkResizer } from '../../theme/consts'
 
 
 // --------- CUSTOM PANEL INTERFACES  --------------
@@ -78,22 +80,22 @@ export const Panel = (props: PanelInProps) => {
       ref={bounds as LegacyRef<HTMLDivElement>}
     >
       {
-        React.Children.map(props.children, (elem: ReactElement<any>) => {
-        //if (elem.type === PanelBar)
-          return React.cloneElement(elem, {
-            location: barLocation, 
-            onChangeLocation: onChangeLocation,
-            path: props.path,
-            onSplitPanel: props.onSplitPanel,
-            onCombinePanel: props.onCombinePanel,
-            onSwitchPanel: props.onSwitchPanel,
-            panelDesc: props.panelDesc,
-            panelIndex: props.panelIndex,
-            clippingBoundary: bounds.current,
-            instanceID: props.instanceID
-          })
-        //else
-          //return elem
+        React.Children.map(props.children, (elem: ReactElement<any>, idx: number) => {
+          if (idx === 0)
+            return elem
+          else
+            return React.cloneElement(elem, {
+              location: barLocation, 
+              onChangeLocation: onChangeLocation,
+              path: props.path,
+              onSplitPanel: props.onSplitPanel,
+              onCombinePanel: props.onCombinePanel,
+              onSwitchPanel: props.onSwitchPanel,
+              panelDesc: props.panelDesc,
+              panelIndex: props.panelIndex,
+              clippingBoundary: bounds.current,
+              instanceID: props.instanceID
+            })
       })}
     </Flex>
   )
@@ -102,15 +104,17 @@ export const Panel = (props: PanelInProps) => {
 // --------- PANEL CONTENT --------------
 
 interface PanelContentProps {
-  children: ReactNode
+  children: ReactNode,
+  noBg?: boolean
 }
 export const PanelContent = (props: PanelContentProps & any) => {
-  const {children, ...contentProps} = props
+  const {children, noBg, ...contentProps} = props
   return (
     <Box 
       flex="1 1 auto"
       overflowY="auto"
       overflowX="clip"
+      bg={noBg ? '':themed('p')}
       {...contentProps}
     >
       {props.children}
@@ -139,17 +143,30 @@ export const PanelBar = (props: PanelBarProps) => {
 
   const instances = useInstances()
 
-  const scrollRef = useHorizontalScroll(Boolean(props.preventScroll))
-  const onHandleSplitVertical = (idx: number) => props.onSplitPanel!(props.path!, 'horizontal', idx)
-  const onHandleSplitHorizontal = (idx: number) => props.onSplitPanel!(props.path!, 'vertical', idx)
-  const onHandleCombine = () => props.onCombinePanel!(props.path!)
-  const onHandleSwitch = (index: number) => props.onSwitchPanel!(props.path!, index)
-  const {children, location, onChangeLocation, ...barProps} = props
+  const {
+    children, 
+    location, 
+    onChangeLocation,
+    onSplitPanel,
+    onSwitchPanel,
+    onCombinePanel,
+    panelDesc,
+    path,
+    preventScroll,
+    ...barProps
+  } = props
+
+  const scrollRef = useHorizontalScroll(Boolean(preventScroll))
+  const onHandleSplitVertical = (idx: number) => onSplitPanel!(path!, 'horizontal', idx)
+  const onHandleSplitHorizontal = (idx: number) => onSplitPanel!(path!, 'vertical', idx)
+  const onHandleCombine = () => onCombinePanel!(path!)
+  const onHandleSwitch = (index: number) => onSwitchPanel!(path!, index)
+  
 
   return (
     <Flex 
       maxHeight={12}
-      backgroundColor={useColorModeValue('light.a2', 'dark.a2')}
+      backgroundColor={themed('a2')}
       direction="row"
       alignItems="center"
       flex="0 0 auto"
@@ -175,32 +192,31 @@ export const PanelBar = (props: PanelBarProps) => {
           ]}
         >
           <PopoverTrigger>
-            <Button 
-              size="sm"
-              rightIcon={props.panelDesc![props.panelIndex!].icon} 
-              iconSpacing={0}
-              aria-label="Choose panel"
-              title="Choose panel"
-              borderEndRadius="0"
+            <IconButton 
+              icon={props.panelDesc![props.panelIndex!].icon}
+              borderRightRadius="0"
+              purpose="Choose panel"
             />
           </PopoverTrigger>
           <Portal>
             <PopoverContent 
               width="fit-content"
-              backgroundColor={useColorModeValue('light.a2','dark.a2')}
+              backgroundColor={themed('a2')}
               borderColor="transparent"
             >
               <Flex direction="column">
                 {
                   props.panelDesc!.map((desc, idx) => 
+                  idx !== 0 &&
                   <PanelSelectorButton 
                     icon={desc.icon} 
                     title={desc.name}
-                    onSwitch={() => onHandleSwitch(desc.index)}
+                    key={desc.name}
+                    onSwitch={() => onHandleSwitch(desc.index+1)}
                     onHandleSplitHorizontal={() => onHandleSplitHorizontal(idx)}
                     onHandleSplitVertical={() => onHandleSplitVertical(idx)}
                     last={idx==props.panelDesc!.length-1}
-                    first={idx==0}
+                    first={idx==1}
                     disabled={instances.map(sel => sel.index).includes(idx) && desc.single}
                   />)
                 }                  
@@ -208,15 +224,12 @@ export const PanelBar = (props: PanelBarProps) => {
             </PopoverContent>
           </Portal>
         </Popover>
-        <IconButton 
-          size="sm"
+        <RowButton 
           icon={<VscClose/>}
-          aria-label="Close Panel"
-          title="Close Panel"
-          borderEndRadius="md"
-          borderStartRadius="0px"
+          purpose="Close Panel"
           onClick={onHandleCombine}
           disabled={props.path==''}
+          last
         />
       </Flex>
       {children}
@@ -312,12 +325,7 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
 
 // --------- PANEL HOOK --------------
 
-export interface PanelProps {
-    panelLayout: any,
-    onSplitPanel: (path: string, direction: 'horizontal' | 'vertical', panelIndex: number) => void,
-    onCombinePanel: (path: string) => void,
-    onSwitchPanel: (path: string, panelIndex: number) => void,
-}
+
 
 export interface PanelDescriptorProps {
     descriptors: PanelDescriptor[]
@@ -326,75 +334,20 @@ export interface PanelDescriptorProps {
 export const Panels = (props: PanelProps & PanelDescriptorProps) => {
 
     const { descriptors, ...panelProps } = props
-    const { panelLayout, ...rest } = panelProps
+    const { panelLayout, layoutSize, ...rest } = panelProps
 
-    return _render(panelLayout, descriptors, rest as PanelProps, '')
+    return _render(panelLayout, descriptors, rest as PanelProps, '', layoutSize)
 }
 
-export const usePanels = (): PanelProps => {
+const _render = (
+  obj: any, 
+  descriptors: PanelDescriptor[], 
+  props: PanelProps,
+  path: string, 
+  localLayoutSize: number[]
+): React.ReactElement<any> => {
 
-    const [panelTreeLayout, setPanelTreeLayout] = useRecoilState(layoutState)
-    const cleaner = useInstanceCleaner()
-
-    // load layout from localstorage
-    useEffect(() => {
-        const layout = window.localStorage.getItem('layout')
-        trySetLayout(layout != null ? JSON.parse(layout): undefined)
-    }, [])
-
-    // save layout to local storage on change
-    useEffect(() => {
-        window.localStorage.setItem('layout', JSON.stringify(panelTreeLayout))
-        cleaner(instances(panelTreeLayout))
-    }, [panelTreeLayout])
-
-    const trySetLayout = (layout: any | undefined) => { if(layout !== undefined) setPanelTreeLayout(layout) }
-    const onSplit = (path: string, direction: 'horizontal' | 'vertical', panelIndex: number) => {
-        trySetLayout(replaceAtPath(panelTreeLayout, path, layout => {
-            const obj: any = {}
-            obj['left'] = {instanceID: layout['instanceID'],index: layout['index'], type: 'leaf'}
-            obj['right'] = {instanceID: genID(), index: panelIndex, type: 'leaf'}
-            obj['index'] = -1
-            obj['type'] = direction
-            obj['instanceID']= genID()
-            return obj
-        }))
-    }
-
-    const onCombine= (path: string) => {
-        const dir = path.charAt(path.length-1) === 'r' ? 'left':'right'
-        trySetLayout(replaceAtPath(panelTreeLayout, path.substr(0, path.length-1), layout => {
-            const obj: any = {}
-            const child = layout[dir]
-            obj['index'] = child['index']
-            obj['instanceID'] = child['instanceID']
-            obj['type'] = child['type']
-            obj['left'] = child['left']
-            obj['right'] = child['right']
-            return obj
-        }))
-    }
-
-    const onSwitch = (path: string, panelIndex: number) => {
-        if(get(panelTreeLayout, arrpath(path).concat('index')) === panelIndex) return
-        trySetLayout(replaceAtPath(panelTreeLayout, path, layout => {
-            const obj: any = {}
-            obj['index'] = panelIndex
-            obj['type'] = 'leaf'
-            obj['instanceID'] = genID()
-            return obj
-        }))
-    }
-
-    return {
-        panelLayout: panelTreeLayout,
-        onCombinePanel: onCombine,
-        onSplitPanel: onSplit,
-        onSwitchPanel: onSwitch
-    }
-}
-
-const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, path: string): React.ReactElement<any> => {
+    const totalSize = localLayoutSize[obj['type'] == 'vertical' ? 0:1]
 
     if (obj['instanceID'] === undefined) 
         return <div className="ERRORDIV_NOINSTANCE"/>
@@ -424,46 +377,51 @@ const _render = (obj: any, descriptors: PanelDescriptor[], props: PanelProps, pa
                 }
             )
         )
-    else if ('left' in obj && 'right' in obj)
-        return (
-            React.createElement(
-                SplitPane,
-                {
-                    key: obj['instanceID'],
-                    split: obj['type'], 
-                    defaultSize: "65%", 
-                    style: path=='' ? {
-                        flex: '1 1 auto',
-                        position: 'relative'
-                    } : {}
-                },
-                [
-                    _render(obj['left'], descriptors, props, path.concat('l')), 
-                    _render(obj['right'], descriptors, props, path.concat('r'))
-                ]
-            )   
-        )
+    else if ('left' in obj && 'right' in obj) {
+      console.log(path, props.windowGen)
+      // console.log(path, totalSize, localLayoutSize)
+      // console.log(path, obj['size'])
+      return (
+          React.createElement(
+              SplitPane,
+              {
+                  key: `${obj['instanceID']}${props.windowGen}`,
+                  split: obj['type'], 
+                  defaultSize: obj['size'] ? obj['size'] * totalSize:"50%",
+                  minSize: 100,
+                  maxSize: totalSize * 0.9,
+                  onChange: (newSize: number) => 
+                    props.onPanelSizeChange(path, newSize, totalSize),
+                  style: path=='' ? {
+                      flex: '1 1 auto',
+                      position: 'relative'
+                  } : {
+                    overflow: "hidden"
+                  }
+              },
+              [
+                  _render(obj['left'], descriptors, props, path.concat('l'), newLayoutSize(obj, localLayoutSize, true)), 
+                  _render(obj['right'], descriptors, props, path.concat('r'), newLayoutSize(obj, localLayoutSize))
+              ]
+          )   
+      )
+      }
     else 
         return <div className="ERRORDIV_NOCHILDREN"/>
 }
 
-const arrpath = (path: string): string[] => Array.from(path).map(c=>c==='l'?'left':'right')
-
-const replaceAtPath = (obj: any, path: string, f: (obj: any) => void): any | undefined => {
-    const apath = arrpath(path)
-    const objAtPath = apath.length == 0 ? obj : get(obj, apath)
-    if (objAtPath === undefined) 
-        return false
-    return apath.length == 0 ? f(objAtPath): set(apath, f(objAtPath), obj)
-}
-
-const instances = (obj: any): any[] => {
-    const _instances = (obj: any, path: string): any[] => {
-        const selfID = get(obj, arrpath(path).concat('instanceID'))
-        const selfIndex = get(obj, arrpath(path).concat('index'))
-        return selfID === undefined ? [] : [{id: selfID, index: selfIndex}].concat(_instances(obj, path.concat('l'))).concat(_instances(obj, path.concat('r')))
+const newLayoutSize = (obj: any, layoutSize: number[], left?: boolean): number[] => {
+  if (left) {
+    if (obj['type'] == 'vertical') {
+      return [layoutSize[0] * (obj['size'] ?? 0.5), layoutSize[1]]
+    } else {
+      return [layoutSize[0], layoutSize[1] * (obj['size'] ?? 0.5)]
     }
-    return _instances(obj, '')
+  } else {
+    if (obj['type'] == 'vertical') {
+      return [layoutSize[0] * (1 - (obj['size'] ?? 0.5)), layoutSize[1]]
+    } else {
+      return [layoutSize[0], layoutSize[1] * (1 - (obj['size'] ?? 0.5))]
+    }
+  }
 }
-
-const genID = () => nanoid(8)

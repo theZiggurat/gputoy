@@ -4,6 +4,8 @@ import GPU, { AttachResult } from './gpu'
 import Params from "./params"
 import staticdecl from './staticdecl'
 import Compiler from './compiler'
+import { useRef, useState, useEffect, Dispatch, SetStateAction } from "react"
+import { useProjectControlsDirect } from "../recoil/controls"
 
 class ProjectDirect {
 
@@ -225,3 +227,55 @@ function sleep(ms) {
 }
 
 export default ProjectDirect
+
+
+
+
+export const useProjectDirect = (project: DBProject, autoplay: boolean, ...canvasIDs: string[]): [boolean, Dispatch<SetStateAction<boolean>>] => {
+
+  const projectRef = useRef<ProjectDirect | undefined>(undefined)
+  const controls = useProjectControlsDirect(projectRef)
+  const [loading, setLoading] = useState(true)
+  const [playing, setPlaying] = useState(false)
+  const animationHandle = useRef(0)
+  const playingRef = useRef(false)
+
+  useEffect(() => {
+      const init = async () => {
+          projectRef.current = new ProjectDirect()
+          await projectRef.current.init(project, ...canvasIDs)
+          setLoading(false)
+      }
+      init()
+      return () => {
+        cancelAnimationFrame(animationHandle.current)
+      }
+  }, [])
+
+  useEffect(() => {
+    if (autoplay)
+      setPlaying(true)
+  }, [])
+
+  const render = () => {
+    if (!playingRef.current) return
+    controls.step()
+    projectRef.current?.renderFrame()
+    animationHandle.current = requestAnimationFrame(render)
+  }
+
+  useEffect(() => {
+    playingRef.current = playing
+    if (!loading) {
+      if (playing || autoplay) {
+        controls.play()
+        animationHandle.current = requestAnimationFrame(render)
+      } else {
+        controls.pause()
+      }
+    }
+    return () => cancelAnimationFrame(animationHandle.current)
+  }, [playing, loading])
+
+  return [loading, setPlaying]
+}

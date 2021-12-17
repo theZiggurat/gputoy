@@ -38,6 +38,8 @@ export class Project {
   shaderDirty = true
 
   gpuAttach!: AttachResult
+  resizeNeeded: boolean = false
+  resizeSize: number[] = [0, 0]
 
   // attaches canvas to current GPU device if there is one
   // if there is no device, it will try to init
@@ -49,6 +51,18 @@ export class Project {
     return true
   }
 
+  handleResize = (newsize: number[]) => {
+    if (this.gpuAttach === undefined) return
+    if (
+      newsize[0] !== this.gpuAttach.presentationSize[0] || 
+      newsize[1] !== this.gpuAttach.presentationSize[1] 
+    ) {
+      this.resizeNeeded = true
+      this.resizeSize = newsize
+      //this.gpuAttach = GPU.handleResize(this.gpuAttach, newsize)
+    }
+  }
+
   // starts project
   prepareRun = (state: types.ProjectStatus, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): boolean => {
     if(!GPU.isInitialized()){
@@ -56,9 +70,15 @@ export class Project {
       return false
     }
 
+    if (this.resizeNeeded) {
+      this.gpuAttach = GPU.handleResize(this.gpuAttach, this.resizeSize)
+      this.resizeNeeded = false
+    }
+
     // project is starting or restarted
     if (state.frameNum == 0 || this.shaderDirty) {
       logger?.trace('Project', 'Preparing run')
+
       if (this.shaderDirty) {
         if (!Compiler.instance().isReady()) {
           logger?.err('Compiler', 'Compiler module not ready')
@@ -121,22 +141,6 @@ export class Project {
     this.encodeCommands()
     
     return this.gpuAttach.canvas.toDataURL('image/png')
-  }
-
-  setFromDbDirect = (project: DBProject) => {
-    if (project.params)
-      this.updateParams(JSON.parse(project.params))
-    else
-      this.updateParams([])
-
-    this.updateShaders(project.shaders.map(s => {
-      return {
-        filename: s.name,
-        file: s.source,
-        lang: s.lang,
-        isRender: s.isRender,
-      }
-    }))
   }
 
   updateDefaultParams = (paramDesc: types.ParamDesc[], logger?: Logger) => {

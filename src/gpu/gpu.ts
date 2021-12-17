@@ -61,10 +61,10 @@ class _GPU {
         logger?.debug('GPU', `Adapter found: ${this.adapter.name}`)
         this.device = await this.adapter.requestDevice()
 
-        this.device.lost.then((info) => {
-            alert(`GPU Device lost. Info: ${info}`)
-            //this.init()
-        })
+        // this.device.lost.then((info) => {
+        //     alert(`GPU Device lost. Info: ${info}`)
+        //     //this.init()
+        // })
     }
 
     isInitialized(): boolean {
@@ -135,6 +135,19 @@ class _GPU {
             presentationSize,
             preferredFormat
         }
+    }
+
+    handleResize = (attachResult: AttachResult, newsize: number[]) => {
+        attachResult.targetTexture.destroy()
+        attachResult.canvasContext.configure({
+            device: this.device,
+            format: attachResult.canvasContext.getPreferredFormat(this.adapter),
+            size: newsize,
+        })
+        attachResult.targetTexture = attachResult.canvasContext.getCurrentTexture()
+        attachResult.presentationSize = newsize
+
+        return attachResult
     }
 }
 

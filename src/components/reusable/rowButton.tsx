@@ -19,6 +19,7 @@ export const RowButton = (props: RowButtonProps & IconButtonProps) => {
       title={purpose}
       borderStartRadius={first?"":"0"}
       borderEndRadius={last?"":"0"}
+      borderLeft={first?"":"0"}
       {...iconButtonProps}
     />
   )
@@ -40,6 +41,7 @@ export const RowToggleButton = (props: RowToggleButtonProps) => {
       bg={toggled?'':useColorModeValue('whiteAlpha.600', 'whiteAlpha.50')}
       borderStartRadius={first?"":"0px"}
       borderEndRadius={last?"":"0px"}
+      borderLeft={first?"":"0"}
       px="1rem"
       onClick={onClick}
     >

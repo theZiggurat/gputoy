@@ -1,52 +1,75 @@
-import React from 'react'
-import { Panels, usePanels } from '../src/components/panels/panel'
+import React, { useEffect } from 'react'
+import { Panels } from '../src/components/panels/panel'
+import { usePanels } from '../src/recoil/layout'
+import descriptors from '../src/components/panels/descriptors'
+
 import Scaffold from '../src/components/scaffold'
 
-import descriptors from '../src/components/panels/descriptors'
-import { _console } from '../src/recoil/console'
 import { 
-	Flex,
-	Button,
-	Text,
-	useColorModeValue
+	Input,
 } from '@chakra-ui/react'
-import { RiArrowDropDownLine } from 'react-icons/ri'
-import {FiHardDrive } from 'react-icons/fi'
 import Head from 'next/head'
-import ProjectManager from '../src/components/projectManager'
 
-type ProjectHeaderProps = {
-    title?: string,
+import ProjectManager from '../src/components/create/projectManager'
+import ProjectMenu from '../src/components/create/menu'
+
+import { RowButton } from '../src/components/reusable/rowButton'
+
+import ProjectSerializer from '../src/components/create/projectSerializer'
+import { useRecoilState, useRecoilValue } from 'recoil'
+import { title, workingProjectID } from '../src/recoil/project'
+import { GetServerSideProps } from 'next'
+import { Project as ProjectDB } from '.prisma/client'
+import prisma from '../lib/prisma'
+import consts, { darkResizer } from '../src/theme/consts'
+
+export const getServerSideProps: GetServerSideProps = async ({query}) => {
+	if (query.id !== undefined) {
+		const project = await prisma.project.findUnique({
+			where: {
+				id: query.id
+			},
+			include: {
+				shaders: true,
+				author: {
+						select: {
+								name: true
+						}
+				}
+		}
+		})
+		if (project !== null) {
+			project.createdAt = project.createdAt.toISOString()
+			project.updatedAt = project.updatedAt.toISOString()
+			return { props: {
+				project,
+				projectID: query.id
+			}}
+		} else {
+			return { props: { projectID: query.id } }
+		}
+ 	}
+	else 
+		return { props: { projectID: 'local' } }
+	
 }
-const ProjectHeader = (props: ProjectHeaderProps) => {
+
+const Create = (props: {projectID: string, project?: ProjectDB}) => {
+
+	const panelProps = usePanels({})
+
 	return (
-		<Button 
-			p="1rem" 
-			paddingX="2rem"
-		>
-				<Text pr="1rem">
-					{props.title ?? "Unnamed Project"}
-				</Text>
-				<FiHardDrive/>
-		</Button>
+		<Scaffold navChildren={
+			<ProjectMenu/>
+		}>
+			{/* <Head>
+				<title>{`GPUToy :: Unnamed Project`}</title>
+			</Head> */}
+			<ProjectManager/>
+			<ProjectSerializer {...props}/>
+			<Panels {...panelProps} descriptors={descriptors}/>
+		</Scaffold>
 	)
-}
-
-const Create = () => {
-
-    const props = usePanels()
-    
-    return (
-        <Scaffold navChildren={
-            <ProjectHeader/>
-        }>
-            <Head>
-                <title>{`GPUToy :: Unnamed Project`}</title>
-            </Head>
-            <ProjectManager/>
-            <Panels {...props} descriptors={descriptors}/>
-        </Scaffold>
-    )
 }
 
 export default Create

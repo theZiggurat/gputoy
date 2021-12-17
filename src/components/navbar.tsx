@@ -1,32 +1,17 @@
 import {
-  chakra,
-  Box,
   Flex,
-  Avatar,
   Button,
-  Menu,
-  MenuList,
-  MenuItem, 
-  MenuDivider,
-  useDisclosure,
-  useColorModeValue,
-  Stack,
-  useColorMode,
-  Center,
-  HStack,
   Icon,
   Badge,
-  MenuButton,
-  Divider,
-  Text
+  Text,
+  chakra
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { ReactChildren, ReactNode, useState } from 'react';
-import { MdNightlight, MdWbSunny} from 'react-icons/md'
+import { ReactNode } from 'react';
 
-import { useResetRecoilState } from 'recoil';
-import { layoutState } from '../recoil/atoms';
+
+import { themed } from '../theme/theme';
 import NavUser from './user';
 
 
@@ -34,6 +19,8 @@ interface NavLinkProps {
   href: string,
   text: string,
   currentPath: string,
+  first?: boolean,
+  last?: boolean
 }
 
 const NavLink = (props: NavLinkProps) => {
@@ -46,7 +33,10 @@ const NavLink = (props: NavLinkProps) => {
         userSelect="none" 
         p="1em"
         size="sm"
-        bg={ selected ? '' : 'transparent'}
+        borderLeftRadius={props.first ? "":"0px"}
+        borderLeft={props.first ? "":"0px"}
+        borderRightRadius={props.last ? "":"0px"}
+        bg={selected?themed('buttonHovered'):''}
       >
         {props.text}
       </Button>
@@ -56,63 +46,47 @@ const NavLink = (props: NavLinkProps) => {
 
 export default function Nav(props: {children?: ReactNode}) {
 
-  const { colorMode, toggleColorMode } = useColorMode();
   const router = useRouter();
   const isActive = router.pathname == '/'; 
 
-  const [toggled, st] = useState(false)
-  const oc = () => st(t =>  !t)
-
-  const resetLayout = useResetRecoilState(layoutState)
-
-  const onReset = () => resetLayout()
-
   return (
-    <Flex 
-      bg={useColorModeValue('light.a1', 'dark.a1')}
+    <chakra.nav 
       h='3rem' 
       justifyContent="center"
       alignItems='center'
       zIndex="1"
+      borderBottom="1px"
+      bg={themed('a1')}
+      borderColor={themed('border')}
+      display="flex"
     >
-      <HStack 
+      <Flex 
         flex="1"
         marginRight="auto"
         minW="min-content"
+        alignItems="center"
+        justifyContent="center"
         px="1rem"
       >
-        <NextLink href="/">
-          <Text fontSize={22} fontWeight="extrabold" cursor="pointer">
-            GPUTOY
-          </Text>
-        </NextLink>
-        <Badge colorScheme="blue" fontSize="0.6em" cursor="default" style={{marginRight: '1rem'}}>
-          Dev
-        </Badge>
-        <NavLink href="/browse" text="Browse" currentPath={router.pathname}/>
+        <NavLink href="/browse" text="Browse" currentPath={router.pathname} first/>
         <NavLink href="/create" text="Create" currentPath={router.pathname} />
-        <NavLink href="/market" text="Market" currentPath={router.pathname}/>            
-      </HStack>
-
-      {props.children}
-    
-      <Flex 
-        flex="1"
-        alignItems={'center'} 
-        justifyContent='end'
-        marginLeft="auto"
-        minW="min-content"
-        px="1rem"
-      >
-        <Button 
-          onClick={toggleColorMode} 
-          size="sm"
-          borderEndRadius={0}
-        >
-          <Icon as={colorMode==="light" ? MdWbSunny : MdNightlight}/>
-        </Button>
-        <NavUser/>
+        <NavLink href="/market" text="Market" currentPath={router.pathname} last/>            
       </Flex>
-    </Flex>
+      
+      {
+        props.children ??
+        <>
+          <NextLink href="/">
+            <Text fontSize={22} fontWeight="extrabold" cursor="pointer">
+              GPUTOY
+            </Text>
+          </NextLink>
+          <Badge colorScheme="blue" fontSize="0.6em" cursor="default" style={{marginRight: '1rem'}}>
+            Dev
+          </Badge>
+        </>
+      }
+      <NavUser/>
+    </chakra.nav>
   );
 }

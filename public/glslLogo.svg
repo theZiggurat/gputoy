@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="85.381mm" height="111.94mm" version="1.1" viewBox="0 0 85.381 111.94" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <linearGradient id="linearGradient174295" x1="93.255" x2="174.99" y1="83.476" y2="83.423" gradientTransform="matrix(1 0 0 .88177 -81.803 -43.052)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#c8003f" offset="0"/>
+   <stop stop-color="#e9e446" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="translate(-.17545 -.16605)">
+  <rect x=".17545" y=".16605" width="85.381" height="57.019" rx="0" ry="0" fill="url(#linearGradient174295)" stroke-width="0" style="mix-blend-mode:normal;paint-order:markers stroke fill"/>
+  <text transform="scale(1.0249 .97567)" x="-0.27414832" y="100.81636" fill="#000000" font-family="'Segoe UI'" font-size="49.564px" font-weight="bold" letter-spacing="1.3966px" stroke-width=".25814" style="line-height:1.25" xml:space="preserve"><tspan x="-0.27414832" y="100.81636" font-family="'Segoe UI'" font-size="49.564px" font-weight="bold" stroke-width=".25814">glsl</tspan></text>
+ </g>
+</svg>

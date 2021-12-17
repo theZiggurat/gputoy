@@ -32,11 +32,11 @@ import { MdAdd, MdSettings } from 'react-icons/md'
 import { useDebounce } from '../../../utils/lodashHooks'
 import { RowButton } from '../../reusable/rowButton';
 import useInstance, { ParamInstanceState } from '../../../recoil/instance';
-import { useRecoilState, useSetRecoilState } from 'recoil';
-import { layoutState } from '../../../recoil/atoms';
-import { params } from '../../../recoil/project';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { params, workingProjectID } from '../../../recoil/project';
 import * as types from '../../../gpu/types'
 import { debounce } from 'lodash';
+import { themed } from '../../../theme/theme';
 
 const gridSpacing = [12, 8, 12, 2]
 const totalGridSpace = 35
@@ -72,7 +72,6 @@ const ParamRow = (props: ParamRowProps) => {
                     alignItems='center'
                     cursor='pointer'
                     borderRadius={0}
-                    background='whiteAlpha.50'
                 >
                     <Input color={props.param} bg="transparent" cursor='pointer' isInvalid variant='unstyled' value={props.param} textTransform='uppercase'></Input>
                 </Button>
@@ -98,12 +97,13 @@ const ParamRow = (props: ParamRowProps) => {
             onChange={(str, num) => props.onParamChange(str)}
             step={props.paramType === 'int' ? 1: 0.05}
             size="sm"
-            variant="filled"
             keepWithinRange={false}
             precision={props.paramType==='int'?0:4}
             clampValueOnBlur={false}
             allowMouseWheel
-            borderRadius={0}
+            borderColor={themed('border')}
+            bg={themed('input')}
+            borderRadius="0px"
         >
             <NumberInputField />
             <NumberInputStepper>
@@ -114,13 +114,12 @@ const ParamRow = (props: ParamRowProps) => {
     }
 
     return (
-    <Grid templateColumns={`repeat(${totalGridSpace}, 1fr)`} bg="gray.800" mt={1} mb={1}>
-        <GridItem colSpan={1} bgColor="whiteAlpha.200"/>
+    <Grid templateColumns={`repeat(${totalGridSpace}, 1fr)`} mb={1}>
+        <GridItem colSpan={1} bg={themed('input')} borderY="1px" borderColor={themed('border')}/>
         <GridItem colSpan={gridSpacing[0]}>
             <Input 
                 value={props.paramName}
                 onChange={(ev) => props.onParamNameChange(props.idx, ev.target.value)}
-                variant="filled" 
                 size="sm" 
                 placeholder="variableName" 
                 borderRadius={0}
@@ -131,9 +130,10 @@ const ParamRow = (props: ParamRowProps) => {
             <Select 
                 value={props.paramType}
                 onChange={(ev) => props.onParamTypeChange(props.idx, ev.target.value as ParamType)}
-                variant="filled" 
+                borderColor={themed('border')}
+                bg={themed('input')}
+                borderX="0px"
                 size="sm"
-                borderRadius={0}
             >
                 <option value="int">Integer</option>
                 <option value="float">Float</option>
@@ -151,6 +151,7 @@ const ParamRow = (props: ParamRowProps) => {
                 icon={<FaMinus size={10}/>}
                 borderRadius={0}
                 borderEndRadius={500}
+                borderLeft="0px"
             />
         </GridItem>
     </Grid>)
@@ -188,26 +189,23 @@ const ParamPanel = (props: ParamPanelProps) => {
             <Flex direction="column" minWidth={500}>
                 <Grid 
                     templateColumns={`repeat(${totalGridSpace}, 1fr)`} 
-                    bgColor="gray.800"
                     position="sticky" 
                     top={0} 
                     borderBottom="1px" 
-                    borderColor="whiteAlpha.100" 
-                    pr={5}
-                    pt={1}
-                    zIndex={3}
+                    borderColor={themed('border')}
+                    zIndex={1}
                 >
-                    <GridItem colSpan={1}/>
-                    <GridItem colSpan={gridSpacing[0]} pl={3}  fontSize="smaller" backgroundColor="gray.800">
+                    <GridItem colSpan={1} bg={themed('a1')}/>
+                    <GridItem colSpan={gridSpacing[0]} pl="0.8rem"  fontSize="smaller" bg={themed('a1')}>
                         Name
                     </GridItem>
-                    <GridItem colSpan={gridSpacing[1]} pl={3}  fontSize="smaller" bgColor="gray.800">
+                    <GridItem colSpan={gridSpacing[1]} pl="0.2rem"  fontSize="smaller" bg={themed('a1')}>
                         Type
                     </GridItem>
-                    <GridItem colSpan={gridSpacing[2]} pl={3}  fontSize="smaller" bgColor="gray.800">
+                    <GridItem colSpan={gridSpacing[2]} fontSize="smaller" bg={themed('a1')}>
                         Value
                     </GridItem>
-                    <GridItem colSpan={gridSpacing[3]} bgColor="gray.800"/>
+                    <GridItem colSpan={gridSpacing[3]} bg={themed('a1')}/>
                 </Grid>
                 <Flex flex="1 0 auto" direction="column" mt="1" pr={5}>
                 {
@@ -271,7 +269,8 @@ export default ParamPanel
 
 export const useParamsPanel = (): ParamPanelProps => {
     
-    const [paramsState, setParams] = useRecoilState<types.ParamDesc[]>(params)
+    const projectID = useRecoilValue(workingProjectID)
+    const [paramsState, setParams] = useRecoilState<types.ParamDesc[]>(params(projectID))
 
 
     const addParam = useCallback(() => {
