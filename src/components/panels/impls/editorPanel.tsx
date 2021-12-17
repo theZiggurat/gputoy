@@ -29,6 +29,7 @@ import { codeFiles, fileErrors, workingProjectID } from '../../../recoil/project
 import { useRecoilState, useRecoilValue } from 'recoil';
 import * as types from '../../../gpu/types'
 import { themed } from '../../../theme/theme';
+import { lightEditor, darkEditor } from '../../../theme/consts';
 
 export const hightlightWithLineNumbers = (input, language, filename, fileErrors) =>
   highlight(input, language)
@@ -79,7 +80,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
     return (
         <Panel {...props}>
             <PanelContent>
-                <Box width="100%" height="100%">
+                <Box width="100%" height="100%" sx={useColorModeValue(lightEditor, darkEditor)}>
                 {
                     currentFile &&
                     <Editor

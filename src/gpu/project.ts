@@ -64,7 +64,7 @@ export class Project {
   }
 
   // starts project
-  prepareRun = (state: types.ProjectStatus, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): boolean => {
+  prepareRun = async (state: types.ProjectStatus, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<boolean> => {
     if(!GPU.isInitialized()){
       logger?.err('Project', 'GPU not initialized. Cancelling run')
       return false
@@ -84,7 +84,9 @@ export class Project {
           logger?.err('Compiler', 'Compiler module not ready')
           return false
         }
-        if (!this.compileShaders(logger, setFileErrors)) {
+        const continueRun = await this.compileShaders(logger, setFileErrors)
+        console.log('continueRun', continueRun)
+        if (!continueRun) {
           return false
         }
         this.shaderDirty = false
@@ -99,48 +101,6 @@ export class Project {
 
   renderFrame = () => {
     this.encodeCommands()
-  }
-
-  renderPreview = async (project: DBProject) => {
-    while(!Compiler.instance().isReady()) {
-      console.log('compiler not ready yet')
-      await sleep(50)
-    }
-    
-    if(!GPU.isInitialized() || !project || !project.shaders)
-      return
-
-    if (this.included.isEmpty()) {
-      this.included.set([
-        {paramName: 'time', paramType: 'float', param: [0]},
-        {paramName: 'dt',   paramType: 'float', param: [0]},
-        {paramName: 'frame', paramType: 'int', param: [0]},
-        {paramName: 'mouseNorm', paramType: 'vec2f', param: [0.5, 0.5]},
-        {paramName: 'aspectRatio', paramType: 'float', param: [1]},
-        {paramName: 'res', paramType: 'vec2i', param: [300, 300]},
-        {paramName: 'mouse', paramType: 'vec2i', param: [150, 150]},
-      ], GPU.device)
-    }
-
-    if (project.params)
-      this.updateParams(JSON.parse(project.params))
-    
-    const shdrs = project.shaders.map(s => {
-      return {
-        filename: s.name,
-        file: s.source,
-        lang: s.lang,
-        isRender: s.isRender,
-      }
-    })
-
-    this.shaders = shdrs
-    this.compileShaders()
-    this.mapBuffers()
-    this.createPipeline()
-    this.encodeCommands()
-    
-    return this.gpuAttach.canvas.toDataURL('image/png')
   }
 
   updateDefaultParams = (paramDesc: types.ParamDesc[], logger?: Logger) => {
@@ -159,7 +119,7 @@ export class Project {
     this.shaderDirty = true
   }
 
-  compileShaders = (logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): boolean => {
+  compileShaders = async (logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<boolean> => {
     //console.log(this.shaders)
     let srcFile = this.shaders.find(f => f.isRender)
     if (srcFile === undefined) {
@@ -170,8 +130,9 @@ export class Project {
       .concat(staticdecl.vertex)
       .concat(this.params.getShaderDecl())
 
-    let module = Compiler.instance().compileWGSL!(GPU.device, srcFile, decls, logger, setFileErrors)
-    if (!module)
+    let module = await Compiler.instance().compileWGSL(GPU.device, srcFile, decls, logger, setFileErrors)
+    console.log(module)
+    if (module == null)
       return false
     this.shaderModule = module
     return true

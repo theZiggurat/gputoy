@@ -5,23 +5,13 @@ import descriptors from '../src/components/panels/descriptors'
 
 import Scaffold from '../src/components/scaffold'
 
-import { 
-	Input,
-} from '@chakra-ui/react'
-import Head from 'next/head'
-
 import ProjectManager from '../src/components/create/projectManager'
 import ProjectMenu from '../src/components/create/menu'
 
-import { RowButton } from '../src/components/reusable/rowButton'
-
 import ProjectSerializer from '../src/components/create/projectSerializer'
-import { useRecoilState, useRecoilValue } from 'recoil'
-import { title, workingProjectID } from '../src/recoil/project'
 import { GetServerSideProps } from 'next'
 import { Project as ProjectDB } from '.prisma/client'
 import prisma from '../lib/prisma'
-import consts, { darkResizer } from '../src/theme/consts'
 
 export const getServerSideProps: GetServerSideProps = async ({query}) => {
 	if (query.id !== undefined) {

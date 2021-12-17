@@ -6,7 +6,7 @@ import { RecoilRoot } from 'recoil'
 
 import '../styles/globals.css'
 import '../styles/create.css'
-import '../styles/prism-custom.css'
+//import '../styles/prism-custom.css'
 //import '../styles/prism-custom-light.css'
 import '../styles/index.css'
 import 'react-tabs/style/react-tabs.css';
