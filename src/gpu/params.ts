@@ -110,7 +110,7 @@ class Params {
     let align = 0
 
     if(this.params.length > 0) {
-      unidecl.push(`struct ${this.name} {`)
+      unidecl.push(`[[block]] struct ${this.name} {`)
       this.params.forEach((p, idx) => {
         this.byteOffsets[idx] = idx == 0 ? 0 : 
           roundUp(declInfo[p.paramType].align, this.byteOffsets[idx-1] + declInfo[this.params[idx-1].paramType].size)
