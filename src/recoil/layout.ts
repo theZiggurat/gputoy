@@ -67,10 +67,18 @@ export interface PanelProps {
   addPanel: (panelIndex: number, location: Location) => void,
   resetPanels: () => void,
 	layoutSize: number[],
-	windowGen: number
+	windowGen: number,
+  fixed?: boolean
 }
 
-export const usePanels = (initialLayout?: any): PanelProps => {
+type PanelOptions = {
+  fixed?: boolean,
+  initialLayout?: any
+}
+
+export const usePanels = (options: PanelOptions): PanelProps => {
+
+  const { fixed, initialLayout } = options
 
   const [panelTreeLayout, setPanelTreeLayout] = useRecoilState(layoutState)
   const resetPanelTreeLayout = useResetRecoilState(layoutState)
@@ -92,7 +100,11 @@ export const usePanels = (initialLayout?: any): PanelProps => {
 
   // load layout from localstorage
   useEffect(() => {
-		if(initialLayout !== undefined) return 
+    console.log(initialLayout)
+		if(initialLayout !== undefined) {
+      trySetLayout(initialLayout)
+      return
+    }
 		const layout = window.localStorage.getItem('layout')
 		trySetLayout(layout != null ? JSON.parse(layout): undefined)
   }, [])
@@ -180,7 +192,8 @@ export const usePanels = (initialLayout?: any): PanelProps => {
       addPanel,
       resetPanels,
 			layoutSize,
-			windowGen
+			windowGen,
+      fixed
   }
 }
 

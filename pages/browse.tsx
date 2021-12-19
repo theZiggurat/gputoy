@@ -12,6 +12,7 @@ import ProjectCard from '../src/components/reusable/projectCard'
 import prisma from '../lib/prisma'
 import { GetServerSideProps } from 'next'
 import { themed } from '../src/theme/theme'
+import Head from 'next/head'
 
 export const getServerSideProps: GetServerSideProps = async ({req, res}) => {
     const projects = await prisma.project.findMany({
@@ -41,6 +42,10 @@ const Browse = (props: {projects: Project[]}) => {
     const { projects } = props
 
     return (
+			<>
+			<Head>
+        <title>Browse Projects</title>
+      </Head>
 			<Scaffold>
 				<Box 
 					bg={themed('p')}  
@@ -87,7 +92,8 @@ const Browse = (props: {projects: Project[]}) => {
 					</Flex>
 				</Box>
 			</Scaffold>
-    )
+			</>
+		)
 }
 
 export default Browse;

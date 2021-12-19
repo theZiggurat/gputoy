@@ -46,10 +46,6 @@ const ProjectCard = (props: {
       setPlaying(false)
   }
 
-  const onHandleClick = () => {
-
-  }
-
   return (
     <Link href={`/create/?id=${project.id}`}>
       <Box 
@@ -64,7 +60,6 @@ const ProjectCard = (props: {
         _hover={{
           transform: 'scale(1.005)'
         }}
-        onClick={onHandleClick}
       >
         {
           loading &&
@@ -81,7 +76,6 @@ const ProjectCard = (props: {
             height: '100%',
             position: 'absolute',
             zIndex: 1,
-            backgroundColor: 'red',
             visibility: loading ? 'hidden':'visible',
             opacity: loading ? 0:1,
             transition: 'opacity 1.0s ease',
@@ -98,7 +92,6 @@ const ProjectCard = (props: {
             height: '100%',
             position: 'absolute',
             zIndex: 0,
-            backgroundColor: 'red',
             opacity: hovered ? 1:0,
             transform: `scale(${bgScale})`,
             filter: `blur(${blur}px) contrast(200%)`,

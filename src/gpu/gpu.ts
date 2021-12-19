@@ -1,6 +1,6 @@
 import { Logger } from "../recoil/console"
 
-export type GPUInitResult = 'ok' | 'error' | 'incompatible'
+export type GPUInitResult = 'ok' | 'error' | 'incompatible' | 'uninitialized'
 
 export type AttachResult = {
     canvas: HTMLCanvasElement,
@@ -12,17 +12,10 @@ export type AttachResult = {
 
 class _GPU {
 
-    //canvas!: HTMLCanvasElement
     adapter!: GPUAdapter
     device!: GPUDevice
 
     initCalled: boolean = false
-
-    // canvasContext!: GPUCanvasContext
-    // targetTexture!: GPUTexture
-    // presentationSize: number[] = [0, 0]
-
-    // preferredFormat!: GPUTextureFormat
 
     constuctor() {}
 
@@ -71,32 +64,34 @@ class _GPU {
 
     attachCanvas = async (canvasID : string, logger?: Logger): Promise<AttachResult | null> => {
 
-        if (!GPU.isInitialized()) 
-            logger?.debug('GPU', 'Trying to attach canvas without GPU initialized. Initializing now')  
+        if (!GPU.isInitialized()) {
+            logger?.err('GPU', 'Trying to attach canvas without GPU initialized.')
+            return null
+        }
 
         // if gpu is not initialized
         // keep trying unless browser is incompatible
         // but don't race with other calls to attachCanvas
-        while (!GPU.isInitialized()) {
-            if (!this.initCalled) {
-                this.initCalled = true
-                let status = await GPU.init(logger)
-                if (status === 'incompatible') {
-                    logger?.fatal('GPU', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
-                    return null
-                }
-                if (status === 'error') {
-                    logger?.debug('GPU', 'Failed to initialize, retrying...')
-                    this.initCalled = false
-                }
-            } else {
-                await sleep(50)
-            }
-        }
+        // while (!GPU.isInitialized()) {
+        //     if (!this.initCalled) {
+        //         this.initCalled = true
+        //         let status = await GPU.init(logger)
+        //         if (status === 'incompatible') {
+        //             logger?.fatal('GPU', 'Browser Incompatable. Try https://caniuse.com/webgpu to find browsers compatible with WebGPU')
+        //             return null
+        //         }
+        //         if (status === 'error') {
+        //             logger?.debug('GPU', 'Failed to initialize, retrying...')
+        //             this.initCalled = false
+        //         }
+        //     } else {
+        //         await sleep(50)
+        //     }
+        // }
 
         const canvas = document.getElementById(canvasID) as HTMLCanvasElement
         if (!canvas) {
-            //logger.err('GPU', "Cannot attach canvas: Canvas doesn't exist")
+            logger?.err('GPU', "Cannot attach canvas: Canvas doesn't exist")
             return null
         }
             

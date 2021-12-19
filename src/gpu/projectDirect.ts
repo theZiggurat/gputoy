@@ -6,6 +6,8 @@ import staticdecl from './staticdecl'
 import Compiler from './compiler'
 import { useRef, useState, useEffect, Dispatch, SetStateAction } from "react"
 import { useProjectControlsDirect } from "../recoil/controls"
+import { useRecoilValue } from "recoil"
+import { gpuStatus } from "../recoil/gpu"
 
 class ProjectDirect {
 
@@ -237,6 +239,7 @@ export const useProjectDirect = (project: DBProject, autoplay: boolean, ...canva
   const [playing, setPlaying] = useState(false)
   const animationHandle = useRef(0)
   const playingRef = useRef(false)
+  const gpuStatusValue = useRecoilValue(gpuStatus)
 
   useEffect(() => {
       const init = async () => {
@@ -244,11 +247,12 @@ export const useProjectDirect = (project: DBProject, autoplay: boolean, ...canva
           await projectRef.current.init(project, ...canvasIDs)
           setLoading(false)
       }
-      init()
+      if (gpuStatusValue == 'ok')
+        init()
       return () => {
         cancelAnimationFrame(animationHandle.current)
       }
-  }, [])
+  }, [gpuStatusValue])
 
   useEffect(() => {
     if (autoplay)

@@ -43,6 +43,7 @@ const ProjectManager = () => {
    */
   const renderStep = () => {
     if (isRunning.current) {
+      console.log('rendering frame')
       step()
       Project.instance().renderFrame()
       intervalHandle.current = window.requestAnimationFrame(renderStep)
