@@ -9,22 +9,16 @@ import {
     Center,
     Text,
     useColorModeValue,
-    Fade
+    Fade,
+		Flex,
+		Button
 } from '@chakra-ui/react';
-import { 
-    Panel, 
-    PanelBar, 
-    PanelContent, 
-    PanelBarMiddle, 
-    PanelBarEnd, 
-    DynamicPanelProps
-} from '../panel'
 import {  useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { canvasInitialized, mousePos, projectControl, projectStatus, resolution } from '../../../recoil/project';
-import { useLogger } from '../../../recoil/console';
+import { useConsole, useLogger } from '../../../recoil/console';
 import { throttle } from 'lodash';
 import consts from '../../../theme/consts';
-import { gpuStatus } from '../../../recoil/gpu';
+import { themed } from '../../../theme/theme';
 
 const canvasMargin = 0
 
@@ -98,14 +92,13 @@ const ViewportPanelBarEnd = () => {
     </>
 }
 
-const ViewportCanvas = (props: {instanceID: number, width?: number, height?: number, zoom: number, pan: number[]}) => {
+const ViewportCanvas = (props: {width?: number, height?: number, zoom: number, pan: number[]}) => {
 
     const setMousePos = useSetRecoilState(mousePos)
     const setCanvasInitialized = useSetRecoilState(canvasInitialized)
     const canvasRef = useRef<HTMLCanvasElement|null>(null)
     const logger = useLogger()
-    const gpuStatusValue = useRecoilValue(gpuStatus)
-    const id = `canvas_${props.instanceID}`
+    const id = 'viewport'
 
     const onHandleMousePos = throttle((evt) => {
         if (canvasRef.current) {
@@ -121,9 +114,8 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
         const isInit = async () => {
             setCanvasInitialized(await Project.instance().attachCanvas(id, logger))
         }
-        if (gpuStatusValue == 'ok')
-            isInit()
-    }, [id, gpuStatusValue])
+        isInit()
+    }, [id])
 
     return <canvas id={id} ref={canvasRef} onMouseMove={onHandleMousePos} style={{
         width: props.width,
@@ -133,10 +125,11 @@ const ViewportCanvas = (props: {instanceID: number, width?: number, height?: num
     
 }
 
-const ViewportPanel = (props: DynamicPanelProps & any) => {
+const ViewportEmbeddable = () => {
 
     const [showResolution, setShowResolution] = useState(false)
     const setResolution = useSetRecoilState(resolution)
+		const console = useConsole([false, false, true, true, false], '')
 
     const onResize = () => {
         setShowResolution(true)
@@ -163,46 +156,78 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
         return () => clearTimeout(handle)
     }, [width, height])
 
-    return (
-        <Panel {...props}>
-            <PanelContent>
-                <Box 
-                    bg="black" 
-                    width="100%" 
-                    height="100%" 
-                    ref={ref} 
-                    overflow="hidden"
-                >
-                    <Fade in={showResolution}>
-                        <Box 
-                            position="absolute" 
-                            left="20px" top="20px" 
-                            bg={useColorModeValue("whiteAlpha.400", "blackAlpha.400")} 
-                            borderRadius="md" 
-                            width="fit-content"
-                            backdropFilter="blur(12px)"
-                            p={3}
-                        >
-                            {`Resolution: ${width?.toFixed(0)} x ${height?.toFixed(0)}`}
-                        </Box>
-                    </Fade>
-                    <ViewportCanvas 
-                        instanceID={props.instanceID} 
-                        width={width} 
-                        height={height}
-                    />
-                </Box>
-            </PanelContent>
-            <PanelBar>
-                <PanelBarMiddle>
-                    <StatusInfoGroup/>
-                </PanelBarMiddle>
-                <PanelBarEnd>
-                    <ViewportPanelBarEnd/>
-                </PanelBarEnd>
-            </PanelBar>
-        </Panel>
+    return(
+			<Flex
+				flexDir="column"
+				h="100%"
+				maxH="100%"
+				minH="50%"
+				flex="1 1 auto"
+				pos="relative"
+			>
+				<Button 
+					position="absolute"
+					right="20px"
+					top="20px"
+					zIndex={2}
+					bg={useColorModeValue("whiteAlpha.400", "blackAlpha.400")} 
+					borderRadius="md" 
+					width="fit-content"
+					backdropFilter="blur(12px)"
+					p="1rem"
+				>
+						Open in GPUToy
+				</Button>
+				<Box 
+						bg="black" 
+						width="100%" 
+						minW="100%"
+						height="100%" 
+						ref={ref} 
+						overflow="hidden"
+						flex="1 1"
+				>
+						<Fade in={showResolution}>
+								<Box 
+										position="absolute" 
+										left="20px" top="20px" 
+										bg={useColorModeValue("whiteAlpha.400", "blackAlpha.400")} 
+										borderRadius="md" 
+										width="fit-content"
+										backdropFilter="blur(12px)"
+										p={3}
+								>
+										{`Resolution: ${width?.toFixed(0)} x ${height?.toFixed(0)}`}
+								</Box>
+						</Fade>
+						<ViewportCanvas 
+								width={width} 
+								height={height}
+						/>
+				</Box>
+				<Flex flex="0 0 auto" maxH={12} p={1} justify="left" gridGap="0.5rem" bg={themed('a2')} pl="0.6rem">
+					{/* <Center 
+						p={1.5}
+						backgroundColor={useColorModeValue('light.button', 'dark.button')} 
+						fontFamily={consts.fontMono}
+						fontSize="0.9rem"
+						userSelect="none"
+						borderRadius="md"
+						width={120}
+					>
+						<Text fontSize={12}>{console[0]?.body ?? 'No Issues'}</Text>
+					</Center> */}
+					<Flex direction="row">
+						<ViewportPanelBarEnd/>
+					</Flex>
+					<Flex direction="row" flex="1 1 auto" justifyContent="center">
+				  	<StatusInfoGroup/>
+					</Flex>
+					
+				</Flex>
+			</Flex>
+            
     )
 }
 
-export default ViewportPanel
+export default ViewportEmbeddable

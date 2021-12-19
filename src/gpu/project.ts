@@ -58,7 +58,6 @@ export class Project {
     ) {
       this.resizeNeeded = true
       this.resizeSize = newsize
-      //this.gpuAttach = GPU.handleResize(this.gpuAttach, newsize)
     }
   }
 

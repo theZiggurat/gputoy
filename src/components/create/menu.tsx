@@ -168,7 +168,7 @@ const ProjectMenu = () => {
 			onChange={onTitleChange}
       readOnly={projectID !== 'local'}
 		/>
-		<IconButton
+		 <IconButton
 			aria-label="Fork"
       title="Fork"
 			icon={<CgGitFork/>}
@@ -183,7 +183,7 @@ const ProjectMenu = () => {
       borderLeft="0"
       disabled={projectID !== 'local'}
       onClick={onUserPublish}
-		/>
+		/> 
   </>
 }
 
@@ -191,7 +191,7 @@ const useMenu = () => {
   const projectID = useRecoilValue(workingProjectID)
   const projectValue = useRecoilValue(projectState(projectID))
   const projectLayout = useRecoilValue(layoutState)
-  const { addPanel, resetPanels } = usePanels()
+  const { addPanel, resetPanels } = usePanels({})
   const router = useRouter()
 
   const onUserPublish = async () => {

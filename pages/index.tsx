@@ -28,6 +28,7 @@ import {AiFillGithub, AiFillRedditCircle, AiFillTwitterCircle} from 'react-icons
 import { BsClipboardData } from 'react-icons/bs'
 import { BiPaint } from 'react-icons/bi'
 import { lightEditor, darkEditor } from '../src/theme/consts'
+import { themed } from '../src/theme/theme'
 
 export const getStaticProps = async (context) => {
   const projects = await prisma.project.findMany({
@@ -72,18 +73,8 @@ const Home: NextPage = (props) => {
       <Head>
         <title>GPUToy</title>
       </Head>
-      {/* <canvas id='bg' style={{
-          position: "fixed",
-          minHeight: "50%",
-          width: '100%',
-          height: '100%',
-          transition: 'opacity 1s ease, transform 0.1s ease',
-          filter: "blur(0px)"
-        }}/> */}
       <Flex width="100%" height="100%" position="relative" overflowY="scroll" overflowX="hidden" direction="column" flex="1 1 auto" onScroll={handleScroll}>
         <Flex flex="1" w="100vw" bg={useColorModeValue('light.p', 'dark.p')} direction="column" textAlign="center">
-
-
           <Flex 
             height="100%" 
             direction="column" 
@@ -258,9 +249,6 @@ const Home: NextPage = (props) => {
                 Terms of Service
             </Text>
           </HStack>
-
-
-          
         </Flex>
       </Flex>
     </Scaffold>

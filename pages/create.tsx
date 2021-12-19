@@ -12,6 +12,8 @@ import ProjectSerializer from '../src/components/create/projectSerializer'
 import { GetServerSideProps } from 'next'
 import { Project as ProjectDB } from '.prisma/client'
 import prisma from '../lib/prisma'
+import Head from 'next/head'
+import { projectControl } from '../src/recoil/project'
 
 export const getServerSideProps: GetServerSideProps = async ({query}) => {
 	if (query.id !== undefined) {
@@ -49,16 +51,21 @@ const Create = (props: {projectID: string, project?: ProjectDB}) => {
 	const panelProps = usePanels({})
 
 	return (
-		<Scaffold navChildren={
-			<ProjectMenu/>
-		}>
-			{/* <Head>
-				<title>{`GPUToy :: Unnamed Project`}</title>
-			</Head> */}
-			<ProjectManager/>
-			<ProjectSerializer {...props}/>
-			<Panels {...panelProps} descriptors={descriptors}/>
-		</Scaffold>
+		<>
+			<Head>
+				<title>{props.project?.title ?? 'Unnamed Project'}</title>
+			</Head>
+			<Scaffold navChildren={
+				<ProjectMenu/>
+			}>
+				{/* <Head>
+					<title>{`GPUToy :: Unnamed Project`}</title>
+				</Head> */}
+				<ProjectManager/>
+				<ProjectSerializer {...props}/>
+				<Panels {...panelProps} descriptors={descriptors}/>
+			</Scaffold>
+		</>
 	)
 }
 
