@@ -1,19 +1,12 @@
-import React, { ReactElement, useState } from "react"
-import { Panel, PanelBar, PanelContent } from "../panel"
 import {
-  Stack,
-  Box,
-  Text,
-  Flex,
-  Icon,
-  Heading,
-  HStack,
-  Tag,
-  Avatar
+  Avatar, Box, Flex, Heading,
+  HStack, Icon, Stack, Tag, Text
 } from '@chakra-ui/react'
-import { themed } from "../../../theme/theme"
+import React, { ReactElement, useState } from "react"
 import { MdArrowRight } from 'react-icons/md'
-import { Divider } from "../../reusable/micro"
+import { themed } from "../../../theme/theme"
+import { Divider } from "../../shared/misc/micro"
+import { Panel, PanelBar, PanelContent } from "../panel"
 
 const ProjectInfo = () => {
   return (
@@ -29,13 +22,13 @@ const ProjectInfo = () => {
           <Tag> Test1 </Tag><Tag> Test2 </Tag><Tag> Test3 </Tag>
         </Stack>
       </Stack>
-      <Divider/>
-        <HStack dir="row" p="1rem" py="0.5rem">
-          <Avatar src="test" name="Test User" size="xs" display="inline"/>
-          <Text display="inline">
-            Test User
-          </Text>
-        </HStack>
+      <Divider />
+      <HStack dir="row" p="1rem" py="0.5rem">
+        <Avatar src="test" name="Test User" size="xs" display="inline" />
+        <Text display="inline">
+          Test User
+        </Text>
+      </HStack>
     </Stack>
   )
 }
@@ -45,7 +38,7 @@ type AccordionPanelProps = {
   initOpen?: boolean
   children: ReactElement<any>[] | ReactElement<any>,
   first?: boolean
-  last?:boolean
+  last?: boolean
 }
 const AccordionPanel = (props: AccordionPanelProps) => {
 
@@ -58,23 +51,23 @@ const AccordionPanel = (props: AccordionPanelProps) => {
 
   return (
     <Flex flexDir="column">
-      <Box 
+      <Box
         onClick={onHandleClick}
         cursor="pointer"
         flex="0"
-        borderBottom={isOpen ? "1px": props.last ? '1px':'0px'}
-        borderTop={first?"0px":"1px"}
+        borderBottom={isOpen ? "1px" : props.last ? '1px' : '0px'}
+        borderTop={first ? "0px" : "1px"}
         borderColor={themed('border')}
         bg={themed('a1')}
         p="0.5rem"
         py="0.3rem"
         _hover={{
-          bg:themed('buttonHovered')
+          bg: themed('buttonHovered')
         }}
       >
-        <Icon 
+        <Icon
           as={MdArrowRight}
-          transform={isOpen?"rotate(90deg)":""}
+          transform={isOpen ? "rotate(90deg)" : ""}
           transition="transform 0.15s ease"
           mr="0.5rem"
         />
@@ -87,9 +80,9 @@ const AccordionPanel = (props: AccordionPanelProps) => {
           {title}
         </Text>
       </Box>
-      { isOpen &&
-        <Box 
-          maxHeight={isOpen ? "1000px":"0px"}
+      {isOpen &&
+        <Box
+          maxHeight={isOpen ? "1000px" : "0px"}
           transition="max-height 0.5s ease"
         >
           {children}
@@ -106,7 +99,7 @@ const SummaryPanel = (props) => {
     <Panel {...props}>
       <PanelContent>
         <AccordionPanel title="Shader Info" first>
-          <ProjectInfo/>
+          <ProjectInfo />
         </AccordionPanel>
         <AccordionPanel title="Files" last>
           <Text>
@@ -115,7 +108,7 @@ const SummaryPanel = (props) => {
         </AccordionPanel>
       </PanelContent>
       <PanelBar>
-        
+
       </PanelBar>
     </Panel>
   )

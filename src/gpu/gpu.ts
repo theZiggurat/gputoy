@@ -1,4 +1,4 @@
-import { Logger } from "../recoil/console"
+import { Logger } from "@recoil/console"
 
 export type GPUInitResult = 'ok' | 'error' | 'incompatible' | 'uninitialized'
 

@@ -1,4 +1,4 @@
-import { Logger } from '../recoil/console'
+import { Logger } from '@recoil/console'
 
 import Compiler from './compiler'
 import * as types from './types'
@@ -6,7 +6,7 @@ import GPU, { AttachResult } from './gpu'
 import Params from './params'
 import staticdecl from './staticdecl'
 import { SetterOrUpdater } from 'recoil'
-import { FileErrors } from '../recoil/project'
+import { FileErrors } from '@recoil/project'
 import { Project as DBProject } from '.prisma/client'
 
 export class Project {

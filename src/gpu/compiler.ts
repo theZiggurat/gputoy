@@ -6,8 +6,8 @@ import init, {
   get_ir,
   get_errors
 } from '../../pkg/naga_compiler'
-import { Logger } from '../recoil/console'
-import { FileErrors } from '../recoil/project'
+import { Logger } from '@recoil/console'
+import { FileErrors } from '@recoil/project'
 import { CodeFile } from './types'
 
 type ShaderStage = 'vertex' | 'fragment' | 'compute'

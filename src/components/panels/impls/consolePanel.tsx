@@ -1,25 +1,20 @@
-import React, { useEffect } from 'react'
-import { 
-  chakra, 
-  Box, Text, 
-  Input,
+import { CloseIcon } from '@chakra-ui/icons';
+import {
+  Box, Input,
   InputGroup,
   InputLeftElement,
-  InputRightElement,
-  Button,
-  useToast,
-  useColorModeValue
+  InputRightElement, Text, useColorModeValue, useToast
 } from "@chakra-ui/react";
-
-import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa'
-import { CloseIcon } from '@chakra-ui/icons'
-import { clearConsole, Message, useConsole } from '../../../recoil/console'
+import { Message } from '@recoil/console';
+import useConsole, { useClearConsole } from '@recoil/hooks/useConsole';
+import useInstance from '@recoil/hooks/useInstance';
+import React, { useEffect } from 'react';
+import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa';
 import { MdSettings } from 'react-icons/md';
-
-import { Panel, PanelContent, PanelBar, PanelBarMiddle, PanelBarEnd, DynamicPanelProps } from '../panel';
-import useInstance, { ConsoleInstanceState } from '../../../recoil/instance';
-import { RowButton, RowToggleButton} from '../../reusable/rowButton';
 import { themed } from '../../../theme/theme';
+import { RowButton, RowToggleButton } from '../../shared/rowButton';
+import { ConsoleInstanceState } from '../descriptors';
+import { DynamicPanelProps, Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel';
 
 const colors = [
   "green",
@@ -44,10 +39,10 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
 
   const [instanceState, setInstanceState] = useInstance<ConsoleInstanceState>(props)
   const console = useConsole(instanceState.typeFilters, instanceState.keywordFilter)
-  const clear = clearConsole()
+  const clear = useClearConsole()
 
-  const setKeywordFilter = (filter: string) => setInstanceState({...instanceState, keywordFilter: filter})
-  const setTypeFilters = (filter: boolean[]) => setInstanceState({...instanceState, typeFilters: filter})
+  const setKeywordFilter = (filter: string) => setInstanceState({ ...instanceState, keywordFilter: filter })
+  const setTypeFilters = (filter: boolean[]) => setInstanceState({ ...instanceState, typeFilters: filter })
 
   const [autoscroll, setAutoscroll] = React.useState(true)
   const bottom = React.useRef<HTMLDivElement>(null)
@@ -59,13 +54,14 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
    */
   useEffect(
     () => {
-      if(autoscroll)
-        bottom.current?.scrollIntoView({ 
+      if (autoscroll)
+        bottom.current?.scrollIntoView({
           block: "nearest",
           inline: "center",
           behavior: "smooth",
         }
-    )}, [console])
+        )
+    }, [console])
 
   const toggle = (idx: number) => {
     var filters = [...instanceState.typeFilters]
@@ -75,7 +71,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
 
   const writeToClipboard = () => {
     navigator.clipboard.writeText(
-      console.map(line => 
+      console.map(line =>
         `${formatTime(line.time)}  ${prehead[line.type]} ${line.header}: ${line.body}`
       ).join('\n')
     )
@@ -87,40 +83,40 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
     })
   }
 
-  return(
+  return (
     <Panel {...props}>
-      <PanelContent 
-        fontFamily='"JetBrains Mono", "Fira code", "Fira Mono", monospace' 
+      <PanelContent
+        fontFamily='"JetBrains Mono", "Fira code", "Fira Mono", monospace'
         fontSize="sm"
         p="0.5rem"
       >
-        {console.map((message: Message, idx) => 
-            <Box 
-              key={idx}
-              p={1} 
-              flex="0 0 auto" 
-              whiteSpace="pre-wrap"
-              borderBottom="1px dashed"
-              borderColor={themed('border')}
-            >
-              <Text ml={1}>
-                <Text fontWeight="hairline" display="inline">
-                  {formatTime(message.time)}&nbsp;&nbsp;
-                </Text>
-                <Text 
-                  color={colors[message.type].concat(useColorModeValue('.600', '.200'))}
-                  fontWeight={useColorModeValue('bold', 'medium')}
-                  transition="0.2s ease"  
-                  display="inline"
-                >
-                  {prehead[message.type]}{message.header}:&nbsp;
-                </Text>
-                <Text display="inline">
-                  {message.body}
-                </Text>
-                
+        {console.map((message: Message, idx) =>
+          <Box
+            key={idx}
+            p={1}
+            flex="0 0 auto"
+            whiteSpace="pre-wrap"
+            borderBottom="1px dashed"
+            borderColor={themed('border')}
+          >
+            <Text ml={1}>
+              <Text fontWeight="hairline" display="inline">
+                {formatTime(message.time)}&nbsp;&nbsp;
               </Text>
-            </Box>
+              <Text
+                color={colors[message.type].concat(useColorModeValue('.600', '.200'))}
+                fontWeight={useColorModeValue('bold', 'medium')}
+                transition="0.2s ease"
+                display="inline"
+              >
+                {prehead[message.type]}{message.header}:&nbsp;
+              </Text>
+              <Text display="inline">
+                {message.body}
+              </Text>
+
+            </Text>
+          </Box>
         )}
         <div ref={bottom}></div>
       </PanelContent>
@@ -129,7 +125,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
         <PanelBarMiddle>
           <InputGroup maxWidth="500" minWidth="100">
             <InputLeftElement
-              children={<FaSearch/>}
+              children={<FaSearch />}
             />
             <Input
               borderStartRadius="md"
@@ -140,36 +136,36 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
             {
               instanceState.keywordFilter.length > 0 &&
               <InputRightElement
-                children={<CloseIcon size="sm"/>}
+                children={<CloseIcon size="sm" />}
                 onClick={() => setKeywordFilter('')}
               />
             }
           </InputGroup>
           {/* <LogLevelCheckboxes filters={typeFilters} toggle={toggle}/> */}
-          <RowToggleButton text="Trace" toggled={instanceState.typeFilters[0]} onClick={() => toggle(0)}/>
-          <RowToggleButton text="Log"   toggled={instanceState.typeFilters[1]} onClick={() => toggle(1)}/>
-          <RowToggleButton text="Error" toggled={instanceState.typeFilters[2]} onClick={() => toggle(2)}/>
-          <RowToggleButton text="Fatal" toggled={instanceState.typeFilters[3]} onClick={() => toggle(3)}/>
-          <RowToggleButton text="Debug" toggled={instanceState.typeFilters[4]} onClick={() => toggle(4)} last/>
+          <RowToggleButton text="Trace" toggled={instanceState.typeFilters[0]} onClick={() => toggle(0)} />
+          <RowToggleButton text="Log" toggled={instanceState.typeFilters[1]} onClick={() => toggle(1)} />
+          <RowToggleButton text="Error" toggled={instanceState.typeFilters[2]} onClick={() => toggle(2)} />
+          <RowToggleButton text="Fatal" toggled={instanceState.typeFilters[3]} onClick={() => toggle(3)} />
+          <RowToggleButton text="Debug" toggled={instanceState.typeFilters[4]} onClick={() => toggle(4)} last />
         </PanelBarMiddle>
 
         <PanelBarEnd>
           <RowButton
             purpose="Copy console to clipboard"
-            icon={<FaRegClipboard/>}
+            icon={<FaRegClipboard />}
             onClick={() => writeToClipboard()}
             disabled={console.length == 0}
             first
           />
-          <RowButton 
+          <RowButton
             purpose="Clear console"
-            icon={<FaRegTrashAlt/>}
+            icon={<FaRegTrashAlt />}
             onClick={clear}
             disabled={console.length == 0}
           />
-          <RowButton 
+          <RowButton
             purpose="Console Settings"
-            icon={<MdSettings/>}
+            icon={<MdSettings />}
             last
           />
         </PanelBarEnd>

@@ -1,6 +1,6 @@
-import prisma from "../../../lib/prisma";
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from "next-auth/client";
+import prisma from "../../lib/prisma";
 
 export default function handler(
   req: NextApiRequest,
@@ -14,13 +14,13 @@ export default function handler(
       handlePost(req, res)
       break
     default:
-      console.log('neither')
+      break
   }
 }
 
 const handlePost = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   const body = req.body
-  const session = await getSession({req})
+  const session = await getSession({ req })
 
   if (session === null) {
     res.status(403).send({ error: 'Must be signed in to publish project' })
@@ -49,12 +49,14 @@ const handlePost = async (req: NextApiRequest, res: NextApiResponse<any>) => {
         params: JSON.stringify(body?.params ?? []),
         published: true,
         shaders: {
-          create: body.shaders.map(s => { return {
-            source: s.file,
-            name: s.filename,
-            lang: s.lang,
-            isRender: s.isRender
-          }})
+          create: body.shaders.map(s => {
+            return {
+              source: s.file,
+              name: s.filename,
+              lang: s.lang,
+              isRender: s.isRender
+            }
+          })
         },
         layout: body.layout ?? null
       }

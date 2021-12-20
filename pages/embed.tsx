@@ -1,45 +1,47 @@
-import React, { useEffect, useState } from 'react'
-
-
-import ProjectManager from '../src/components/create/projectManager'
-
-import ProjectSerializer from '../src/components/create/projectSerializer'
-import { GetServerSideProps } from 'next'
 import { Project as ProjectDB } from '.prisma/client'
-import prisma from '../lib/prisma'
 import { Box } from '@chakra-ui/react'
-import ViewportEmbeddable from '../src/components/panels/embeds/viewport'
-import EditorEmbedable from '../src/components/panels/embeds/editor'
+import useProjectManager from '@recoil/hooks/useProjectManager'
+import useProjectStorage from '@recoil/hooks/useProjectStorage'
+import { GetServerSideProps } from 'next'
+import React, { useEffect, useState } from 'react'
 import SplitPane from 'react-split-pane'
+import prisma from '../lib/prisma'
+import EditorEmbedable from '../src/components/panels/embeds/editor'
+import ViewportEmbeddable from '../src/components/panels/embeds/viewport'
 
-export const getServerSideProps: GetServerSideProps = async ({query}) => {
-	if (query.id !== undefined) {
-		const project = await prisma.project.findUnique({
-			where: {
-				id: query.id
-			},
-			include: {
-				shaders: true,
-				author: {
-						select: {
-								name: true
-						}
-				}
-		}
-		})
-		if (project !== null) {
-			project.createdAt = project.createdAt.toISOString()
-			project.updatedAt = project.updatedAt.toISOString()
-			return { props: {
-				project,
-				projectID: query.id,
-        mode: query.theme ?? 'light'
-			}}
-		} 
- 	}
-	else 
-		return { props: { projectID: 'not_found', mode: query.theme ?? 'light' } }
-	
+
+
+
+export const getServerSideProps: GetServerSideProps = async ({ query }) => {
+  if (query.id !== undefined) {
+    const project = await prisma.project.findUnique({
+      where: {
+        id: query.id
+      },
+      include: {
+        shaders: true,
+        author: {
+          select: {
+            name: true
+          }
+        }
+      }
+    })
+    if (project !== null) {
+      project.createdAt = project.createdAt.toISOString()
+      project.updatedAt = project.updatedAt.toISOString()
+      return {
+        props: {
+          project,
+          projectID: query.id,
+          mode: query.theme ?? 'light'
+        }
+      }
+    }
+  }
+  else
+    return { props: { projectID: 'not_found', mode: query.theme ?? 'light' } }
+
 }
 
 const resizerStyle = {
@@ -100,7 +102,15 @@ const resizerLight = {
   },
 }
 
-const Embeddable = (props: {projectID: string, project?: ProjectDB, mode: 'light'|'dark'}) => {
+const EmbeddableManager = (props: { projectID: string, project?: ProjectDB }) => {
+
+  useProjectStorage(props)
+  useProjectManager(props)
+
+  return <></>
+}
+
+const Embeddable = (props: { projectID: string, project?: ProjectDB, mode: 'light' | 'dark' }) => {
 
   const [maxWidth, setMaxWidth] = useState(10000)
 
@@ -110,12 +120,11 @@ const Embeddable = (props: {projectID: string, project?: ProjectDB, mode: 'light
 
   const resizeTheme = props.mode == 'light' ? resizerLight : resizerDark
 
-	return (
-    <Box sx={{...resizerStyle, ...resizeTheme}}>
-      <ProjectManager/>
-      <ProjectSerializer {...props}/>
-      <SplitPane 
-        split="vertical" 
+  return (
+    <Box sx={{ ...resizerStyle, ...resizeTheme }}>
+      <EmbeddableManager {...props} />
+      <SplitPane
+        split="vertical"
         minSize={5}
         maxSize={maxWidth}
         size={400}
@@ -123,11 +132,11 @@ const Embeddable = (props: {projectID: string, project?: ProjectDB, mode: 'light
           minWidth: '50%'
         }}
       >
-        <EditorEmbedable/>
-        <ViewportEmbeddable/>
+        <EditorEmbedable />
+        <ViewportEmbeddable />
       </SplitPane>
     </Box>
-	)
+  )
 }
 
 export default Embeddable

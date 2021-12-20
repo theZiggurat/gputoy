@@ -1,18 +1,13 @@
 import {
-  Flex,
-  Button,
-  Icon,
-  Badge,
-  Text,
-  chakra
+  Badge, Button, chakra, Flex, Text
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { ReactNode } from 'react';
-
-
-import { themed } from '../theme/theme';
+import { themed } from '../../theme/theme';
 import NavUser from './user';
+
+
 
 
 interface NavLinkProps {
@@ -25,18 +20,18 @@ interface NavLinkProps {
 
 const NavLink = (props: NavLinkProps) => {
   const selected = props.currentPath === props.href
-  return(
+  return (
     <NextLink href={props.href} passHref>
-      <Button 
-        rounded='md' 
-        cursor="pointer" 
-        userSelect="none" 
+      <Button
+        rounded='md'
+        cursor="pointer"
+        userSelect="none"
         p="1em"
         size="sm"
-        borderLeftRadius={props.first ? "":"0px"}
-        borderLeft={props.first ? "":"0px"}
-        borderRightRadius={props.last ? "":"0px"}
-        bg={selected?themed('buttonHovered'):''}
+        borderLeftRadius={props.first ? "" : "0px"}
+        borderLeft={props.first ? "" : "0px"}
+        borderRightRadius={props.last ? "" : "0px"}
+        bg={selected ? themed('buttonHovered') : ''}
       >
         {props.text}
       </Button>
@@ -44,14 +39,14 @@ const NavLink = (props: NavLinkProps) => {
   )
 };
 
-export default function Nav(props: {children?: ReactNode}) {
+export default function Nav(props: { children?: ReactNode }) {
 
   const router = useRouter();
-  const isActive = router.pathname == '/'; 
+  const isActive = router.pathname == '/';
 
   return (
-    <chakra.nav 
-      h='3rem' 
+    <chakra.nav
+      h='3rem'
       justifyContent="center"
       alignItems='center'
       zIndex="1"
@@ -60,7 +55,7 @@ export default function Nav(props: {children?: ReactNode}) {
       borderColor={themed('border')}
       display="flex"
     >
-      <Flex 
+      <Flex
         flex="1"
         marginRight="auto"
         minW="min-content"
@@ -68,11 +63,11 @@ export default function Nav(props: {children?: ReactNode}) {
         justifyContent="center"
         px="1rem"
       >
-        <NavLink href="/browse" text="Browse" currentPath={router.pathname} first/>
+        <NavLink href="/browse" text="Browse" currentPath={router.pathname} first />
         <NavLink href="/create" text="Create" currentPath={router.pathname} />
-        <NavLink href="/market" text="Market" currentPath={router.pathname} last/>            
+        <NavLink href="/market" text="Market" currentPath={router.pathname} last />
       </Flex>
-      
+
       {
         props.children ??
         <>
@@ -81,12 +76,12 @@ export default function Nav(props: {children?: ReactNode}) {
               GPUTOY
             </Text>
           </NextLink>
-          <Badge colorScheme="blue" fontSize="0.6em" cursor="default" style={{marginRight: '1rem'}}>
+          <Badge colorScheme="blue" fontSize="0.6em" cursor="default" style={{ marginRight: '1rem' }}>
             Dev
           </Badge>
         </>
       }
-      <NavUser/>
+      <NavUser />
     </chakra.nav>
   );
 }

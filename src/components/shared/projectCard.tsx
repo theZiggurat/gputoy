@@ -1,6 +1,6 @@
 import { Project } from ".prisma/client"
 import React, { useState } from "react"
-import { useProjectDirect } from "../../gpu/projectDirect"
+import { useProjectDirect } from "@gpu/projectDirect"
 import { 
   Text, 
   Box,

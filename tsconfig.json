@@ -25,7 +25,8 @@
     "baseUrl": "src",
     "paths": {
       "@recoil/*": ["recoil/*"],
-      "@components/*": ["components/*"]
+      "@components/*": ["components/*"],
+      "@gpu/*": ["gpu/*"]
     }
   },
   "include": [

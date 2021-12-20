@@ -1,13 +1,13 @@
 import { Project as DBProject } from ".prisma/client"
-import * as types from './types'
+import { gpuStatusAtom } from "@recoil/gpu"
+import useProjectLifecycleDirect from "@recoil/hooks/useProjectLifecycleDirect"
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
+import { useRecoilValue } from "recoil"
+import Compiler from './compiler'
 import GPU, { AttachResult } from './gpu'
 import Params from "./params"
 import staticdecl from './staticdecl'
-import Compiler from './compiler'
-import { useRef, useState, useEffect, Dispatch, SetStateAction } from "react"
-import { useProjectControlsDirect } from "../recoil/controls"
-import { useRecoilValue } from "recoil"
-import { gpuStatus } from "../recoil/gpu"
+import * as types from './types'
 
 class ProjectDirect {
 
@@ -24,10 +24,10 @@ class ProjectDirect {
 
   // needs update
   shaderDirty = true
-  
+
   gpuAttach: AttachResult[] = []
 
-  constructor() {}
+  constructor() { }
 
   init = async (project: DBProject, ...canvasIDs: string[]) => {
 
@@ -41,26 +41,26 @@ class ProjectDirect {
 
     this.gpuAttach = (await Promise.all(attachPromise))
       .filter(a => a != null) as AttachResult[]
-    
 
-    if(!GPU.isInitialized() || !project || !project.shaders)
+
+    if (!GPU.isInitialized() || !project || !project.shaders)
       return
 
     if (this.included.isEmpty()) {
       this.included.set([
-        {paramName: 'time', paramType: 'float', param: [0]},
-        {paramName: 'dt',   paramType: 'float', param: [0]},
-        {paramName: 'frame', paramType: 'int', param: [0]},
-        {paramName: 'mouseNorm', paramType: 'vec2f', param: [0.5, 0.5]},
-        {paramName: 'aspectRatio', paramType: 'float', param: [1]},
-        {paramName: 'res', paramType: 'vec2i', param: [300, 300]},
-        {paramName: 'mouse', paramType: 'vec2i', param: [150, 150]},
+        { paramName: 'time', paramType: 'float', param: [0] },
+        { paramName: 'dt', paramType: 'float', param: [0] },
+        { paramName: 'frame', paramType: 'int', param: [0] },
+        { paramName: 'mouseNorm', paramType: 'vec2f', param: [0.5, 0.5] },
+        { paramName: 'aspectRatio', paramType: 'float', param: [1] },
+        { paramName: 'res', paramType: 'vec2i', param: [300, 300] },
+        { paramName: 'mouse', paramType: 'vec2i', param: [150, 150] },
       ], GPU.device)
     }
 
     if (project.params)
       this.updateParams(JSON.parse(project.params))
-    
+
     const shdrs = project.shaders.map(s => {
       return {
         filename: s.name,
@@ -70,7 +70,7 @@ class ProjectDirect {
       }
     })
 
-    while(!Compiler.instance().isReady()) {
+    while (!Compiler.instance().isReady()) {
       console.error('Cannot run project directly, compiler is not ready!')
       await sleep(50)
     }
@@ -84,7 +84,7 @@ class ProjectDirect {
   }
 
   updateParams = (paramDesc: types.ParamDesc[]) => {
-    if(GPU.isInitialized()) 
+    if (GPU.isInitialized())
       this.shaderDirty = this.params.set(paramDesc, GPU.device) || this.shaderDirty
   }
 
@@ -94,7 +94,7 @@ class ProjectDirect {
   }
 
   updateDefaultParams = (paramDesc: types.ParamDesc[]) => {
-    if(GPU.isInitialized()) 
+    if (GPU.isInitialized())
       this.shaderDirty = this.included.set(paramDesc, GPU.device) || this.shaderDirty
   }
 
@@ -118,18 +118,18 @@ class ProjectDirect {
     this.encodeCommands()
   }
 
-  
+
 
   mapBuffers = () => {
     if (!GPU.isInitialized())
       return
-    
-    const vertexBufferData = new Float32Array([-1.0, -1.0, 1.0, -1.0, 1.0, 
+
+    const vertexBufferData = new Float32Array([-1.0, -1.0, 1.0, -1.0, 1.0,
       1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0]);
     this.vertexBuffer = GPU.device.createBuffer({
-        label: "_vertex",
-        size: vertexBufferData.byteLength,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      label: "_vertex",
+      size: vertexBufferData.byteLength,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
     GPU.device.queue.writeBuffer(
       this.vertexBuffer,
@@ -148,7 +148,7 @@ class ProjectDirect {
       return
 
     let layouts = [this.included.getBindGroupLayout()]
-    if(!this.params.isEmpty())
+    if (!this.params.isEmpty())
       layouts.push(this.params.getBindGroupLayout())
 
     this.pipelineLayout = GPU.device.createPipelineLayout({
@@ -185,7 +185,7 @@ class ProjectDirect {
         topology: "triangle-list"
       }
     })
-    
+
   }
 
   encodeCommands = () => {
@@ -196,26 +196,26 @@ class ProjectDirect {
 
       attach.targetTexture = attach.canvasContext.getCurrentTexture()
       const targetTextureView = attach.targetTexture.createView()
-  
+
       const renderPassDesc: GPURenderPassDescriptor = {
         label: "render",
         colorAttachments: [{
-            view: targetTextureView,
-            loadValue: { r: 0, g: 0, b: 0, a: 1 },
-            storeOp: 'store'
+          view: targetTextureView,
+          loadValue: { r: 0, g: 0, b: 0, a: 1 },
+          storeOp: 'store'
         }],
       }
-  
+
       const commandEncoder = GPU.device.createCommandEncoder()
       const rpass = commandEncoder.beginRenderPass(renderPassDesc)
       rpass.setPipeline(this.pipeline)
       rpass.setVertexBuffer(0, this.vertexBuffer)
       rpass.setBindGroup(0, this.included.getBindGroup())
-      if(!this.params.isEmpty())
+      if (!this.params.isEmpty())
         rpass.setBindGroup(1, this.params.getBindGroup())
       rpass.draw(6, 1, 0, 0)
       rpass.endPass()
-  
+
       GPU.device.queue.submit([commandEncoder.finish()])
     })
   }
@@ -234,24 +234,24 @@ export default ProjectDirect
 export const useProjectDirect = (project: DBProject, autoplay: boolean, ...canvasIDs: string[]): [boolean, Dispatch<SetStateAction<boolean>>] => {
 
   const projectRef = useRef<ProjectDirect | undefined>(undefined)
-  const controls = useProjectControlsDirect(projectRef)
+  const controls = useProjectLifecycleDirect(projectRef)
   const [loading, setLoading] = useState(true)
   const [playing, setPlaying] = useState(false)
   const animationHandle = useRef(0)
   const playingRef = useRef(false)
-  const gpuStatusValue = useRecoilValue(gpuStatus)
+  const gpuStatusValue = useRecoilValue(gpuStatusAtom)
 
   useEffect(() => {
-      const init = async () => {
-          projectRef.current = new ProjectDirect()
-          await projectRef.current.init(project, ...canvasIDs)
-          setLoading(false)
-      }
-      if (gpuStatusValue == 'ok')
-        init()
-      return () => {
-        cancelAnimationFrame(animationHandle.current)
-      }
+    const init = async () => {
+      projectRef.current = new ProjectDirect()
+      await projectRef.current.init(project, ...canvasIDs)
+      setLoading(false)
+    }
+    if (gpuStatusValue == 'ok')
+      init()
+    return () => {
+      cancelAnimationFrame(animationHandle.current)
+    }
   }, [gpuStatusValue])
 
   useEffect(() => {

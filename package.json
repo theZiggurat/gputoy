@@ -23,6 +23,7 @@
     "ace-builds": "^1.4.13",
     "codemirror": "^5.63.3",
     "cuid": "^2.1.8",
+    "eslint-plugin-react-hooks": "^4.2.1-rc.0-next-aa8f2bdbc-20211215",
     "framer-motion": "^4.1.17",
     "immutable": "^4.0.0",
     "localforage": "^1.10.0",

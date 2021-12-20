@@ -1,33 +1,27 @@
 import { Project as ProjectDB } from '.prisma/client'
-import React, { useEffect } from 'react'
-import { DefaultValue, useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
-import { clearConsole } from '../../recoil/console'
-import { layoutState } from '../../recoil/layout'
-import { projectState,  workingProjectID } from '../../recoil/project'
-import { projectControl } from '../../recoil/controls'
+import { layoutAtom } from '@recoil/layout'
+import { currentProjectIDAtom, withProjectState } from '@recoil/project'
+import { useEffect } from 'react'
+import { useRecoilState, useSetRecoilState } from 'recoil'
 
-
-type ProjectSerializerProps = {
+type ProjectStorageProps = {
   projectID: string,
   project?: ProjectDB
 }
-const ProjectSerializer = (props: ProjectSerializerProps) => {
 
+export default (props: ProjectStorageProps) => {
   const {
     projectID,
     project
   } = props
 
-  const [projectStateValue, setProjectState] = useRecoilState(projectState(projectID))
-  const setProjectID = useSetRecoilState(workingProjectID)
+  const [projectStateValue, setProjectState] = useRecoilState(withProjectState(projectID))
 
-  const setClearConsole = clearConsole()
-  const setProjectControls = useSetRecoilState(projectControl)
-
-  const setLayout = useSetRecoilState(layoutState)
+  const setProjectID = useSetRecoilState(currentProjectIDAtom)
+  const setLayout = useSetRecoilState(layoutAtom)
 
   useEffect(() => {
-    
+
   }, [])
 
   useEffect(() => {
@@ -38,7 +32,6 @@ const ProjectSerializer = (props: ProjectSerializerProps) => {
         setProjectState(JSON.parse(projectLoad))
     } else {
       if (project) {
-        console.log('from db', project)
         setProjectState(() => {
           return {
             title: project.title,
@@ -55,20 +48,12 @@ const ProjectSerializer = (props: ProjectSerializerProps) => {
         })
         if (project.layout != null)
           setLayout(project.layout)
-      } 
+      }
     }
-    return () => {
-      setClearConsole()
-      setProjectControls('stop')
-    }
-  }, [])
+  }, [props])
 
   useEffect(() => {
     if (projectID == 'local')
       localStorage.setItem('project_local', JSON.stringify(projectStateValue))
   }, [projectStateValue])
-
-  return <></>
 }
-
-export default ProjectSerializer
