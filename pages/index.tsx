@@ -1,45 +1,29 @@
-import type { NextPage } from 'next'
-import React, { ReactChild, ReactNode, useEffect, useState } from 'react'
-import { 
-  chakra,
-  Image,
-  Box, 
-  useColorModeValue,
-  Heading,
-  Flex,
-  Text,
-  Button,
-  useColorModePreference,
-  Stack,
-  Divider,
-  SlideFade,
-  HStack,
+import {
+  Box, Button, chakra, Divider, Flex, Heading, HStack, Image, Stack, Text, useColorModeValue
 } from '@chakra-ui/react'
-import Head from 'next/head'
-
-
-import Scaffold from '../src/components/scaffold'
 import "@fontsource/jetbrains-mono"
+import type { NextPage } from 'next'
+import Head from 'next/head'
+import React, { useEffect, useState } from 'react'
+import { AiFillGithub, AiFillRedditCircle, AiFillTwitterCircle } from 'react-icons/ai'
+import { BiPaint } from 'react-icons/bi'
+import { BsClipboardData } from 'react-icons/bs'
 import prisma from '../lib/prisma'
 import EditorDemo from '../src/components/index/editorDemo'
-import Typer from '../src/components/reusable/typer'
-
-import {AiFillGithub, AiFillRedditCircle, AiFillTwitterCircle} from 'react-icons/ai'
-import { BsClipboardData } from 'react-icons/bs'
-import { BiPaint } from 'react-icons/bi'
-import { lightEditor, darkEditor } from '../src/theme/consts'
-import { themed } from '../src/theme/theme'
+import Typer from '../src/components/shared/misc/typer'
+import Scaffold from '../src/components/shared/scaffold'
+import { darkEditor, lightEditor } from '../src/theme/consts'
 
 export const getStaticProps = async (context) => {
   const projects = await prisma.project.findMany({
     take: 1,
     include: {
-        shaders: true,
-        author: {
-            select: {
-                name: true
-            }
+      shaders: true,
+      author: {
+        select: {
+          name: true
         }
+      }
     }
   })
   projects.forEach(p => {
@@ -66,7 +50,7 @@ const Home: NextPage = (props) => {
   }, [scrollPosition])
 
 
-  useEffect(() => {setTimeout(() => setTran(true), 500)}, [])
+  useEffect(() => { setTimeout(() => setTran(true), 500) }, [])
 
   return (
     <Scaffold>
@@ -75,33 +59,33 @@ const Home: NextPage = (props) => {
       </Head>
       <Flex width="100%" height="100%" position="relative" overflowY="scroll" overflowX="hidden" direction="column" flex="1 1 auto" onScroll={handleScroll}>
         <Flex flex="1" w="100vw" bg={useColorModeValue('light.p', 'dark.p')} direction="column" textAlign="center">
-          <Flex 
-            height="100%" 
-            direction="column" 
-            justifyContent="center" 
-            alignItems="center" 
-            textAlign="center" 
+          <Flex
+            height="100%"
+            direction="column"
+            justifyContent="center"
+            alignItems="center"
+            textAlign="center"
             position="relative"
-            mt="10vh" 
-            mb="10vh" 
-            opacity={tran ? 1:0}
+            mt="10vh"
+            mb="10vh"
+            opacity={tran ? 1 : 0}
             transition="opacity 1.5s ease-out"
           >
-            <Box 
-              position="absolute" 
-              minH="40%" 
-              minW="100vw" 
-              top="50%" 
+            <Box
+              position="absolute"
+              minH="40%"
+              minW="100vw"
+              top="50%"
               bg="red.500"
-              clipPath={tran ? "polygon(0 10%, 100% 0, 100% 90%, 0% 100%)": "polygon(0 0%, 100% 0, 100% 100%, 0% 100%)"}
+              clipPath={tran ? "polygon(0 10%, 100% 0, 100% 90%, 0% 100%)" : "polygon(0 0%, 100% 0, 100% 100%, 0% 100%)"}
               bgGradient="linear(to-r, red.400, orange.400)"
               transition="all 2s ease"
             />
             <Stack m="1rem">
               <Heading fontFamily="'Segoe UI'" fontSize="3.8rem" pb="2rem" fontWeight="black">
-                Convey your imagination <br/>
+                Convey your imagination <br />
                 <chakra.span fontFamily="'JetBrains Mono'" fontSize="3rem" ml="2rem" color="red.500">
-                  <Typer text="...(in code)"/>
+                  <Typer text="...(in code)" />
                 </chakra.span>
               </Heading>
               <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
@@ -111,12 +95,12 @@ const Home: NextPage = (props) => {
                 Unlike a video, it is handcrafted. One pixel at a time.
               </Text>
             </Stack>
-            <Box 
+            <Box
               position="relative"
               bg={useColorModeValue('light.a2', 'dark.a2')}
               pt="1rem"
               m="1rem"
-              minW="550px" 
+              minW="550px"
               minH="473px"
               zIndex={2}
               sx={useColorModeValue(lightEditor, darkEditor)}
@@ -125,8 +109,8 @@ const Home: NextPage = (props) => {
                 position: 'absolute',
                 width: '550px',
                 height: '473px',
-                left: tran ? '20px':'0px',
-                top: tran ? '20px':'0px',
+                left: tran ? '20px' : '0px',
+                top: tran ? '20px' : '0px',
                 backgroundColor: useColorModeValue('light.a1', 'dark.a1'),
                 transition: 'left 0.5s ease-out, top 0.5s ease-out',
                 shadow: "lg",
@@ -137,23 +121,23 @@ const Home: NextPage = (props) => {
                 position: 'absolute',
                 width: '550px',
                 height: '473px',
-                left: tran ? '10px':'0px',
-                top: tran ? '10px':'0px',
+                left: tran ? '10px' : '0px',
+                top: tran ? '10px' : '0px',
                 backgroundColor: 'red.500',
                 zIndex: -2,
                 transition: 'left 0.4s ease-out, top 0.4s ease-out',
                 shadow: "x-lg",
               }}
             >
-              <EditorDemo/>
+              <EditorDemo />
             </Box>
           </Flex>
 
           <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
             <Heading fontFamily="'Segoe UI'" fontSize="3.8rem" pb="2rem" fontWeight="black">
-              Collaborate and Get Inspired <br/>
+              Collaborate and Get Inspired <br />
               <chakra.span fontFamily="'JetBrains Mono'" fontSize="3rem" ml="2rem" color="red.500">
-                <Typer text="...(or envious)"/>
+                <Typer text="...(or envious)" />
               </chakra.span>
             </Heading>
             <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
@@ -166,9 +150,9 @@ const Home: NextPage = (props) => {
 
           <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
             <Heading fontFamily="'Segoe UI'" fontSize="3.8rem" pb="2rem" fontWeight="black">
-              Built different <br/>
+              Built different <br />
               <chakra.span fontFamily="'JetBrains Mono'" fontSize="3rem" ml="2rem" color="red.500">
-                <Typer text="...(yet familiar)"/>
+                <Typer text="...(yet familiar)" />
               </chakra.span>
             </Heading>
             <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
@@ -177,20 +161,20 @@ const Home: NextPage = (props) => {
             <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
               Try wgsl, the official shading language of WebGPU, or stick to glsl.
             </Text>
-            
+
             <Flex pt="2rem" direction="row" justifyContent="center">
-              <Image src={useColorModeValue("/wgpuLogo.svg", "/wgpuLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)"/>
-              <Image src={useColorModeValue("/wgslLogo.svg", "/wgslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)"/>
-              <Image src={useColorModeValue("/glslLogo.svg", "/glslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)"/>
+              <Image src={useColorModeValue("/wgpuLogo.svg", "/wgpuLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)" alt="WebGPU" />
+              <Image src={useColorModeValue("/wgslLogo.svg", "/wgslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)" alt="WGSL" />
+              <Image src={useColorModeValue("/glslLogo.svg", "/glslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)" alt="GLSL" />
             </Flex>
-            
+
           </Flex>
           <Flex bgGradient="linear(to-r, red.400, orange.400)" alignItems="center" justifyContent="center" p="5rem" gridGap="1rem">
-            <Button size="lg" bg={useColorModeValue('light.p', 'dark.p')} rightIcon={<BiPaint/>}>
-                Start Shading 
+            <Button size="lg" bg={useColorModeValue('light.p', 'dark.p')} rightIcon={<BiPaint />}>
+              Start Shading
             </Button>
-            <Button size="lg" bg={useColorModeValue('light.p', 'dark.p')} rightIcon={<BsClipboardData/>}>
-                Sign Up for Free
+            <Button size="lg" bg={useColorModeValue('light.p', 'dark.p')} rightIcon={<BsClipboardData />}>
+              Sign Up for Free
             </Button>
           </Flex>
 
@@ -200,9 +184,9 @@ const Home: NextPage = (props) => {
                 GPUTOY
               </Text>
               <Flex gridGap="0.5rem" pt="1rem">
-                <AiFillTwitterCircle size={30}/>
-                <AiFillRedditCircle size={30}/>
-                <AiFillGithub size={30}/>
+                <AiFillTwitterCircle size={30} />
+                <AiFillRedditCircle size={30} />
+                <AiFillGithub size={30} />
               </Flex>
             </Flex>
             <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
@@ -238,15 +222,15 @@ const Home: NextPage = (props) => {
                 Submit an issue
               </Text>
             </Flex>
-              
+
           </Flex>
-          <Divider borderColor={useColorModeValue("blackAlpha.300", "whiteAlpha.500")}/>
+          <Divider borderColor={useColorModeValue("blackAlpha.300", "whiteAlpha.500")} />
           <HStack gridGap="10rem" margin="auto">
             <Text fontSize="0.8rem" py="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")}>
-                Privacy Policy
+              Privacy Policy
             </Text>
             <Text fontSize="0.8rem" py="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")}>
-                Terms of Service
+              Terms of Service
             </Text>
           </HStack>
         </Flex>

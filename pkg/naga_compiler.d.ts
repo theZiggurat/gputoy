@@ -3,14 +3,9 @@
 /**
 * @param {string} src
 * @param {string} stage
-* @returns {Uint32Array | undefined}
+* @returns {string | undefined}
 */
-export function compile_glsl(src: string, stage: string): Uint32Array | undefined;
-/**
-* @param {string} src
-* @returns {Uint32Array | undefined}
-*/
-export function compile_wgsl(src: string): Uint32Array | undefined;
+export function compile_glsl(src: string, stage: string): string | undefined;
 /**
 * @returns {string}
 */
@@ -28,8 +23,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly compile_glsl: (a: number, b: number, c: number, d: number) => number;
-  readonly compile_wgsl: (a: number, b: number) => number;
+  readonly compile_glsl: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly get_module_info: (a: number) => void;
   readonly get_ir: (a: number) => void;
   readonly get_errors: (a: number) => void;

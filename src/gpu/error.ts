@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { Logger } from "../recoil/console";
+import { Logger } from "@recoil/console";
 import GPU from './gpu'
 
 const useGPUError = (

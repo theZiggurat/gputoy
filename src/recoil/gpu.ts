@@ -1,7 +1,7 @@
+import { GPUInitResult } from "@gpu/gpu";
 import { atom } from "recoil";
-import { GPUInitResult } from "../gpu/gpu";
 
-export const gpuStatus = atom<GPUInitResult>({
+export const gpuStatusAtom = atom<GPUInitResult>({
   key: 'gpuStatus',
   default: 'uninitialized',
 })

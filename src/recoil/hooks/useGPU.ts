@@ -1,14 +1,13 @@
 import { useToast } from "@chakra-ui/toast"
+import GPU from "@gpu/gpu"
+import { gpuStatusAtom } from "@recoil/gpu"
 import { useEffect } from "react"
 import { useSetRecoilState } from "recoil"
-import GPU from "../gpu/gpu"
-import { useLogger } from "../recoil/console"
-import { gpuStatus } from "../recoil/gpu"
+import useLogger from "./useLogger"
 
-const GPUController = () => {
-
+export default () => {
   const logger = useLogger()
-  const setGPUStatus = useSetRecoilState(gpuStatus)
+  const setGPUStatus = useSetRecoilState(gpuStatusAtom)
   const toast = useToast()
 
   useEffect(() => {
@@ -49,8 +48,4 @@ const GPUController = () => {
     }
     init()
   }, [])
-
-  return <></>
 }
-
-export default GPUController

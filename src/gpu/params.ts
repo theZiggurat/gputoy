@@ -1,20 +1,21 @@
+import { Logger } from '@recoil/console'
 import * as types from './types'
 
 const declInfo = {
-  'int':    { size: 4,   align: 4,   order: 6, decl: 'i32',       writeType: 'int'   },
-  'float':  { size: 4,   align: 4,   order: 3, decl: 'f32',       writeType: 'float' },
-  'color':  { size: 12,  align: 16,  order: 1, decl: 'vec3<f32>', writeType: 'float' },
-  'vec3f':  { size: 12,  align: 16,  order: 0, decl: 'vec3<f32>', writeType: 'float' },
-  'vec3i':  { size: 12,  align: 16,  order: 4, decl: 'vec3<i32>', writeType: 'int'   },
-  'vec2f':  { size: 8,   align: 8,   order: 2, decl: 'vec2<f32>', writeType: 'float' },
-  'vec2i':  { size: 8,   align: 8,   order: 5, decl: 'vec2<i32>', writeType: 'int'   },
+  'int': { size: 4, align: 4, order: 6, glsl: 'int', wgsl: 'i32', writeType: 'int' },
+  'float': { size: 4, align: 4, order: 3, glsl: 'float', wgsl: 'f32', writeType: 'float' },
+  'color': { size: 12, align: 16, order: 1, glsl: 'vec3', wgsl: 'vec3<f32>', writeType: 'float' },
+  'vec3f': { size: 12, align: 16, order: 0, glsl: 'vec3', wgsl: 'vec3<f32>', writeType: 'float' },
+  'vec3i': { size: 12, align: 16, order: 4, glsl: 'ivec3', wgsl: 'vec3<i32>', writeType: 'int' },
+  'vec2f': { size: 8, align: 8, order: 2, glsl: 'vec2', wgsl: 'vec2<f32>', writeType: 'float' },
+  'vec2i': { size: 8, align: 8, order: 5, glsl: 'ivec2', wgsl: 'vec2<i32>', writeType: 'int' },
 }
 
 export const encode = (val: number[], type: types.ParamType): string => {
   switch (type) {
     case 'color': return "#".concat(val.map(d => {
-      let v = (d*255).toString(16)
-      return v.length == 1 ? '0' + v: v
+      let v = (d * 255).toString(16)
+      return v.length == 1 ? '0' + v : v
     }).join(''))
     case 'int': return val[0].toString()
     case 'float': return val[0].toString()
@@ -26,11 +27,11 @@ export const decode = (val: string, type: types.ParamType): number[] => {
   switch (type) {
     case 'float': return [parseFloat(val)]
     case 'int': return [parseInt(val)]
-    case 'vec2f'||'vec3f': return val.split(',').map(parseFloat)
-    case 'vec2i'||'vec3i': return val.split(',').map(parseInt)
+    case 'vec2f' || 'vec3f': return val.split(',').map(parseFloat)
+    case 'vec2i' || 'vec3i': return val.split(',').map(parseInt)
     case 'color': {
       let z = parseInt(val.substr(1), 16)
-      return [(z >> 16 & 0xFF)/255, (z >> 8 & 0xFF)/255, (z >> 0 & 0xFF)/255]
+      return [(z >> 16 & 0xFF) / 255, (z >> 8 & 0xFF) / 255, (z >> 0 & 0xFF) / 255]
     }
     default: return [0]
   }
@@ -54,7 +55,6 @@ class Params {
   private bindGroup!: GPUBindGroup
   private bindGroupLayout!: GPUBindGroupLayout
   private buffer!: GPUBuffer
-  private shaderDecl: string = ""
 
   constructor(name: string, prefix: string, frozen: boolean = false, group: number = 0, binding: number = 0) {
     this.name = name
@@ -69,7 +69,7 @@ class Params {
    * @inparams params list of param descriptors
    * @returns whether the project these parameters belong to should recompile
    */
-  set = (inparams: types.ParamDesc[], device: GPUDevice): boolean => {
+  set = (inparams: types.ParamDesc[], device: GPUDevice, logger?: Logger): boolean => {
 
     let needRecompile = inparams.length != this.params.length
     if (!needRecompile && !this.frozen) {
@@ -77,15 +77,15 @@ class Params {
       // if they are, there is no need to recompile
       needRecompile = !inparams.every(newp => {
         let match = this.params.find(oldp => newp.paramName === oldp.paramName)
-        return match ?  newp.paramType === match.paramType : false
+        return match ? newp.paramType === match.paramType : false
       })
     }
     this.params = inparams
-    if (needRecompile){
+    if (needRecompile) {
       this.built = false
-      this.updateDesc(device)
+      this.updateDesc(device, logger)
     }
-      
+
 
     this.uploadToGPU(device)
     return needRecompile
@@ -99,37 +99,39 @@ class Params {
    * @param binding bind index of uniform block (default 0)
    * @returns shader header that will declare the uniform block
    */
-  updateDesc = (device: GPUDevice) => {
+  updateDesc = (device: GPUDevice, logger?: Logger) => {
     const roundUp = (k: number, n: number) => Math.ceil(n / k) * k
-    
-    if (!device) return
-    
-    let unidecl = []
+
+    if (!device) {
+      logger?.err(`Params_@${this.name}`, 'No device to update param descriptors. Aborting.')
+      return
+    }
+
     this.byteOffsets = []
     this.sizeByte = 0
     let align = 0
 
-    if(this.params.length > 0) {
-      unidecl.push(`[[block]] struct ${this.name} {`)
+    if (this.params.length > 0) {
       this.params.forEach((p, idx) => {
-        this.byteOffsets[idx] = idx == 0 ? 0 : 
-          roundUp(declInfo[p.paramType].align, this.byteOffsets[idx-1] + declInfo[this.params[idx-1].paramType].size)
+        this.byteOffsets[idx] = idx == 0 ? 0 :
+          roundUp(declInfo[p.paramType].align, this.byteOffsets[idx - 1] + declInfo[this.params[idx - 1].paramType].size)
         align = Math.max(align, declInfo[p.paramType].align)
-        unidecl.push(`\t${p.paramName}: ${declInfo[p.paramType].decl};`)
       })
-      unidecl.push(`};\n[[group(${this.group}), binding(${this.binding})]]\nvar<uniform> ${this.prefix}: ${this.name};\n`)
       let lastMemberType = this.params[this.params.length - 1].paramType
       this.sizeByte = roundUp(align, this.byteOffsets[this.params.length - 1] + declInfo[lastMemberType].size)
     }
 
-    //Console.log('param buffer size', `${this.sizeByte} bytes`)
+    if (this.sizeByte == 0) return
 
-    this.shaderDecl = unidecl.join("\n")
     this.buffer = device.createBuffer({
       label: `${this.name}Buffer`,
       size: this.sizeByte,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
+    logger?.debug(`Params_@${this.name}`, `Buffer created with size of ${this.sizeByte} bytes and config: \n`.concat(
+      this.params.map((p: types.ParamDesc, idx: number) => `${this.byteOffsets[idx]}\t${p.paramName}\t\t${declInfo[p.paramType].size} bytes -- ${declInfo[p.paramType].align} align`).join('\n')
+    ))
+
     this.bindGroupLayout = device.createBindGroupLayout({
       label: `${this.name}BindGroupLayout`,
       entries: [{
@@ -148,6 +150,7 @@ class Params {
         resource: { buffer: this.buffer }
       }]
     })
+    logger?.debug(`Params_@${this.name}`, `Bind group created at binding ${this.binding}`)
 
     this.built = true
   }
@@ -184,11 +187,24 @@ class Params {
   getBindGroup = (): GPUBindGroup => this.bindGroup
   getBindGroupLayout = (): GPUBindGroupLayout => this.bindGroupLayout
   getBuffer = (): GPUBuffer => this.buffer
-  getShaderDecl = (): string => this.shaderDecl
+  getShaderDecl = (lang: string): string => {
+    if (this.params.length == 0) return ''
+    let unidecl = []
+    if (lang == 'wgsl') {
+      unidecl.push(`[[block]] struct ${this.name} {`)
+      this.params.forEach(p => unidecl.push(`\t${p.paramName}: ${declInfo[p.paramType].wgsl};`))
+      unidecl.push(`};\n[[group(${this.group}), binding(${this.binding})]]\nvar<uniform> ${this.prefix}: ${this.name};\n`)
+    } else {
+      unidecl.push(`layout(binding = ${this.binding}, set = ${this.group}) uniform ${this.name} {`)
+      this.params.forEach(p => unidecl.push(`\t${declInfo[p.paramType].glsl} ${p.paramName};`))
+      unidecl.push(`} ${this.prefix};\n`)
+    }
+    return unidecl.join('\n')
+  }
 
   isEmpty = (): boolean => this.params.length == 0
   isBuilt = (): boolean => this.built
-  
+
 }
 
 export default Params

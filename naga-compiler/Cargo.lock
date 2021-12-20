@@ -135,7 +135,6 @@ dependencies = [
  "pp-rs",
  "rustc-hash",
  "serde",
- "spirv",
  "thiserror",
 ]
 
@@ -242,16 +241,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "spirv"
-version = "0.2.0+1.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "246bfa38fe3db3f1dfc8ca5a2cdeb7348c78be2112740cc0ec8ef18b6d94f830"
-dependencies = [
- "bitflags",
- "num-traits",
 ]
 
 [[package]]
