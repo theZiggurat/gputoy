@@ -13,7 +13,6 @@ import { GetServerSideProps } from 'next'
 import { Project as ProjectDB } from '.prisma/client'
 import prisma from '../lib/prisma'
 import Head from 'next/head'
-import { projectControl } from '../src/recoil/project'
 
 export const getServerSideProps: GetServerSideProps = async ({query}) => {
 	if (query.id !== undefined) {

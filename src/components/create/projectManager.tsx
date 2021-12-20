@@ -11,11 +11,13 @@ import {
   defaultParams, 
   fileErrors, 
   params, 
-  projectControl, 
-  projectStatus, 
-  useProjectControls, 
+  projectStatus,
   workingProjectID
 } from '../../recoil/project'
+import {
+  projectControl,
+  useProjectControls
+} from '../../recoil/controls'
 
 
 

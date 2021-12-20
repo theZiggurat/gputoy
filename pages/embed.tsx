@@ -1,25 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { Panels } from '../src/components/panels/panel'
-import { usePanels } from '../src/recoil/layout'
-import descriptors from '../src/components/panels/descriptors'
+import React, { useEffect, useState } from 'react'
 
-import Scaffold from '../src/components/scaffold'
 
 import ProjectManager from '../src/components/create/projectManager'
-import ProjectMenu from '../src/components/create/menu'
 
 import ProjectSerializer from '../src/components/create/projectSerializer'
 import { GetServerSideProps } from 'next'
 import { Project as ProjectDB } from '.prisma/client'
 import prisma from '../lib/prisma'
-import Head from 'next/head'
-import { projectControl } from '../src/recoil/project'
-import { Box, Button, Flex } from '@chakra-ui/react'
+import { Box } from '@chakra-ui/react'
 import ViewportEmbeddable from '../src/components/panels/embeds/viewport'
 import EditorEmbedable from '../src/components/panels/embeds/editor'
-import { themed } from '../src/theme/theme'
 import SplitPane from 'react-split-pane'
-import { darkResizer } from '../src/theme/consts'
 
 export const getServerSideProps: GetServerSideProps = async ({query}) => {
 	if (query.id !== undefined) {

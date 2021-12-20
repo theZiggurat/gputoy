@@ -1,7 +1,6 @@
 import { Project } from ".prisma/client"
-import React, { useRef, useState, useEffect } from "react"
-import ProjectDirect, { useProjectDirect } from "../../gpu/projectDirect"
-import { useProjectControlsDirect } from "../../recoil/controls"
+import React, { useState } from "react"
+import { useProjectDirect } from "../../gpu/projectDirect"
 import { 
   Text, 
   Box,

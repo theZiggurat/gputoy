@@ -10,11 +10,12 @@ import {
     Text,
     useColorModeValue,
     Fade,
-		Flex,
-		Button
+    Flex,
+    Button
 } from '@chakra-ui/react';
 import {  useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { canvasInitialized, mousePos, projectControl, projectStatus, resolution } from '../../../recoil/project';
+import { canvasInitialized, mousePos, projectStatus, resolution } from '../../../recoil/project';
+import { projectControl } from '../../../recoil/controls'
 import { useConsole, useLogger } from '../../../recoil/console';
 import { throttle } from 'lodash';
 import consts from '../../../theme/consts';

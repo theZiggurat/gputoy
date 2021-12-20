@@ -1,7 +1,8 @@
 import React from 'react'
 import { useRecoilValue } from 'recoil'
-import { projectStatus, projectControl } from '../../recoil/project'
+import { projectStatus } from '../../recoil/project'
 import { Text, Box } from '@chakra-ui/react'
+import { projectControl } from '../../recoil/controls'
 
 export const ProjectStatusView = () => {
 

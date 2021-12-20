@@ -20,11 +20,12 @@ import {
     DynamicPanelProps
 } from '../panel'
 import {  useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { canvasInitialized, mousePos, projectControl, projectStatus, resolution } from '../../../recoil/project';
+import { canvasInitialized, mousePos, projectStatus, resolution } from '../../../recoil/project';
 import { useLogger } from '../../../recoil/console';
 import { throttle } from 'lodash';
 import consts from '../../../theme/consts';
 import { gpuStatus } from '../../../recoil/gpu';
+import { projectControl } from '../../../recoil/controls'
 
 const canvasMargin = 0
 

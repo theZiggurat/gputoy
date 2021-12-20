@@ -12,7 +12,7 @@ import { FiMoreVertical } from 'react-icons/fi'
 import { Divider } from '../reusable/micro'
 import { themed } from '../../theme/theme'
 import { useRecoilState, useRecoilValue } from "recoil"
-import { layoutState, usePanels } from '../../recoil/layout'
+import { layoutState, usePanels } from '@recoil/layout'
 import { projectState, title, workingProjectID } from '../../recoil/project'
 import { CgGitFork } from 'react-icons/cg'
 import { MdOutlinePublish } from 'react-icons/md'
@@ -195,19 +195,22 @@ const useMenu = () => {
   const router = useRouter()
 
   const onUserPublish = async () => {
+
+    const body = {
+      title: projectValue.title,
+      description: '',
+      params: projectValue.params,
+      shaders: projectValue.files,
+      layout: projectLayout,
+      published: true
+    }
+
     const response = await fetch('/api/project', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        title: projectValue.title,
-        description: '',
-        params: projectValue.params,
-        shaders: projectValue.files,
-        layout: projectLayout,
-        published: true
-      })
+      body: JSON.stringify(body)
     })
     const id = (await response.json()).projectID
     if (id !== undefined)

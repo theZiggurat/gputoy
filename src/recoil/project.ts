@@ -1,13 +1,8 @@
-import  { atom, atomFamily, DefaultValue, selector, selectorFamily, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
-import * as types from '../gpu/types'
-
+import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
 // @ts-ignore
 import defaultShader from '../../shaders/basicShader.wgsl'
+import * as types from '../gpu/types'
 
-import { layoutState } from './layout'
-import { _console } from './console'
-import { useEffect } from 'react'
-import { Project } from '../gpu/project'
 
 
 export const projectStatus = atom<types.ProjectStatus>({
@@ -118,66 +113,4 @@ export const canvasInitialized = atom<boolean>({
   key: 'canvasInitialized',
   default: false
 })
-
-type ProjectControl = 'play' | 'pause' | 'stop'
-export const projectControl = atom<ProjectControl>({
-  key: 'projectControl',
-  default: 'stop'
-})
-
-export const useProjectControls = () => {
-  const setProjectStatus = useSetRecoilState(projectStatus)
-  const defaultParamState = useRecoilValue(defaultParams)
-
-  useEffect(() => {
-    Project.instance().updateDefaultParams(defaultParamState)
-  }, [defaultParamState])
-
-  const pause = () => {
-    setProjectStatus(old => { 
-      return {
-          ...old, 
-          running: false,
-          prevDuration: old.runDuration
-      }
-    })
-  }
-
-  const play = () => {
-    setProjectStatus(old => { 
-      return {
-          ...old,
-          running: true,
-          lastStartTime: performance.now(),
-      }
-    })
-  }
-
-  const stop = () => {
-      setProjectStatus(old => { 
-          return {
-          ...old,
-          running: false,
-          frameNum: 0,
-          runDuration: 0,
-          prevDuration: 0,
-      }})
-  }
-
-  const step = () => {
-    setProjectStatus(old => {
-      let now = performance.now()
-      return {
-        ...old,
-        runDuration: (now - old.lastStartTime) / 1000 + old.prevDuration,
-        lastFrameRendered: now,
-        dt: now - old.lastFrameRendered,
-        frameNum: old.frameNum + 1
-      }
-    })
-  }
-
-  return { play, pause, stop, step }
-}
-
 

@@ -3,7 +3,8 @@ import React, { useEffect } from 'react'
 import { DefaultValue, useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
 import { clearConsole } from '../../recoil/console'
 import { layoutState } from '../../recoil/layout'
-import { projectControl, projectState, projectStatus, workingProjectID } from '../../recoil/project'
+import { projectState,  workingProjectID } from '../../recoil/project'
+import { projectControl } from '../../recoil/controls'
 
 
 type ProjectSerializerProps = {

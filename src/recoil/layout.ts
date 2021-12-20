@@ -1,11 +1,9 @@
-import {atom} from 'recoil'
-import { DefaultValue, useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
-import { set } from 'lodash/fp'
 import { debounce, get } from 'lodash'
+import { set } from 'lodash/fp'
 import { nanoid } from 'nanoid'
-import { MutableRefObject, ReactElement, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { atom, useRecoilState, useResetRecoilState } from 'recoil'
 import { useInstanceCleaner } from './instance'
-import { layout } from '@chakra-ui/styled-system'
 
 export const layoutState = atom<any>({
   key: 'layout',
@@ -36,23 +34,6 @@ export const layoutState = atom<any>({
     "instanceID": "UjsW244-",
 		"size": .65
   },
-  // effects_UNSTABLE: [
-  //   ({setSelf, onSet}) => {
-  //     setSelf(() => {
-  //       if (typeof window === 'undefined') return new DefaultValue
-  //       const layout = window.localStorage.getItem('layout')
-  //       if (layout == null)
-  //         return new DefaultValue
-  //       else
-  //         return JSON.parse(layout)
-  //     })
-  //     onSet((newValue, _, isReset) => {
-  //       !isReset ? 
-  //         window.localStorage.setItem('layout', JSON.stringify(newValue)): 
-  //         window.localStorage.removeItem('layout')
-  //     })
-  //   }
-  // ]
 })
 
 
@@ -206,10 +187,6 @@ const replaceAtPath = (obj: any, path: string, f: (obj: any) => void): any | und
         return false
     return apath.length == 0 ? f(objAtPath): set(apath, f(objAtPath), obj)
 }
-
-// const instances = (obj: any): any[] => {
-//     return _instances(obj, '')
-// }
 
 const instances = (obj: any, path: string = ''): any[] => {
     const selfID = get(obj, arrpath(path).concat('instanceID'))
