@@ -1,6 +1,8 @@
+/* eslint-disable import/no-anonymous-default-export */
 import { Project as ProjectDB } from '.prisma/client'
 import { layoutAtom } from '@recoil/layout'
 import { currentProjectIDAtom, withProjectState } from '@recoil/project'
+import { debounce } from 'lodash'
 import { useEffect } from 'react'
 import { useRecoilState, useSetRecoilState } from 'recoil'
 
@@ -18,20 +20,27 @@ export default (props: ProjectStorageProps) => {
   const [projectStateValue, setProjectState] = useRecoilState(withProjectState(projectID))
 
   const setProjectID = useSetRecoilState(currentProjectIDAtom)
-  const setLayout = useSetRecoilState(layoutAtom)
+  const [layout, setLayout] = useRecoilState(layoutAtom)
 
   useEffect(() => {
 
-  }, [])
-
-  useEffect(() => {
     setProjectID(projectID)
+
     if (projectID == 'local') {
+      // load project from local storage
       const projectLoad = localStorage.getItem('project_local')
       if (projectLoad)
         setProjectState(JSON.parse(projectLoad))
-    } else {
+
+      // load layout from local storage
+      const layoutLoad = window.localStorage.getItem('layout')
+      if (layoutLoad)
+        setLayout(JSON.parse(layoutLoad))
+    }
+
+    else {
       if (project) {
+        // set recoil project state to project loaded from DB
         setProjectState(() => {
           return {
             title: project.title,
@@ -46,14 +55,25 @@ export default (props: ProjectStorageProps) => {
             }),
           }
         })
-        if (project.layout != null)
-          setLayout(project.layout)
+
+        // if project has layout, set recoil layout state to layout loaded from DB
+        if (project.layout != null) {
+          console.log(JSON.parse(project.layout))
+          setLayout(JSON.parse(project.layout))
+        }
       }
     }
-  }, [props])
+  }, [projectID, project])
 
-  useEffect(() => {
+  // periodically save project to localstorage if project was not loaded from DB
+  useEffect(debounce(() => {
     if (projectID == 'local')
       localStorage.setItem('project_local', JSON.stringify(projectStateValue))
-  }, [projectStateValue])
+  }, 1000), [projectStateValue, projectID])
+
+  // periodically save layout to localstorage if project was not loaded from DB
+  useEffect(debounce(() => {
+    if (projectID == 'local')
+      localStorage.setItem('layout', JSON.stringify(layout))
+  }, 1000), [layout, projectID])
 }

@@ -1,13 +1,12 @@
 import { Logger } from '@recoil/console'
-
+import { FileErrors } from '@recoil/project'
+import { SetterOrUpdater } from 'recoil'
 import Compiler from './compiler'
-import * as types from './types'
 import GPU, { AttachResult } from './gpu'
 import Params from './params'
 import staticdecl from './staticdecl'
-import { SetterOrUpdater } from 'recoil'
-import { FileErrors } from '@recoil/project'
-import { Project as DBProject } from '.prisma/client'
+import * as types from './types'
+
 
 export class Project {
 
@@ -17,7 +16,7 @@ export class Project {
     if (Project._instance === undefined) {
       Project._instance = new Project()
     }
-      
+
     return Project._instance
   }
 
@@ -53,8 +52,8 @@ export class Project {
   handleResize = (newsize: number[]) => {
     if (this.gpuAttach === undefined) return
     if (
-      newsize[0] !== this.gpuAttach.presentationSize[0] || 
-      newsize[1] !== this.gpuAttach.presentationSize[1] 
+      newsize[0] !== this.gpuAttach.presentationSize[0] ||
+      newsize[1] !== this.gpuAttach.presentationSize[1]
     ) {
       this.resizeNeeded = true
       this.resizeSize = newsize
@@ -63,7 +62,7 @@ export class Project {
 
   // starts project
   prepareRun = async (state: types.ProjectStatus, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<boolean> => {
-    if(!GPU.isInitialized()){
+    if (!GPU.isInitialized()) {
       logger?.err('Project', 'GPU not initialized. Cancelling run')
       return false
     }
@@ -101,13 +100,13 @@ export class Project {
   }
 
   updateDefaultParams = (paramDesc: types.ParamDesc[], logger?: Logger) => {
-    if(GPU.isInitialized()) 
+    if (GPU.isInitialized())
       this.shaderDirty = this.included.set(paramDesc, GPU.device) || this.shaderDirty
   }
 
   updateParams = (paramDesc: types.ParamDesc[], logger?: Logger) => {
-    if(GPU.isInitialized()) 
-      this.shaderDirty = this.params.set(paramDesc, GPU.device) || this.shaderDirty
+    if (GPU.isInitialized())
+      this.shaderDirty = this.params.set(paramDesc, GPU.device, logger) || this.shaderDirty
   }
 
   updateShaders = (files: types.CodeFile[], logger?: Logger) => {
@@ -121,11 +120,14 @@ export class Project {
       logger?.err('Project', 'Cannot compile. No \'render\' shader in files!')
       return false
     }
-    let decls = this.included.getShaderDecl()
-      .concat(staticdecl.vertex)
-      .concat(this.params.getShaderDecl())
+    let decls = this.included.getShaderDecl(srcFile.lang)
+      .concat(this.params.getShaderDecl(srcFile.lang))
 
-    let module = await Compiler.instance().compileWGSL(GPU.device, srcFile, decls, logger, setFileErrors)
+    let module = null
+    if (srcFile.lang == 'wgsl')
+      module = await Compiler.instance().compileWGSL(GPU.device, srcFile, decls, logger, setFileErrors)
+    else
+      module = await Compiler.instance().compileGLSL(GPU.device, srcFile, decls, logger, setFileErrors)
     if (module == null)
       return false
     this.shaderModule = module
@@ -136,13 +138,13 @@ export class Project {
   mapBuffers = () => {
     if (!GPU.isInitialized())
       return
-    
-    const vertexBufferData = new Float32Array([-1.0, -1.0, 1.0, -1.0, 1.0, 
+
+    const vertexBufferData = new Float32Array([-1.0, -1.0, 1.0, -1.0, 1.0,
       1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0]);
     this.vertexBuffer = GPU.device.createBuffer({
-        label: "_vertex",
-        size: vertexBufferData.byteLength,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      label: "_vertex",
+      size: vertexBufferData.byteLength,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
     GPU.device.queue.writeBuffer(
       this.vertexBuffer,
@@ -161,7 +163,7 @@ export class Project {
       return
 
     let layouts = [this.included.getBindGroupLayout()]
-    if(!this.params.isEmpty())
+    if (!this.params.isEmpty())
       layouts.push(this.params.getBindGroupLayout())
 
     this.pipelineLayout = GPU.device.createPipelineLayout({
@@ -198,7 +200,7 @@ export class Project {
         topology: "triangle-list"
       }
     })
-    
+
   }
 
   encodeCommands = () => {
@@ -211,9 +213,9 @@ export class Project {
     const renderPassDesc: GPURenderPassDescriptor = {
       label: "render",
       colorAttachments: [{
-          view: targetTextureView,
-          loadValue: { r: 0, g: 0, b: 0, a: 1 },
-          storeOp: 'store'
+        view: targetTextureView,
+        loadValue: { r: 0, g: 0, b: 0, a: 1 },
+        storeOp: 'store'
       }],
     }
 
@@ -222,7 +224,7 @@ export class Project {
     rpass.setPipeline(this.pipeline)
     rpass.setVertexBuffer(0, this.vertexBuffer)
     rpass.setBindGroup(0, this.included.getBindGroup())
-    if(!this.params.isEmpty())
+    if (!this.params.isEmpty())
       rpass.setBindGroup(1, this.params.getBindGroup())
     rpass.draw(6, 1, 0, 0)
     rpass.endPass()

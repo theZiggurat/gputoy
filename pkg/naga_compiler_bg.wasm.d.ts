@@ -1,8 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export function compile_glsl(a: number, b: number, c: number, d: number): number;
-export function compile_wgsl(a: number, b: number): number;
+export function compile_glsl(a: number, b: number, c: number, d: number, e: number): void;
 export function get_module_info(a: number): void;
 export function get_ir(a: number): void;
 export function get_errors(a: number): void;

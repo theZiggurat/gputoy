@@ -206,9 +206,10 @@ const useMenu = () => {
       },
       body: JSON.stringify(body)
     })
-    const id = (await response.json()).projectID
-    if (id !== undefined)
-      router.replace(`/create/?id=${id}`)
+    const responseJSON = (await response.json())
+    console.log(responseJSON)
+    if (responseJSON.projectID !== undefined)
+      router.replace(`/create/?id=${responseJSON.projectID}`)
   }
 
   const onExit = () => {

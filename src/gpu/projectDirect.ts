@@ -103,12 +103,15 @@ class ProjectDirect {
     if (srcFile === undefined) {
       return false
     }
-    let decls = this.included.getShaderDecl()
-      .concat(staticdecl.vertex)
-      .concat(this.params.getShaderDecl())
+    let decls = this.included.getShaderDecl(srcFile.lang)
+      .concat(this.params.getShaderDecl(srcFile.lang))
 
-    let module = await Compiler.instance().compileWGSL(GPU.device, srcFile, decls)
-    if (!module)
+    let module = null
+    if (srcFile.lang == 'wgsl')
+      module = await Compiler.instance().compileWGSL(GPU.device, srcFile, decls)
+    else
+      module = await Compiler.instance().compileGLSL(GPU.device, srcFile, decls)
+    if (module == null)
       return false
     this.shaderModule = module
     return true

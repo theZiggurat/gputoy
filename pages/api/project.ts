@@ -41,25 +41,27 @@ const handlePost = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   }
 
   try {
+    const data = {
+      title: body.title,
+      description: body.description,
+      authorId: session.user?.id,
+      params: JSON.stringify(body?.params ?? []),
+      published: true,
+      shaders: {
+        create: body.shaders.map(s => {
+          return {
+            source: s.file,
+            name: s.filename,
+            lang: s.lang,
+            isRender: s.isRender
+          }
+        })
+      },
+      layout: body.layout ? JSON.stringify(body.layout) : null
+    }
+    console.log(data)
     const ret = await prisma.project.create({
-      data: {
-        title: body.title,
-        description: body.description,
-        authorId: session.user?.id,
-        params: JSON.stringify(body?.params ?? []),
-        published: true,
-        shaders: {
-          create: body.shaders.map(s => {
-            return {
-              source: s.file,
-              name: s.filename,
-              lang: s.lang,
-              isRender: s.isRender
-            }
-          })
-        },
-        layout: body.layout ?? null
-      }
+      data
     })
     res.status(200).send({ projectID: ret.id })
   } catch (e) {
