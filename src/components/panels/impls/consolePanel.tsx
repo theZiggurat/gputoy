@@ -48,6 +48,8 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
   const bottom = React.useRef<HTMLDivElement>(null)
 
   const toast = useToast()
+  const consoleFontColorMod = useColorModeValue('.600', '.200')
+  const consoleFontWeight = useColorModeValue('bold', 'medium')
 
   /**
    * Automatic scrolling to bottom
@@ -104,8 +106,8 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
                 {formatTime(message.time)}&nbsp;&nbsp;
               </Text>
               <Text
-                color={colors[message.type].concat(useColorModeValue('.600', '.200'))}
-                fontWeight={useColorModeValue('bold', 'medium')}
+                color={colors[message.type].concat(consoleFontColorMod)}
+                fontWeight={consoleFontWeight}
                 transition="0.2s ease"
                 display="inline"
               >
@@ -124,9 +126,9 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
         {/* search & type filters */}
         <PanelBarMiddle>
           <InputGroup maxWidth="500" minWidth="100">
-            <InputLeftElement
-              children={<FaSearch />}
-            />
+            <InputLeftElement>
+              <FaSearch />
+            </InputLeftElement>
             <Input
               borderStartRadius="md"
               borderEndRadius="0"
@@ -136,9 +138,10 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
             {
               instanceState.keywordFilter.length > 0 &&
               <InputRightElement
-                children={<CloseIcon size="sm" />}
                 onClick={() => setKeywordFilter('')}
-              />
+              >
+                <CloseIcon size="sm" />
+              </InputRightElement>
             }
           </InputGroup>
           {/* <LogLevelCheckboxes filters={typeFilters} toggle={toggle}/> */}

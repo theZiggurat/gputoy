@@ -33,11 +33,12 @@ interface RowToggleButtonProps {
 }
 export const RowToggleButton = (props: RowToggleButtonProps) => {
   const { first, last, toggled, text, onClick } = props
+  const color = useColorModeValue('whiteAlpha.600', 'whiteAlpha.50')
 
   return (
     <Button
       fontWeight="normal"
-      bg={toggled ? '' : useColorModeValue('whiteAlpha.600', 'whiteAlpha.50')}
+      bg={toggled ? '' : color}
       borderStartRadius={first ? "" : "0px"}
       borderEndRadius={last ? "" : "0px"}
       borderLeft={first ? "" : "0"}
