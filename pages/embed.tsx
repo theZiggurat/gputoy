@@ -39,8 +39,7 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
       }
     }
   }
-  else
-    return { props: { projectID: 'not_found', mode: query.theme ?? 'light' } }
+  return { props: { projectID: 'not_found', mode: query.theme ?? 'light' } }
 
 }
 

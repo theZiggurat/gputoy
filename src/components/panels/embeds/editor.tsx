@@ -54,7 +54,7 @@ const EditorEmbedable = (props: { ref, width: number }) => {
             overflowY="scroll"
             overflowX="hidden"
         >
-            <Box width="100%" sx={useColorModeValue(lightEditor, darkEditor)}>
+            <Box minWidth="100%" sx={useColorModeValue(lightEditor, darkEditor)}>
                 {
                     currentFile &&
                     <Editor

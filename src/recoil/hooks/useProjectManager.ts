@@ -1,3 +1,4 @@
+/* eslint-disable import/no-anonymous-default-export */
 import GPU from "@gpu/gpu"
 import { Project } from "@gpu/project"
 import { projectControlAtom, projectRunStatusAtom } from "@recoil/controls"
@@ -133,6 +134,6 @@ export default (props: { projectID: string }) => {
 
     if (GPU.isInitialized())
       GPU.device.onuncapturederror = errorHandler
-  }, [logger])
+  }, [logger, stop])
 }
 

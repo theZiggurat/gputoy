@@ -92,12 +92,16 @@
 } */
 
 /* ENSURES BOTTOM PANEL BAR DOES NOT GO BENEATH SCREEN */
-.SplitPane {
+/* .SplitPane {
   min-height: 0% !important;
-}
+} */
 
 /* STOPS PANEL CONTENT FROM PUSHING BAR DOWN */
 .Pane {
   overflow: hidden;
+}
+
+*:focus {
+  box-shadow: none !important;
 }
 

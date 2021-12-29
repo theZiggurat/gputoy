@@ -23,6 +23,10 @@ export interface ConsoleInstanceState {
 export interface EditorInstanceState {
 	currentFileIndex: number
 }
+export interface ViewportInstanceState {
+	showInfo: boolean
+}
+
 export interface PanelDescriptor {
 	index: number
 	name: string,
@@ -46,10 +50,12 @@ export default [
 		icon: <IoTvSharp />,
 		component: ViewportPanel,
 		single: true,
-		defaultInstanceProps: {}
+		defaultInstanceProps: {
+			showInfo: false
+		}
 	},
 	{
-		index: 1,
+		index: 2,
 		name: 'Params',
 		icon: <BsFillFileSpreadsheetFill />,
 		component: ParamPanel,
@@ -59,7 +65,7 @@ export default [
 		}
 	},
 	{
-		index: 2,
+		index: 3,
 		name: 'Editor',
 		icon: <BsFillFileEarmarkCodeFill />,
 		component: EditorPanel,
@@ -68,7 +74,7 @@ export default [
 		}
 	},
 	{
-		index: 3,
+		index: 4,
 		name: 'Console',
 		icon: <BsTerminalFill />,
 		component: ConsolePanel,
@@ -78,7 +84,7 @@ export default [
 		}
 	},
 	{
-		index: 4,
+		index: 5,
 		name: 'Summary',
 		icon: <MdSummarize />,
 		component: SummaryPanel,

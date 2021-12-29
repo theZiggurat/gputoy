@@ -1,0 +1,68 @@
+import { Flex, Divider, HStack, Text, useColorModeValue, chakra } from "@chakra-ui/react"
+import React from "react"
+import { AiFillTwitterCircle, AiFillRedditCircle, AiFillGithub } from "react-icons/ai"
+import { themed } from "theme/theme"
+
+const Footer = () => {
+  return (
+    <chakra.footer bg={themed('bg')}>
+      <Flex flexDir="row" justifyContent="center" py="5rem" gridGap="10vw" flexWrap="wrap">
+        <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
+          <Text fontSize="2rem" fontWeight="extrabold" cursor="pointer" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} lineHeight="2rem">
+            GPUTOY
+          </Text>
+          <Flex gridGap="0.5rem" pt="1rem">
+            <AiFillTwitterCircle size={30} />
+            <AiFillRedditCircle size={30} />
+            <AiFillGithub size={30} />
+          </Flex>
+        </Flex>
+        <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
+          <Text fontSize="1.2rem" pb="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} fontWeight="bold">
+            Resources
+          </Text>
+          <Text fontSize="1rem">
+            Tutorial
+          </Text>
+          <Text fontSize="1rem">
+            Documentation
+          </Text>
+        </Flex>
+        <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
+          <Text fontSize="1.2rem" pb="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} fontWeight="bold">
+            About
+          </Text>
+          <Text fontSize="1rem">
+            About us
+          </Text>
+          <Text fontSize="1rem">
+            Roadmap
+          </Text>
+        </Flex>
+        <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
+          <Text fontSize="1.2rem" pb="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} fontWeight="bold">
+            Contact
+          </Text>
+          <Text fontSize="1rem">
+            Email us
+          </Text>
+          <Text fontSize="1rem">
+            Submit an issue
+          </Text>
+        </Flex>
+
+      </Flex>
+      <Divider borderColor={useColorModeValue("blackAlpha.300", "whiteAlpha.500")} />
+      <HStack gridGap="10rem" margin="auto" justifyContent="center">
+        <Text fontSize="0.8rem" py="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")}>
+          Privacy Policy
+        </Text>
+        <Text fontSize="0.8rem" py="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")}>
+          Terms of Service
+        </Text>
+      </HStack>
+    </chakra.footer>
+  )
+}
+
+export default Footer

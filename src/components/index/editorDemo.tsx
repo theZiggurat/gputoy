@@ -48,10 +48,10 @@ const demoCodeEnd = `
 
 const EditorDemo = () => {
 
-  const [ptr, setPtr] = useState(0) 
+  const [ptr, setPtr] = useState(0)
 
   useEffect(() => {
-    const timer = setInterval(() => setPtr(ptr => ptr+1), 20)
+    const timer = setInterval(() => setPtr(ptr => ptr + 1), 5)
     return () => clearInterval(timer)
   }, [])
 
@@ -64,8 +64,8 @@ const EditorDemo = () => {
       readOnly
       padding="1rem"
       style={{
-          fontFamily: '"JetBrains Mono","Fira code", "Fira Mono", monospace',
-          fontSize: 10,
+        fontFamily: '"JetBrains Mono","Fira code", "Fira Mono", monospace',
+        fontSize: 10,
       }}
     />
   )

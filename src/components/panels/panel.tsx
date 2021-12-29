@@ -2,7 +2,7 @@ import {
   Box, Button, Divider, Flex, IconButton, Popover, PopoverContent, PopoverTrigger, Portal, Text
 } from '@chakra-ui/react'
 import useInstance, { useInstances } from '@recoil/hooks/useInstance'
-import { PanelProps } from '@recoil/layout'
+import { PanelProps } from '@recoil/hooks/usePanels'
 import React, { LegacyRef, ReactElement, ReactNode, useEffect } from 'react'
 import { VscClose, VscSplitHorizontal, VscSplitVertical } from 'react-icons/vsc'
 import SplitPane from 'react-split-pane'
@@ -189,7 +189,7 @@ export const PanelBar = (props: PanelBarProps) => {
                       icon={desc.icon}
                       title={desc.name}
                       key={desc.name}
-                      onSwitch={() => onHandleSwitch(desc.index + 1)}
+                      onSwitch={() => onHandleSwitch(desc.index)}
                       onHandleSplitHorizontal={() => onHandleSplitHorizontal(idx)}
                       onHandleSplitVertical={() => onHandleSplitVertical(idx)}
                       last={idx == props.panelDesc!.length - 1}

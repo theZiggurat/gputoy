@@ -126,10 +126,9 @@ const NavUser = () => {
 
 	return (
 		<Flex
-			flex="1"
+			//flex="1"
 			alignItems={'center'}
 			justifyContent='center'
-			marginLeft="auto"
 			minW="min-content"
 			px="1rem"
 		>

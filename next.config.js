@@ -1,17 +1,15 @@
 /** @type {import('next').NextConfig} */
+const withSvgr = require('next-svgr')
 
-module.exports = {
+module.exports = withSvgr({
   reactStrictMode: true,
   typescript: {
     ignoreBuildErrors: true
   },
-  
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
 
-    
-    
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     config.output.webassemblyModuleFilename = 'static/wasm/[modulehash].wasm'
-    config.experiments.asyncWebAssembly = true 
+    config.experiments.asyncWebAssembly = true
 
     config.module.rules.push({
       test: /\.wgsl$/i,
@@ -19,4 +17,4 @@ module.exports = {
     });
     return config
   },
-}
+})

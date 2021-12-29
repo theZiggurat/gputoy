@@ -7,11 +7,11 @@ import useInstance from '@recoil/hooks/useInstance';
 import useLogger from '@recoil/hooks/useLogger';
 import { currentProjectIDAtom, projectShaderErrorsAtom, projectShadersAtom } from '@recoil/project';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { FaRegTrashAlt } from 'react-icons/fa';
 import { MdAdd, MdClose, MdCode, MdSettings } from 'react-icons/md';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
-import Editor from 'react-simple-code-editor';
+//import Editor from 'react-simple-code-editor';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import prismHighlight from 'utils/prismHighlight';
 import { darkEditor, lightEditor } from '../../../theme/consts';
@@ -20,6 +20,12 @@ import { RowButton } from '../../shared/rowButton';
 import { EditorInstanceState } from '../descriptors';
 import { DynamicPanelProps, Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel';
 import GPU from '@gpu/gpu'
+import Editor, { Monaco, useMonaco } from '@monaco-editor/react'
+
+import { languageExtensionPoint, languageID } from '../../../monaco/config'
+import { monarchLanguage, conf } from '../../../monaco/wgsl'
+import darktheme from 'monaco/darktheme';
+import completions from 'monaco/completions';
 interface EditorProps {
 	onEditCode: (idx: number, code: string) => void,
 	onEditFileName: (idx: number, code: string) => void,
@@ -34,6 +40,16 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 	const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
 	const { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender } = useEditorPanel()
 	const fileErrorValue = useRecoilValue(projectShaderErrorsAtom)
+
+	const onMonacoBeforeMount = (monaco: Monaco) => {
+		monaco.languages.register(languageExtensionPoint)
+		monaco.languages.onLanguage(languageID, () => {
+			monaco.languages.setMonarchTokensProvider(languageID, monarchLanguage)
+			monaco.languages.setLanguageConfiguration(languageID, conf)
+			monaco.languages.registerCompletionItemProvider(languageID, completions)
+		})
+		monaco.editor.defineTheme('dark', darktheme)
+	}
 
 	const logger = useLogger()
 
@@ -68,17 +84,48 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 				<Box width="100%" height="100%" sx={useColorModeValue(lightEditor, darkEditor)}>
 					{
 						currentFile &&
+						// <Editor
+						// 	className="editor"
+						// 	textareaId="codeArea"
+						// 	value={currentFile.file}
+						// 	onValueChange={code => onEditCode(instanceState.currentFileIndex, code)}
+						// 	highlight={code => prismHighlight(code, currentFile.lang, currentFile.filename, fileErrorValue)}
+						// 	padding={20}
+						// 	style={{
+						// 		fontFamily: '"JetBrains Mono","Fira code", "Fira Mono", monospace',
+						// 		fontSize: 13,
+						// 	}}
+						// />
+
 						<Editor
-							className="editor"
-							textareaId="codeArea"
+							height="100%"
 							value={currentFile.file}
-							onValueChange={code => onEditCode(instanceState.currentFileIndex, code)}
-							highlight={code => prismHighlight(code, currentFile.lang, currentFile.filename, fileErrorValue)}
-							padding={20}
-							style={{
-								fontFamily: '"JetBrains Mono","Fira code", "Fira Mono", monospace',
+							defaultLanguage={languageID}
+							beforeMount={onMonacoBeforeMount}
+							onChange={value => { if (value !== undefined) onEditCode(instanceState.currentFileIndex, value) }}
+							theme="dark"
+							options={{
 								fontSize: 13,
+								minimap: {
+									enabled: false
+								},
+								padding: {
+									top: 20,
+									bottom: 20
+								},
+								fontFamily: "'JetBrains Mono'",
+								overviewRulerLanes: 0,
+								scrollBeyondLastLine: false,
+								scrollbar: {
+									verticalScrollbarSize: 10,
+								},
+								suggest: {
+									//preview: true,
+									localityBonus: true,
+									snippetsPreventQuickSuggestions: false,
+								}
 							}}
+
 						/>
 					}
 				</Box>

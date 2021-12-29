@@ -4,12 +4,36 @@ import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil
 import defaultShader from '../../shaders/basicShader.wgsl'
 import { projectRunStatusAtom } from './controls'
 
-export type FileErrors = {
-  [key: string]: number
-}
-export const projectShaderErrorsAtom = atom<FileErrors>({
-  key: 'fileErrors',
-  default: {},
+
+export const currentProjectIDAtom = atom<string>({
+  key: 'projectID',
+  default: ''
+})
+
+export const projectTitleAtom = atomFamily<{ text: string, isValid: boolean }, string>({
+  key: 'projectTitle',
+  default: {
+    text: 'Unnamed Project',
+    isValid: true
+  }
+})
+
+export const projectDescriptionAtom = atomFamily<{ text: string, isValid: boolean }, string>({
+  key: 'projectDescription',
+  default: {
+    text: '',
+    isValid: true
+  }
+})
+
+export const projectTagsAtom = atomFamily<string[], string>({
+  key: 'projectTags',
+  default: []
+})
+
+export const projectAuthorAtom = atomFamily<string, string>({
+  key: 'projectAuthor',
+  default: 'anonymous'
 })
 
 export const projectShadersAtom = atomFamily<types.CodeFile[], string>({
@@ -17,11 +41,16 @@ export const projectShadersAtom = atomFamily<types.CodeFile[], string>({
   default: [{ file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true }],
 })
 
+export const projectParamsAtom = atomFamily<types.ParamDesc[], string>({
+  key: 'params',
+  default: [],
+})
+
 export const mousePosAtom = atom<types.MousePos>({
   key: 'mousepos',
   default: {
-    x: 0,
-    y: 0
+    x: 500,
+    y: 500
   },
 })
 
@@ -33,35 +62,28 @@ export const resolutionAtom = atom<types.Resolution>({
   },
 })
 
-export const projectParamsAtom = atomFamily<types.ParamDesc[], string>({
-  key: 'params',
-  default: [],
-})
-
-
-
-export const projectTitleAtom = atomFamily<string, string>({
-  key: 'projectTitle',
-  default: ''
-})
-
-export const currentProjectIDAtom = atom<string>({
-  key: 'projectID',
-  default: ''
-})
-
 export const canvasInitializedAtom = atom<boolean>({
   key: 'canvasInitialized',
   default: false
+})
+
+export type FileErrors = {
+  [key: string]: number
+}
+export const projectShaderErrorsAtom = atom<FileErrors>({
+  key: 'fileErrors',
+  default: {},
 })
 
 export const withDefaultParams = selector<types.ParamDesc[]>({
   key: 'defaultParams',
   get: ({ get }) => {
 
-    const mouse = get(mousePosAtom)
+    const mouseFlipped = get(mousePosAtom)
     const res = get(resolutionAtom)
     const status = get(projectRunStatusAtom)
+
+    const mouse = { x: mouseFlipped.x, y: res.height - mouseFlipped.y }
 
     return [
       { paramName: 'time', paramType: 'float', param: [status.runDuration] },
@@ -79,11 +101,13 @@ export const withProjectState = selectorFamily<types.Project, string>({
   key: 'project',
   get: (id) => ({ get }) => {
     const projectTitle = get(projectTitleAtom(id))
+    const projectDescription = get(projectDescriptionAtom(id))
     const projectFiles = get(projectShadersAtom(id))
     const projectParams = get(projectParamsAtom(id))
 
     return {
       title: projectTitle,
+      description: projectDescription,
       files: projectFiles,
       params: projectParams,
     }
@@ -91,10 +115,12 @@ export const withProjectState = selectorFamily<types.Project, string>({
   set: (id) => ({ set, reset }, proj) => {
     if (proj instanceof DefaultValue) {
       reset(projectTitleAtom(id))
+      reset(projectDescriptionAtom(id))
       reset(projectShadersAtom(id))
       reset(projectParamsAtom(id))
     } else {
       set(projectTitleAtom(id), proj.title)
+      set(projectDescriptionAtom(id), proj.description)
       set(projectShadersAtom(id), proj.files)
       set(projectParamsAtom(id), proj.params)
     }

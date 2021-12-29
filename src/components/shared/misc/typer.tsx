@@ -7,10 +7,10 @@ type TyperProps = {
 }
 const Typer = (props: TyperProps) => {
 
-  const [ptr, setPtr] = useState(props.initial ?? 0) 
+  const [ptr, setPtr] = useState(props.initial ?? 0)
 
   useEffect(() => {
-    const timer = setInterval(() => setPtr(ptr => ptr+1), props.speed ?? 200)
+    const timer = setInterval(() => setPtr(ptr => ptr + 1), props.speed ?? 100)
     return () => clearInterval(timer)
   }, [])
 
