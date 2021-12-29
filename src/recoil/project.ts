@@ -36,7 +36,7 @@ export const projectAuthorAtom = atomFamily<string, string>({
   default: 'anonymous'
 })
 
-export const projectShadersAtom = atomFamily<types.CodeFile[], string>({
+export const projectShadersAtom = atomFamily<types.Shader[], string>({
   key: 'codefiles',
   default: [{ file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true }],
 })
@@ -102,13 +102,13 @@ export const withProjectState = selectorFamily<types.Project, string>({
   get: (id) => ({ get }) => {
     const projectTitle = get(projectTitleAtom(id))
     const projectDescription = get(projectDescriptionAtom(id))
-    const projectFiles = get(projectShadersAtom(id))
+    const projectShaders = get(projectShadersAtom(id))
     const projectParams = get(projectParamsAtom(id))
 
     return {
       title: projectTitle,
       description: projectDescription,
-      files: projectFiles,
+      shaders: projectShaders,
       params: projectParams,
     }
   },
@@ -121,7 +121,7 @@ export const withProjectState = selectorFamily<types.Project, string>({
     } else {
       set(projectTitleAtom(id), proj.title)
       set(projectDescriptionAtom(id), proj.description)
-      set(projectShadersAtom(id), proj.files)
+      set(projectShadersAtom(id), proj.shaders)
       set(projectParamsAtom(id), proj.params)
     }
   }

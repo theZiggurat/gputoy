@@ -7,7 +7,7 @@ import init, {
 } from '../../pkg/naga_compiler'
 import { Logger } from '@recoil/console'
 import { FileErrors } from '@recoil/project'
-import { CodeFile } from './types'
+import { Shader } from './types'
 import staticdecl from './staticdecl'
 
 type ShaderStage = 'vertex' | 'fragment' | 'compute'
@@ -27,7 +27,7 @@ class Compiler {
   // compileWGSL?: (device: GPUDevice, src: CodeFile, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>) => GPUShaderModule | null
   // compileGLSL?: (device: GPUDevice, src: string, stage: ShaderStage, logger: Logger) => GPUShaderModule | null
 
-  compileWGSL = async (device: GPUDevice, src: CodeFile, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<GPUShaderModule | null> => {
+  compileWGSL = async (device: GPUDevice, src: Shader, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<GPUShaderModule | null> => {
     if (setFileErrors) setFileErrors({})
     let fullsrc = staticdecl.vertex.concat(decls.concat(src.file))
     logger?.debug("NAGA COMPILER", fullsrc)
@@ -54,7 +54,7 @@ class Compiler {
     return null
   }
 
-  compileGLSL = async (device: GPUDevice, src: CodeFile, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<GPUShaderModule | null> => {
+  compileGLSL = async (device: GPUDevice, src: Shader, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<GPUShaderModule | null> => {
 
     if (!this.isReady) {
       logger?.err('NAGA COMPILER', 'Compiler not ready')

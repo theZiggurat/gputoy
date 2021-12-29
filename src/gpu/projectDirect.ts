@@ -13,7 +13,7 @@ class ProjectDirect {
 
   included: Params = new Params('Included', 'i', true)
   params: Params = new Params('Params', 'p', false, 1)
-  shaders: types.CodeFile[] = []
+  shaders: types.Shader[] = []
 
   // gpu state
   vertexBuffer!: GPUBuffer
@@ -88,7 +88,7 @@ class ProjectDirect {
       this.shaderDirty = this.params.set(paramDesc, GPU.device) || this.shaderDirty
   }
 
-  updateShaders = (files: types.CodeFile[]) => {
+  updateShaders = (files: types.Shader[]) => {
     this.shaders = files
     this.shaderDirty = true
   }

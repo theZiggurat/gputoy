@@ -34,7 +34,7 @@ export type Lang = 'wgsl' | 'glsl'
 /**
  * A single shader file
  */
-export type CodeFile = {
+export type Shader = {
   filename: string,
   file: string,
   lang: Lang,
@@ -52,14 +52,15 @@ export type Resolution = {
 }
 
 export type Project = {
+  id: string
   title: {
-    text: string,
-    isValid: boolean,
+    text: string
+    isValid: boolean
   },
   description: {
-    text: string,
-    isValid: boolean,
+    text: string
+    isValid: boolean
   },
-  files: CodeFile[],
-  params: ParamDesc[],
+  shaders: Shader[]
+  params: ParamDesc[]
 }

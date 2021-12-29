@@ -28,7 +28,7 @@ interface EditorProps {
     onEditFileName: (idx: number, code: string) => void,
     onCreateFile: (lang: types.Lang) => number,
     onDeleteFile: (idx: number) => void,
-    files: types.CodeFile[],
+    shaders: types.Shader[],
 }
 
 const EditorEmbedable = (props: { ref, width: number }) => {
@@ -36,7 +36,7 @@ const EditorEmbedable = (props: { ref, width: number }) => {
     const [instanceState, setInstanceState] = useState({
         currentFileIndex: 0,
     })
-    const { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName } = useEditorPanel()
+    const { shaders: files, onEditCode, onCreateFile, onDeleteFile, onEditFileName } = useEditorPanel()
     const fileErrorValue = useRecoilValue(projectShaderErrorsAtom)
 
     const [workspace, setWorkspace] = React.useState<number[]>([])
@@ -120,7 +120,7 @@ export const useEditorPanel = (): EditorProps => {
         })
     }, [filesState])
 
-    return { files: filesState, onEditCode, onCreateFile, onDeleteFile, onEditFileName }
+    return { shaders: filesState, onEditCode, onCreateFile, onDeleteFile, onEditFileName }
 }
 
 export default EditorEmbedable

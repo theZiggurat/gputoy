@@ -32,13 +32,13 @@ interface EditorProps {
 	onCreateFile: (lang: types.Lang) => number,
 	onDeleteFile: (idx: number) => void,
 	setRender: (idx: number) => void,
-	files: types.CodeFile[],
+	shaders: types.Shader[],
 }
 
 const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
 	const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
-	const { files, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender } = useEditorPanel()
+	const { shaders: files, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender } = useEditorPanel()
 	const fileErrorValue = useRecoilValue(projectShaderErrorsAtom)
 
 	const onMonacoBeforeMount = (monaco: Monaco) => {
@@ -300,7 +300,7 @@ export const useEditorPanel = (): EditorProps => {
 	}
 
 
-	return { files: filesState, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender }
+	return { shaders: filesState, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender }
 }
 
 export default EditorPanel;
