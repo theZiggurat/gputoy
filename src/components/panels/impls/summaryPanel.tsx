@@ -25,20 +25,20 @@ const ProjectInfo = () => {
     <Stack>
       <Stack p="1rem" py="0.5rem">
         <Input
-          value={title.text}
+          value={title}
           bg="transparent"
           onChange={setTitle}
           placeholder="Project Title"
-          isInvalid={title.isValid}
-          color={title.isValid ? themed('textMid') : "red.500"}
+          //isInvalid={title.isValid}
+          //color={title.isValid ? themed('textMid') : "red.500"}
           pl="0"
           fontWeight="bold"
           fontSize="lg"
         />
         <chakra.textarea
-          value={description.text}
+          value={description}
           onChange={setDescription}
-          color={description.isValid ? themed('textMid') : "red.500"}
+          //color={description.isValid ? themed('textMid') : "red.500"}
           fontSize="xs"
           bg="transparent"
           w="100%"

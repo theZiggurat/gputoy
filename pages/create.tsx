@@ -14,6 +14,7 @@ import Nav from '@components/create/navbar'
 import { scrollbarHidden } from 'theme/consts'
 import { nanoid } from 'nanoid'
 import { CreatePageProjectQuery, createPageProjectQuery } from '@database/args'
+import RecoilDebugPanel from '@components/create/debug'
 
 
 export const getServerSideProps: GetServerSideProps = async ({ query }) => {
@@ -83,6 +84,7 @@ const Create = (props: { projectID: string, project?: CreatePageProjectQuery }) 
 				sx={useColorModeValue(lightResizer, darkResizer)}
 				css={scrollbarHidden}
 			>
+				<RecoilDebugPanel />
 				<CreateManager {...props} />
 				<Nav />
 				<Panels {...panelProps} descriptors={descriptors} />

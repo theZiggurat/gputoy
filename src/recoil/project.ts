@@ -1,5 +1,5 @@
 import * as types from '@gpu/types'
-import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
+import { atom, atomFamily, selector } from 'recoil'
 // @ts-ignore
 import defaultShader from '../../shaders/basicShader.wgsl'
 import { projectRunStatusAtom } from './controls'
@@ -10,20 +10,14 @@ export const currentProjectIDAtom = atom<string>({
   default: ''
 })
 
-export const projectTitleAtom = atomFamily<{ text: string, isValid: boolean }, string>({
+export const projectTitleAtom = atomFamily<string, string>({
   key: 'projectTitle',
-  default: {
-    text: 'Unnamed Project',
-    isValid: true
-  }
+  default: 'Unnamed Project'
 })
 
-export const projectDescriptionAtom = atomFamily<{ text: string, isValid: boolean }, string>({
+export const projectDescriptionAtom = atomFamily<string, string>({
   key: 'projectDescription',
-  default: {
-    text: '',
-    isValid: true
-  }
+  default: '',
 })
 
 export const projectTagsAtom = atomFamily<string[], string>({
@@ -95,35 +89,5 @@ export const withDefaultParams = selector<types.ParamDesc[]>({
       { paramName: 'mouse', paramType: 'vec2i', param: [mouse.x, mouse.y] },
     ]
   },
-})
-
-export const withProjectState = selectorFamily<types.Project, string>({
-  key: 'project',
-  get: (id) => ({ get }) => {
-    const projectTitle = get(projectTitleAtom(id))
-    const projectDescription = get(projectDescriptionAtom(id))
-    const projectShaders = get(projectShadersAtom(id))
-    const projectParams = get(projectParamsAtom(id))
-
-    return {
-      title: projectTitle,
-      description: projectDescription,
-      shaders: projectShaders,
-      params: projectParams,
-    }
-  },
-  set: (id) => ({ set, reset }, proj) => {
-    if (proj instanceof DefaultValue) {
-      reset(projectTitleAtom(id))
-      reset(projectDescriptionAtom(id))
-      reset(projectShadersAtom(id))
-      reset(projectParamsAtom(id))
-    } else {
-      set(projectTitleAtom(id), proj.title)
-      set(projectDescriptionAtom(id), proj.description)
-      set(projectShadersAtom(id), proj.shaders)
-      set(projectParamsAtom(id), proj.params)
-    }
-  }
 })
 
