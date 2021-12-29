@@ -6,7 +6,7 @@ import {
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import React from 'react'
-import prisma from '../lib/prisma'
+import prisma from '@database/prisma'
 import ProjectCard from '../src/components/shared/projectCard'
 import Scaffold from '../src/components/shared/scaffold'
 import { themed } from '../src/theme/theme'

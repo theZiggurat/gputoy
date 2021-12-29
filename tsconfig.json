@@ -24,16 +24,26 @@
     "incremental": true,
     "baseUrl": "src",
     "paths": {
-      "@recoil/*": ["recoil/*"],
-      "@components/*": ["components/*"],
-      "@gpu/*": ["gpu/*"]
+      "@recoil/*": [
+        "recoil/*"
+      ],
+      "@components/*": [
+        "components/*"
+      ],
+      "@gpu/*": [
+        "gpu/*"
+      ],
+      "@database/*": [
+        "database/*"
+      ]
     }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "src/utils/scrollHook.js"  ],
+    "src/utils/scrollHook.js"
+  ],
   "exclude": [
     "node_modules"
   ],
