@@ -13,6 +13,7 @@ import { Panels } from '../src/components/panels/panel'
 import Nav from '@components/create/navbar'
 import { scrollbarHidden } from 'theme/consts'
 import { nanoid } from 'nanoid'
+import { CreatePageProjectQuery, createPageProjectQuery } from '@database/args'
 
 
 export const getServerSideProps: GetServerSideProps = async ({ query }) => {
@@ -31,24 +32,19 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
 
 	// load from database
 	const project = await prisma.project.findUnique({
+		...createPageProjectQuery,
 		where: {
 			id: id
-		},
-		include: {
-			shaders: true,
-			author: {
-				select: {
-					name: true
-				}
-			}
 		}
 	})
+
+	console.log('result from database', project)
 
 	// project not found
 	if (project == null) return { notFound: true }
 
-	project.createdAt = project.createdAt.toISOString()
-	project.updatedAt = project.updatedAt.toISOString()
+	//project.createdAt = project.createdAt.toISOString()
+	//project.updatedAt = project.updatedAt.toISOString()
 
 	return {
 		props: {
@@ -60,7 +56,7 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
 
 }
 
-const CreateManager = (props: { projectID: string, project?: ProjectDB }) => {
+const CreateManager = (props: { projectID: string, project?: CreatePageProjectQuery }) => {
 
 	useProjectStorage(props)
 	useProjectManager(props)
@@ -68,7 +64,7 @@ const CreateManager = (props: { projectID: string, project?: ProjectDB }) => {
 	return <></>
 }
 
-const Create = (props: { projectID: string, project?: ProjectDB }) => {
+const Create = (props: { projectID: string, project?: CreatePageProjectQuery }) => {
 
 	const panelProps = usePanels({})
 
