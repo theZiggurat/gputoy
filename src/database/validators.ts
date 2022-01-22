@@ -5,8 +5,6 @@ export const validateCreateProjectEntry = (res: NextApiResponse<any>, body: any,
 
   const { project } = body
 
-  console.log(project.author?.id != session?.user?.id)
-
   if (session == null || !session.user || !('id' in session.user)) {
     res.status(403).send({ error: 'Must be signed in to save projects' })
     return false

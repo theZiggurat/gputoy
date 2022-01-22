@@ -11,7 +11,7 @@ import Link from 'next/link'
 import { FiHardDrive, FiMoreVertical } from 'react-icons/fi'
 import { BsCloudArrowUp, BsCloudCheck } from "react-icons/bs"
 import { useSetRecoilState } from "recoil"
-import { projectLastSaveLocal } from "@recoil/project"
+import { currentProjectIDAtom, projectLastSaveLocal } from "@recoil/project"
 import { nanoid } from "nanoid"
 import { useRouter } from "next/router"
 import useFork from "@recoil/hooks/project/useFork"
@@ -51,6 +51,8 @@ const ProjectDrawer = () => {
   const [remoteProjects, setRemoteProjects] = useState<ProjectInfo[]>([])
 
   const allProjects = foldProjectArrays(localProjects, remoteProjects)
+  const router = useRouter()
+  const setCurrentProjectId = useSetRecoilState(currentProjectIDAtom)
 
   /**
    * load projects from session
@@ -85,6 +87,11 @@ const ProjectDrawer = () => {
     setLocalProjects(localProj)
   }, [])
 
+  const onClickProject = (pid: string) => {
+    setCurrentProjectId(pid)
+    router.push(`/create/${pid}`)
+  }
+
   return (
     <Flex
       flexDir="column"
@@ -109,31 +116,31 @@ const ProjectDrawer = () => {
       >
         {
           allProjects.map(p => (
-            <Link href={`/create/${p.id}`} passHref key={p.id}>
-              <Flex
-                justifyContent="space-between"
-                w="100%"
-                borderBottom="1px"
-                borderColor={themed('borderLight')}
-                p="0.5rem"
-                pl="1rem"
-                fontSize="sm"
-                transition="background-color 0.2s ease"
-                cursor="pointer"
-                _hover={{
-                  bg: themed('inputHovered')
-                }}
-              >
-                <Text fontWeight="bold" color={themed('textMid')}>
-                  {p.title}
+            <Flex
+              key={p.id}
+              justifyContent="space-between"
+              w="100%"
+              borderBottom="1px"
+              borderColor={themed('borderLight')}
+              p="0.5rem"
+              pl="1rem"
+              fontSize="sm"
+              transition="background-color 0.2s ease"
+              cursor="pointer"
+              _hover={{
+                bg: themed('inputHovered')
+              }}
+              onClick={() => onClickProject(p.id)}
+            >
+              <Text fontWeight="bold" color={themed('textMid')}>
+                {p.title}
+              </Text>
+              <HStack sx={{ color: themed('textLight'), fontSize: 'lg' }}>
+                <Text fontSize="xs">
                 </Text>
-                <HStack sx={{ color: themed('textLight'), fontSize: 'lg' }}>
-                  <Text fontSize="xs">
-                  </Text>
-                  {projectAccessModeIcon[p.type]}
-                </HStack>
-              </Flex>
-            </Link>
+                {projectAccessModeIcon[p.type]}
+              </HStack>
+            </Flex>
           ))
         }
       </Flex>
