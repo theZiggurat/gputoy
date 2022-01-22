@@ -113,8 +113,6 @@ const NavUser = () => {
 	const router = useRouter()
 	const [session, loading, isOwner] = useProjectSession()
 
-	console.log(session, loading, isOwner)
-
 	const [isOpen, setIsOpen] = useState(false)
 
 	const onClick = (ev) => {
