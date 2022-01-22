@@ -18,13 +18,13 @@ const options = {
   secret: process.env.SECRET,
   callbacks: {
     // async signIn(user, account, profile) { return true },
-    async redirect(url, baseUrl) {
-      console.log('REDIRECT', url, baseUrl)
-      if (url.startsWith(baseUrl)) return url
-      // Allows relative callback URLs
-      else if (url.startsWith("/")) return new URL(url, baseUrl).toString()
-      return baseUrl
-    },
+    // async redirect(url, baseUrl) {
+    //   console.log('REDIRECT', url, baseUrl)
+    //   if (url.startsWith(baseUrl)) return url
+    //   // Allows relative callback URLs
+    //   else if (url.startsWith("/")) return new URL(url, baseUrl).toString()
+    //   return baseUrl
+    // },
     async session(session, user) {
       session.user.id = user.id
       return session
