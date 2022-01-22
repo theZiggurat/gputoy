@@ -1,17 +1,18 @@
-import { Project } from ".prisma/client"
+
 import React, { useState } from "react"
 import { useProjectDirect } from "@gpu/projectDirect"
-import { 
-  Text, 
+import {
+  Text,
   Box,
   Center,
   Spinner,
   useColorModeValue
 } from '@chakra-ui/react'
 import Link from "next/link"
+import { CreatePageProjectQueryWithId } from "@database/args"
 
 const ProjectCard = (props: {
-  project: Project
+  project: CreatePageProjectQueryWithId
   autoplay?: boolean
   bg?: boolean
   bgScale?: number
@@ -19,8 +20,8 @@ const ProjectCard = (props: {
   onHover?: (hovered: boolean) => void,
 }) => {
 
-  const { 
-    project, 
+  const {
+    project,
     autoplay = false,
     bg = false,
     bgScale = 1,
@@ -35,21 +36,21 @@ const ProjectCard = (props: {
   const onHandleHover = () => {
     onHover ? onHover(true) : null
     setHovered(true)
-    if (!autoplay) 
+    if (!autoplay)
       setPlaying(true)
   }
   const onHandleLeave = () => {
     onHover ? onHover(false) : null
     setHovered(false)
-    if (!autoplay) 
+    if (!autoplay)
       setPlaying(false)
   }
 
   return (
-    <Link href={`/create/?id=${project.id}`}>
-      <Box 
-        width="100%" 
-        height="100%" 
+    <Link href={`/create/${project.id}`} passHref>
+      <Box
+        width="100%"
+        height="100%"
         position="relative"
         onMouseEnter={onHandleHover}
         onMouseLeave={onHandleLeave}
@@ -63,7 +64,7 @@ const ProjectCard = (props: {
         {
           loading &&
           <Center width='100%' height='100%' position='absolute'>
-              <Spinner zIndex={5}></Spinner>
+            <Spinner zIndex={5}></Spinner>
           </Center>
         }
         <canvas
@@ -75,55 +76,55 @@ const ProjectCard = (props: {
             height: '100%',
             position: 'absolute',
             zIndex: 1,
-            visibility: loading ? 'hidden':'visible',
-            opacity: loading ? 0:1,
+            visibility: loading ? 'hidden' : 'visible',
+            opacity: loading ? 0 : 1,
             transition: 'opacity 1.0s ease',
             pointerEvents: 'none',
           }}
         />
         {
           bg && <canvas
-          id={`${project.id}_bg`}
-          width="100%"
-          height="100%"
-          style={{
-            width: '100%',
-            height: '100%',
-            position: 'absolute',
-            zIndex: 0,
-            opacity: hovered ? 1:0,
-            transform: `scale(${bgScale})`,
-            filter: `blur(${blur}px) contrast(200%)`,
-            transition: 'opacity 1.0s ease',
-            pointerEvents: 'none'
-          }}
-        />
+            id={`${project.id}_bg`}
+            width="100%"
+            height="100%"
+            style={{
+              width: '100%',
+              height: '100%',
+              position: 'absolute',
+              zIndex: 0,
+              opacity: hovered ? 1 : 0,
+              transform: `scale(${bgScale})`,
+              filter: `blur(${blur}px) contrast(200%)`,
+              transition: 'opacity 1.0s ease',
+              pointerEvents: 'none'
+            }}
+          />
         }
-        <Text 
-          position="relative" 
-          display="block" 
-          width="fit-content" 
-          bg={textBg}  
-          px="0.7rem" 
+        <Text
+          position="relative"
+          display="block"
+          width="fit-content"
+          bg={textBg}
+          px="0.7rem"
           pt="0rem"
           top="-1px"
           left="-1px"
-          fontSize="xx-large" 
+          fontSize="xx-large"
           fontStyle="normal"
-          fontFamily="'JetBrains Mono'" 
+          fontFamily="'JetBrains Mono'"
           zIndex={2}
         >
           {props.project?.title ?? "Placeholder"}
         </Text>
-        <Text 
-          position="relative" 
-          display="inline" 
-          bg={textBg}  
-          p="0.5rem" 
+        <Text
+          position="relative"
+          display="inline"
+          bg={textBg}
+          p="0.5rem"
           pl="0.7rem"
           left="-1px"
           fontSize="med"
-          fontFamily="'JetBrains Mono'" 
+          fontFamily="'JetBrains Mono'"
           zIndex={2}
         >
           {props.project?.author?.name ?? "Placeholder Author"}
@@ -134,12 +135,12 @@ const ProjectCard = (props: {
           left="-1px"
           transform="auto"
           transformOrigin="bottom"
-          display="inline" 
-          bg={textBg}  
-          p="0.5rem" 
+          display="inline"
+          bg={textBg}
+          p="0.5rem"
           pl="0.7rem"
-          fontSize="med" 
-          fontFamily="'JetBrains Mono'" 
+          fontSize="med"
+          fontFamily="'JetBrains Mono'"
           zIndex={2}
           scaleY={0}
           transition="transform 0.2s ease"

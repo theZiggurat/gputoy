@@ -1,82 +1,116 @@
 import {
-  chakra, Avatar, Box, Flex, Heading,
-  HStack, Icon, Stack, Tag, Text, Input
+  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input
 } from '@chakra-ui/react'
-import { useProjectDescription, useProjectTitle } from '@recoil/hooks/project/useProjectMetadata'
-import { currentProjectIDAtom, projectTitleAtom } from '@recoil/project'
+import {
+  useProjectAuthor,
+  useProjectDescription,
+  useProjectTitle
+} from '@recoil/hooks/project/useProjectMetadata'
+import useProjectSession from '@recoil/hooks/useProjectSession'
+import { projectForkSource, projectIsPublished } from '@recoil/project'
 import React, { ReactElement, useState } from "react"
 import { AiFillLike } from 'react-icons/ai'
 import { BiGitRepoForked } from 'react-icons/bi'
 import { IoIosEye } from 'react-icons/io'
 import { MdArrowRight } from 'react-icons/md'
-import { useRecoilValue, useRecoilState } from 'recoil'
+import { useRecoilValue } from 'recoil'
 import { themed } from "../../../theme/theme"
 import { Divider } from "../../shared/misc/micro"
 import { Panel, PanelBar, PanelContent } from "../panel"
+import Link from 'next/link'
 
 const ProjectInfo = () => {
 
   const [title, setTitle] = useProjectTitle()
   const [description, setDescription] = useProjectDescription()
+  const isPublished = useRecoilValue(projectIsPublished)
 
-  console.log(title, description)
+  const author = useProjectAuthor()
+  const [_s, _l, isOwner] = useProjectSession()
+  const forkSource = useRecoilValue(projectForkSource)
+
+  let titleComponent
+  let descriptionComponent
+  if (isOwner) {
+    titleComponent = <Input
+      value={title}
+      bg="transparent"
+      onChange={setTitle}
+      placeholder="Project Title"
+      //isInvalid={title.isValid}
+      //color={title.isValid ? themed('textMid') : "red.500"}
+      pl="0"
+      fontWeight="bold"
+      fontSize="lg"
+    />
+    descriptionComponent = <chakra.textarea
+      value={description}
+      onChange={setDescription}
+      //color={description.isValid ? themed('textMid') : "red.500"}
+      fontSize="xs"
+      bg="transparent"
+      w="100%"
+      resize="vertical"
+      outline="none"
+      placeholder="Project Description"
+    />
+  } else {
+    titleComponent = <Text
+      fontWeight="bold"
+      fontSize="lg"
+    >
+      {title}
+    </Text>
+
+    descriptionComponent = <Text
+      fontSize="xs"
+    >
+      {description}
+    </Text>
+  }
 
   return (
     <Stack>
       <Stack p="1rem" py="0.5rem">
-        <Input
-          value={title}
-          bg="transparent"
-          onChange={setTitle}
-          placeholder="Project Title"
-          //isInvalid={title.isValid}
-          //color={title.isValid ? themed('textMid') : "red.500"}
-          pl="0"
-          fontWeight="bold"
-          fontSize="lg"
-        />
-        <chakra.textarea
-          value={description}
-          onChange={setDescription}
-          //color={description.isValid ? themed('textMid') : "red.500"}
-          fontSize="xs"
-          bg="transparent"
-          w="100%"
-          resize="vertical"
-          outline="none"
-          placeholder="Project Description"
-
-        />
+        {titleComponent}
+        {descriptionComponent}
         <Stack direction={['column', 'row']} pt="0.5rem">
           <Tag size="sm" colorScheme="red"> wgsl </Tag><Tag size="sm" colorScheme="blue"> mouse </Tag><Tag size="sm" colorScheme="teal"> spiral </Tag>
         </Stack>
-        <HStack pt="0.5rem">
-          <HStack>
-            <AiFillLike size={13} />
-            <Text fontSize="xs">529&nbsp;&nbsp;&bull;</Text>
-          </HStack>
-          <HStack>
-            <IoIosEye size={13} />
-            <Text fontSize="xs">20493&nbsp;&nbsp;&bull;</Text>
-          </HStack>
-          <HStack>
-            <BiGitRepoForked size={13} />
-            <Text fontSize="xs">29</Text>
-          </HStack>
-        </HStack >
+        {
+          isPublished &&
+          <HStack pt="0.5rem">
+            <HStack>
+              <AiFillLike size={13} />
+              <Text fontSize="xs">529&nbsp;&nbsp;&bull;</Text>
+            </HStack>
+            <HStack>
+              <IoIosEye size={13} />
+              <Text fontSize="xs">20493&nbsp;&nbsp;&bull;</Text>
+            </HStack>
+            <HStack>
+              <BiGitRepoForked size={13} />
+              <Text fontSize="xs">29</Text>
+            </HStack>
+          </HStack >
+        }
+
       </Stack>
       <Divider />
       <Stack p="1rem" py="0.5rem">
         <HStack dir="row" mb="0.5rem">
-          <Avatar name="Test User" size="xs" display="inline" />
+          <Avatar name={author?.name ?? 'Anonymous'} size="xs" display="inline" src={author?.image ?? undefined} />
           <Text display="inline">
-            Test User
+            {author ? author.name ?? 'Anonymous' : 'Anonymous'}
           </Text>
         </HStack>
 
-        <Text fontSize="sm" fontWeight="bold">
-          Forks: <chakra.a href="/" textDecor="underline" fontWeight="normal">Basic Shader</chakra.a>
-        </Text>
+        {
+          forkSource &&
+          <Text fontSize="sm" fontWeight="bold">
+            Forks: <Link href={`/create/${forkSource.id}`} >{forkSource.title}</Link>
+          </Text>
+        }
       </Stack>
 
     </Stack>

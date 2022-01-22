@@ -83,7 +83,6 @@ export default (options: PanelOptions): PanelProps => {
   }
 
   const onSwitch = (path: string, panelIndex: number) => {
-    console.log(path, panelIndex)
     if (get(panelTreeLayout, arrpath(path).concat('index')) === panelIndex) return
     trySetLayout(replaceAtPath(panelTreeLayout, path, layout => {
       const obj: any = {}

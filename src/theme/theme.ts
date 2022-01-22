@@ -17,10 +17,12 @@ const theme = extendTheme({
       input: 'rgba(255, 255, 255, 0.04)', //'whiteAlpha.50',
       inputHovered: 'rgba(255, 255, 255, 0.06)', //'whiteAlpha.100'
       border: 'rgba(255, 255, 255, 0.1)',
+      borderLight: 'rgba(255, 255, 255, 0.05)',
       textLight: 'rgba(255, 255, 255, 0.45)',
       textMidLight: 'rgba(255, 255, 255, 0.6)',
       textMid: 'rgba(255, 255, 255, 0.8)',
-      textHigh: 'rgba(255, 255, 255, 1.0)'
+      textHigh: 'rgba(255, 255, 255, 1.0)',
+      bgVisible: 'rgba(0, 0, 0, 0.4)',
     },
     light: {
       p: '#E2E2E2',
@@ -33,10 +35,12 @@ const theme = extendTheme({
       input: 'rgba(255, 255, 255, 0.2)', //'whiteAlpha.600',
       inputHovered: 'rgba(255, 255, 255, 0.4)', //'whiteAlpha.500'
       border: 'rgba(0, 0, 0, 0.2)',
+      borderLight: 'rgba(255, 255, 255, 0.05)',
       textLight: 'rgba(0, 0, 0, 0.36)',
       textMidLight: 'rgba(0, 0, 0, 0.55)',
       textMid: 'rgba(0, 0, 0, 0.72)',
-      textHigh: 'rgba(0, 0, 0, 1.0)'
+      textHigh: 'rgba(0, 0, 0, 1.0)',
+      bgVisible: 'rgba(255, 255, 255, 0.4)',
     }
   },
   fonts: {

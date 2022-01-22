@@ -24,8 +24,6 @@ const completions: monaco.languages.CompletionItemProvider = {
       }
     }
 
-    console.log(suggestions)
-
     return {
       suggestions: suggestions.map(f => { return { kind: 1, ...f, range } })
     }

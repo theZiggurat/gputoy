@@ -1,11 +1,13 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { currentProjectIDAtom, projectAuthorAtom, projectDescriptionAtom, projectTitleAtom } from "@recoil/project"
+import { TypeScriptConfig } from "next/dist/server/config-shared"
 import { useRecoilValue, useRecoilState } from "recoil"
+import * as types from '@gpu/types'
 
 export const useProjectTitle = (): [string, (ev: any) => void] => {
 
   const projectID = useRecoilValue(currentProjectIDAtom)
-  const [title, setProjectTitle] = useRecoilState(projectTitleAtom(projectID))
+  const [title, setProjectTitle] = useRecoilState(projectTitleAtom)
 
   const setTitle = (ev) => {
     setProjectTitle(ev.target.value)
@@ -17,7 +19,7 @@ export const useProjectTitle = (): [string, (ev: any) => void] => {
 export const useProjectDescription = (): [string, (ev: any) => void] => {
 
   const projectID = useRecoilValue(currentProjectIDAtom)
-  const [description, setProjectDescription] = useRecoilState(projectDescriptionAtom(projectID))
+  const [description, setProjectDescription] = useRecoilState(projectDescriptionAtom)
 
   const setDescription = (ev) => {
     setProjectDescription(ev.target.value)
@@ -26,9 +28,9 @@ export const useProjectDescription = (): [string, (ev: any) => void] => {
   return [description, setDescription]
 }
 
-export const useProjectAuthor = (): string => {
+export const useProjectAuthor = (): types.Author | null => {
   const projectID = useRecoilValue(currentProjectIDAtom)
-  const author = useRecoilValue(projectAuthorAtom(projectID))
+  const author = useRecoilValue(projectAuthorAtom)
 
   return author
 }

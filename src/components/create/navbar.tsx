@@ -1,5 +1,5 @@
 import {
-  Button, chakra, Flex, IconButton, useColorModeValue, Text, Box
+  Button, chakra, Flex, IconButton, useColorModeValue, Text, Box, useToast
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import React, { useState } from 'react';
@@ -15,6 +15,13 @@ import { AiFillCheckCircle, AiOutlineCloudServer } from 'react-icons/ai';
 import usePanels from '@recoil/hooks/usePanels';
 import { useProjectAuthor, useProjectTitle } from '@recoil/hooks/project/useProjectMetadata';
 import { Divider } from '@components/shared/misc/micro';
+import NavUser from '@components/shared/user';
+import usePost from '@recoil/hooks/project/usePost';
+import { useRecoilValue } from 'recoil';
+import { projectLastSave, projectLastSaveLocal } from '@recoil/project';
+import { fmtTimeSpan } from 'utils/dates';
+import useFork from '@recoil/hooks/project/useFork';
+import useProjectSession from '@recoil/hooks/useProjectSession';
 
 const Logo = (props: { color: string }) => {
   return <svg width="22" height="22" viewBox="0 0 50 50">
@@ -53,7 +60,7 @@ const ProjectInfo = () => {
           border="none"
           color={themed('textMid')}
         >
-          {title.text}
+          {title}
         </Text>
         &nbsp;&nbsp;&#183;&nbsp;&nbsp;
         <Text
@@ -63,7 +70,7 @@ const ProjectInfo = () => {
           bg="none"
           border="none"
         >
-          {author ?? 'Anonymous'}
+          {author?.name ?? 'Anonymous'}
         </Text>
       </Button>
       <IconButton
@@ -84,6 +91,12 @@ const ProjectInfo = () => {
 }
 
 const SaveBox = (props: { opened?: boolean }) => {
+
+  const lastSave = useRecoilValue(projectLastSave)
+  const lastSaveLocal = useRecoilValue(projectLastSaveLocal)
+
+  const hoursSinceSave = lastSave ? fmtTimeSpan(Date.parse(lastSave)) + " ago" : null
+
   return (
     <Flex
       pos="absolute"
@@ -110,7 +123,10 @@ const SaveBox = (props: { opened?: boolean }) => {
           Last cloud save
         </Text>
         <Text fontSize="xs" fontWeight="bold" color={themed('textLight')}>
-          2 hours ago
+          {
+            hoursSinceSave ?? "Never"
+          }
+
         </Text>
 
       </Box>
@@ -198,6 +214,11 @@ const NavLeft = () => {
 }
 
 const NavEnd = () => {
+
+  const post = usePost()
+  const fork = useFork()
+  const [_s, _l, isOwner] = useProjectSession()
+
   return (
     <Flex
       flex="1"
@@ -211,16 +232,36 @@ const NavEnd = () => {
       <Button size="sm" h="1.6rem" px="0.5rem" mx="0.2rem" border="0px" borderRadius="3px" leftIcon={<BiShare />}>
         Share
       </Button>
-      <Button size="sm" h="1.6rem" px="0.5rem" mx="0.2rem" border="0px" borderRadius="3px" leftIcon={<MdPublishedWithChanges />}>
+      <Button
+        size="sm"
+        h="1.6rem"
+        px="0.5rem"
+        mx="0.2rem"
+        border="0px"
+        borderRadius="3px"
+        leftIcon={<MdPublishedWithChanges />}
+        onClick={() => post('publish')}
+        disabled={!isOwner}
+      >
         Publish
       </Button>
-      <Button size="sm" h="1.6rem" px="0.5rem" mx="0.2rem" border="0px" borderRadius="3px" leftIcon={<BiGitRepoForked />}>
+      <Button
+        size="sm"
+        h="1.6rem"
+        px="0.5rem"
+        mx="0.2rem"
+        border="0px"
+        borderRadius="3px"
+        leftIcon={<BiGitRepoForked />}
+        onClick={() => fork()}
+      >
         Fork
       </Button>
 
-      <Button bg="red.500" h="1.6rem" size="sm" px="0.5rem" ml="0.2rem" border="0px" borderRadius="3px">
+      {/* <Button bg="red.500" h="1.6rem" size="sm" px="0.5rem" ml="0.2rem" border="0px" borderRadius="3px">
         Sign in
-      </Button>
+      </Button> */}
+      <NavUser />
     </Flex>
   )
 }

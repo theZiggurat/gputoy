@@ -12,6 +12,7 @@ import '../styles/create.css'
 import '../styles/globals.css'
 import '../styles/index.css'
 import '../styles/actionbar.css'
+import { Provider } from 'next-auth/client'
 
 
 const GPUController = () => {
@@ -48,26 +49,28 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Head>
         <meta httpEquiv="origin-trial" content={process.env.ORIGIN_KEY} />
       </Head>
-      <RecoilRoot>
-        <ChakraProvider theme={theme}>
-          {loading &&
-            <Flex
-              position="absolute"
-              transform="translate(-50%, -50%)"
-              left="50%"
-              top="50%"
-              zIndex={20}
-              p="1rem"
-              alignItems="center"
-              gridGap="1rem"
-            >
-              <Spinner />
-            </Flex>
-          }
-          <GPUController />
-          <Component {...pageProps} />
-        </ChakraProvider>
-      </RecoilRoot>
+      <Provider session={pageProps.session}>
+        <RecoilRoot>
+          <ChakraProvider theme={theme}>
+            {loading &&
+              <Flex
+                position="absolute"
+                transform="translate(-50%, -50%)"
+                left="50%"
+                top="50%"
+                zIndex={20}
+                p="1rem"
+                alignItems="center"
+                gridGap="1rem"
+              >
+                <Spinner />
+              </Flex>
+            }
+            <GPUController />
+            <Component {...pageProps} />
+          </ChakraProvider>
+        </RecoilRoot>
+      </Provider>
     </>
   )
 }

@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Box, Flex, Input, Portal, Text } from '@chakra-ui/react'
 import { themed } from 'theme/theme'
 import { useRecoilSnapshot } from 'recoil'
-import dynamic from 'next/dynamic'
-
-const ReactJson = dynamic(() => import('react-json-view'))
+import ReactJson from 'react-json-view-ssr'
 
 const RecoilDebugPanel = () => {
 
@@ -83,7 +81,7 @@ const RecoilDebugPanel = () => {
               src={filteredNodes}
               displayDataTypes={false}
               collapsed={1}
-              theme="shapeshifter"
+              theme="google"
               collapseStringsAfterLength={50}
               enableClipboard={false}
               style={{

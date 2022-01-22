@@ -13,6 +13,9 @@ import { themed } from '../src/theme/theme'
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 	const projects = await prisma.project.findMany({
+		where: {
+			published: true
+		},
 		take: 12,
 		include: {
 			shaders: true,

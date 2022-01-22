@@ -9,13 +9,13 @@ datasource db {
 }
 
 model Shader {
-  id        String  @id @default(cuid())
-  project   Project @relation(fields: [projectId], references: [id])
-  projectId String
+  id        String   @id @default(cuid())
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
   source    String
   lang      String
   name      String
-  isRender  Boolean @default(false)
+  isRender  Boolean  @default(false)
 }
 
 model Project {
@@ -34,6 +34,7 @@ model Project {
   forkedFrom   Project?         @relation("ProjectForks", fields: [forkedFromId], references: [id])
   forkedFromId String?
   forkedBy     Project[]        @relation("ProjectForks")
+  template     Boolean          @default(false)
   createdAt    DateTime         @default(now()) @map(name: "created_at")
   updatedAt    DateTime         @updatedAt @map(name: "updated_at")
 }

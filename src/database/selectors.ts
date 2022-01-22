@@ -1,3 +1,4 @@
+import { Lang } from "@gpu/types";
 import { layoutAtom } from "@recoil/layout";
 import {
   projectTitleAtom,
@@ -5,34 +6,42 @@ import {
   projectAuthorAtom,
   projectShadersAtom,
   projectParamsAtom,
+  currentProjectIDAtom,
+  projectTagsAtom,
+  projectForkSource,
+  projectIsPublished,
 } from "@recoil/project";
-import { DefaultValue, selectorFamily } from "recoil";
+import { DefaultValue, selector } from "recoil";
 import { CreatePageProjectQuery } from "./args";
+import generate from 'project-name-generator'
 
-export const withCreatePageProject = selectorFamily<CreatePageProjectQuery, string>({
+export const withCreatePageProject = selector<CreatePageProjectQuery>({
   key: 'createPageProject',
-  get: (id) => ({ get }): CreatePageProjectQuery => {
+  get: ({ get }): CreatePageProjectQuery => {
 
-    const title = get(projectTitleAtom(id))
-    const description = get(projectDescriptionAtom(id))
-    const author = get(projectAuthorAtom(id))
-    const params = JSON.stringify(get(projectParamsAtom(id)))
-    const shaders = get(projectShadersAtom(id)).map(s => {
+    const id = get(currentProjectIDAtom)
+    const title = get(projectTitleAtom)
+    const description = get(projectDescriptionAtom)
+    const author = get(projectAuthorAtom)
+    const params = JSON.stringify(get(projectParamsAtom))
+    const shaders = get(projectShadersAtom).map(s => {
       return {
         source: s.file,
         name: s.filename,
         lang: s.lang,
         isRender: s.isRender ?? false,
         projectId: id,
-        id: ''
+        id: s.id
       }
     })
+    const tags = get(projectTagsAtom)
     const layout = JSON.stringify(get(layoutAtom))
     const config = ""
     const graph = ""
+    const forkSource = get(projectForkSource)
 
     return {
-      id,
+      id: id,
       title,
       description,
       params,
@@ -40,26 +49,43 @@ export const withCreatePageProject = selectorFamily<CreatePageProjectQuery, stri
       layout,
       config,
       graph,
+      author,
       published: false,
-      author: {
-        name: author,
-        id: '',
-        image: null
-      },
-
+      tags: tags.map(t => { return { tag: { name: t } } }),
+      forkedFrom: forkSource
     }
   },
-  set: (id) => ({ set, reset }, proj) => {
+  set: ({ set, reset }, proj) => {
     if (proj instanceof DefaultValue) {
-      reset(projectTitleAtom(id))
-      reset(projectDescriptionAtom(id))
-      reset(projectShadersAtom(id))
-      reset(projectParamsAtom(id))
+      reset(currentProjectIDAtom)
+      reset(projectTitleAtom)
+      reset(projectDescriptionAtom)
+      reset(projectAuthorAtom)
+      reset(projectShadersAtom)
+      reset(projectParamsAtom)
+      reset(layoutAtom)
+      reset(projectForkSource)
+      reset(projectIsPublished)
+      //reset(projectConfigAtom)
+      //reset(projectGraphAtom)
     } else {
-      set(projectTitleAtom(id), proj.title)
-      set(projectDescriptionAtom(id), proj.description)
-      set(projectShadersAtom(id), proj.shaders)
-      set(projectParamsAtom(id), proj.params)
+      set(currentProjectIDAtom, proj.id)
+      set(projectTitleAtom, proj.title ?? `${generate().dashed}`)
+      set(projectDescriptionAtom, proj.description ?? new DefaultValue())
+      set(projectAuthorAtom, proj.author)
+      set(layoutAtom, proj.layout ? JSON.parse(proj.layout) : new DefaultValue())
+      set(projectForkSource, proj.forkedFrom)
+      set(projectIsPublished, proj.published)
+      set(projectShadersAtom, proj.shaders ? proj.shaders.map(s => {
+        return {
+          file: s.source,
+          filename: s.name,
+          lang: s.lang as Lang,
+          isRender: s.isRender,
+          id: s.id
+        }
+      }) : new DefaultValue())
+      set(projectParamsAtom, JSON.parse(proj.params ?? '[]'))
     }
   }
 })

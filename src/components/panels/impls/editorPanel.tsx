@@ -1,7 +1,6 @@
 import {
 	Box, Button, Checkbox, Flex, HStack, Input, Popover, PopoverContent, PopoverTrigger, Portal, useColorModeValue
 } from '@chakra-ui/react';
-import Compiler from '@gpu/compiler';
 import * as types from '@gpu/types';
 import useInstance from '@recoil/hooks/useInstance';
 import useLogger from '@recoil/hooks/useLogger';
@@ -13,18 +12,17 @@ import { MdAdd, MdClose, MdCode, MdSettings } from 'react-icons/md';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 //import Editor from 'react-simple-code-editor';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import prismHighlight from 'utils/prismHighlight';
 import { darkEditor, lightEditor } from '../../../theme/consts';
 import { themed } from '../../../theme/theme';
 import { RowButton } from '../../shared/rowButton';
 import { EditorInstanceState } from '../descriptors';
 import { DynamicPanelProps, Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel';
-import GPU from '@gpu/gpu'
 import Editor, { Monaco, useMonaco } from '@monaco-editor/react'
 
 import { languageExtensionPoint, languageID } from '../../../monaco/config'
 import { monarchLanguage, conf } from '../../../monaco/wgsl'
 import darktheme from 'monaco/darktheme';
+import lighttheme from 'monaco/lighttheme';
 import completions from 'monaco/completions';
 interface EditorProps {
 	onEditCode: (idx: number, code: string) => void,
@@ -39,7 +37,8 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
 	const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
 	const { shaders: files, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender } = useEditorPanel()
-	const fileErrorValue = useRecoilValue(projectShaderErrorsAtom)
+	const monacoTheme = useColorModeValue('light', 'dark')
+	const monaco = useMonaco()
 
 	const onMonacoBeforeMount = (monaco: Monaco) => {
 		monaco.languages.register(languageExtensionPoint)
@@ -49,9 +48,8 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 			monaco.languages.registerCompletionItemProvider(languageID, completions)
 		})
 		monaco.editor.defineTheme('dark', darktheme)
+		monaco.editor.defineTheme('light', lighttheme)
 	}
-
-	const logger = useLogger()
 
 	const [workspace, setWorkspace] = React.useState<number[]>([])
 
@@ -78,25 +76,18 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 		closeDrawer()
 	}
 
+	useEffect(() => {
+		//console.log(monacoTheme)
+		monaco?.editor.setTheme(monacoTheme)
+		setTimeout(() => monaco?.editor.setTheme(monacoTheme), 1)
+	}, [monacoTheme, monaco])
+
 	return (
 		<Panel {...props}>
 			<PanelContent>
 				<Box width="100%" height="100%" sx={useColorModeValue(lightEditor, darkEditor)}>
 					{
 						currentFile &&
-						// <Editor
-						// 	className="editor"
-						// 	textareaId="codeArea"
-						// 	value={currentFile.file}
-						// 	onValueChange={code => onEditCode(instanceState.currentFileIndex, code)}
-						// 	highlight={code => prismHighlight(code, currentFile.lang, currentFile.filename, fileErrorValue)}
-						// 	padding={20}
-						// 	style={{
-						// 		fontFamily: '"JetBrains Mono","Fira code", "Fira Mono", monospace',
-						// 		fontSize: 13,
-						// 	}}
-						// />
-
 						<Editor
 							height="100%"
 							value={currentFile.file}
@@ -123,7 +114,8 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 									//preview: true,
 									localityBonus: true,
 									snippetsPreventQuickSuggestions: false,
-								}
+								},
+								theme: monacoTheme
 							}}
 
 						/>
@@ -246,7 +238,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 export const useEditorPanel = (): EditorProps => {
 
 	const projectID = useRecoilValue(currentProjectIDAtom)
-	const [filesState, setFiles] = useRecoilState(projectShadersAtom(projectID))
+	const [filesState, setFiles] = useRecoilState(projectShadersAtom)
 
 	const onEditCode = useCallback((idx: number, code: string) => {
 		setFiles(prevCode => {
@@ -266,8 +258,10 @@ export const useEditorPanel = (): EditorProps => {
 			++idx
 		setFiles(prevCode => [...prevCode, {
 			filename: `shader${idx}`,
-			file: '',
-			lang: lang
+			file: 'hehe test',
+			lang: lang,
+			isRender: false,
+			id: ''
 		}])
 		return len
 	}, [filesState, setFiles])

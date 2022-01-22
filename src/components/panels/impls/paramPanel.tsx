@@ -259,7 +259,7 @@ export default ParamPanel
 export const useParamsPanel = (): ParamPanelProps => {
 
 	const projectID = useRecoilValue(currentProjectIDAtom)
-	const [paramsState, setParams] = useRecoilState<types.ParamDesc[]>(projectParamsAtom(projectID))
+	const [paramsState, setParams] = useRecoilState<types.ParamDesc[]>(projectParamsAtom)
 
 
 	const addParam = useCallback(() => {

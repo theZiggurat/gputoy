@@ -7,37 +7,57 @@ import { projectRunStatusAtom } from './controls'
 
 export const currentProjectIDAtom = atom<string>({
   key: 'projectID',
-  default: ''
+  default: 'NOT_SET'
 })
 
-export const projectTitleAtom = atomFamily<string, string>({
+export const projectTitleAtom = atom<string>({
   key: 'projectTitle',
   default: 'Unnamed Project'
 })
 
-export const projectDescriptionAtom = atomFamily<string, string>({
+export const projectDescriptionAtom = atom<string>({
   key: 'projectDescription',
   default: '',
 })
 
-export const projectTagsAtom = atomFamily<string[], string>({
+export const projectTagsAtom = atom<string[]>({
   key: 'projectTags',
   default: []
 })
 
-export const projectAuthorAtom = atomFamily<string, string>({
+export const projectAuthorAtom = atom<types.Author | null>({
   key: 'projectAuthor',
-  default: 'anonymous'
+  default: null
 })
 
-export const projectShadersAtom = atomFamily<types.Shader[], string>({
-  key: 'codefiles',
-  default: [{ file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true }],
+export const projectShadersAtom = atom<types.Shader[]>({
+  key: 'projectShaders',
+  default: [{ file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true, id: '' }],
 })
 
-export const projectParamsAtom = atomFamily<types.ParamDesc[], string>({
-  key: 'params',
+export const projectParamsAtom = atom<types.ParamDesc[]>({
+  key: 'projectParams',
   default: [],
+})
+
+export const projectForkSource = atom<{ id: string, title: string } | null>({
+  key: 'projectForkSource',
+  default: null
+})
+
+export const projectLastSave = atom<string | null>({
+  key: 'projectLastSave',
+  default: null
+})
+
+export const projectLastSaveLocal = atom<string | null>({
+  key: 'projectLastSaveLocal',
+  default: null
+})
+
+export const projectIsPublished = atom<boolean>({
+  key: 'projectIsPublihsed',
+  default: false
 })
 
 export const mousePosAtom = atom<types.MousePos>({

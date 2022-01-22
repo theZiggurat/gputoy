@@ -36,8 +36,7 @@ export const Panel = (props: PanelInProps) => {
   const [barLocation, setBarLocation] = React.useState('bottom')
   const [instanceState, setInstance] = useInstance(props)
 
-  // on mount, set the instance to either what it was before
-  // or default value if there was no value before
+  // on mount, set the instance to pre-existing values or default
   useEffect(() => setInstance(instanceState), [])
 
   const onChangeLocation = () => {
