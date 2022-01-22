@@ -1,34 +1,118 @@
 import {
-  Avatar, Box, Flex, Heading,
-  HStack, Icon, Stack, Tag, Text
+  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input
 } from '@chakra-ui/react'
+import {
+  useProjectAuthor,
+  useProjectDescription,
+  useProjectTitle
+} from '@recoil/hooks/project/useProjectMetadata'
+import useProjectSession from '@recoil/hooks/useProjectSession'
+import { projectForkSource, projectIsPublished } from '@recoil/project'
 import React, { ReactElement, useState } from "react"
+import { AiFillLike } from 'react-icons/ai'
+import { BiGitRepoForked } from 'react-icons/bi'
+import { IoIosEye } from 'react-icons/io'
 import { MdArrowRight } from 'react-icons/md'
+import { useRecoilValue } from 'recoil'
 import { themed } from "../../../theme/theme"
 import { Divider } from "../../shared/misc/micro"
 import { Panel, PanelBar, PanelContent } from "../panel"
+import Link from 'next/link'
 
 const ProjectInfo = () => {
+
+  const [title, setTitle] = useProjectTitle()
+  const [description, setDescription] = useProjectDescription()
+  const isPublished = useRecoilValue(projectIsPublished)
+
+  const author = useProjectAuthor()
+  const [_s, _l, isOwner] = useProjectSession()
+  const forkSource = useRecoilValue(projectForkSource)
+
+  let titleComponent
+  let descriptionComponent
+  if (isOwner) {
+    titleComponent = <Input
+      value={title}
+      bg="transparent"
+      onChange={setTitle}
+      placeholder="Project Title"
+      //isInvalid={title.isValid}
+      //color={title.isValid ? themed('textMid') : "red.500"}
+      pl="0"
+      fontWeight="bold"
+      fontSize="lg"
+    />
+    descriptionComponent = <chakra.textarea
+      value={description}
+      onChange={setDescription}
+      //color={description.isValid ? themed('textMid') : "red.500"}
+      fontSize="xs"
+      bg="transparent"
+      w="100%"
+      resize="vertical"
+      outline="none"
+      placeholder="Project Description"
+    />
+  } else {
+    titleComponent = <Text
+      fontWeight="bold"
+      fontSize="lg"
+    >
+      {title}
+    </Text>
+
+    descriptionComponent = <Text
+      fontSize="xs"
+    >
+      {description}
+    </Text>
+  }
+
   return (
     <Stack>
       <Stack p="1rem" py="0.5rem">
-        <Heading fontSize="xl" color={themed('textMid')}>
-          Project Name
-        </Heading>
-        <Text fontSize="sm">
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Laborum illo, nisi ut repellendus id mollitia.
-        </Text>
+        {titleComponent}
+        {descriptionComponent}
         <Stack direction={['column', 'row']} pt="0.5rem">
-          <Tag> Test1 </Tag><Tag> Test2 </Tag><Tag> Test3 </Tag>
+          <Tag size="sm" colorScheme="red"> wgsl </Tag><Tag size="sm" colorScheme="blue"> mouse </Tag><Tag size="sm" colorScheme="teal"> spiral </Tag>
         </Stack>
+        {
+          isPublished &&
+          <HStack pt="0.5rem">
+            <HStack>
+              <AiFillLike size={13} />
+              <Text fontSize="xs">529&nbsp;&nbsp;&bull;</Text>
+            </HStack>
+            <HStack>
+              <IoIosEye size={13} />
+              <Text fontSize="xs">20493&nbsp;&nbsp;&bull;</Text>
+            </HStack>
+            <HStack>
+              <BiGitRepoForked size={13} />
+              <Text fontSize="xs">29</Text>
+            </HStack>
+          </HStack >
+        }
+
       </Stack>
       <Divider />
-      <HStack dir="row" p="1rem" py="0.5rem">
-        <Avatar src="test" name="Test User" size="xs" display="inline" />
-        <Text display="inline">
-          Test User
-        </Text>
-      </HStack>
+      <Stack p="1rem" py="0.5rem">
+        <HStack dir="row" mb="0.5rem">
+          <Avatar name={author?.name ?? 'Anonymous'} size="xs" display="inline" src={author?.image ?? undefined} />
+          <Text display="inline">
+            {author ? author.name ?? 'Anonymous' : 'Anonymous'}
+          </Text>
+        </HStack>
+
+        {
+          forkSource &&
+          <Text fontSize="sm" fontWeight="bold">
+            Forks: <Link href={`/create/${forkSource.id}`} >{forkSource.title}</Link>
+          </Text>
+        }
+      </Stack>
+
     </Stack>
   )
 }
@@ -41,6 +125,7 @@ type AccordionPanelProps = {
   last?: boolean
 }
 const AccordionPanel = (props: AccordionPanelProps) => {
+
 
   const { title, children, initOpen, first } = props
   const [isOpen, setOpen] = useState(initOpen ?? false)
@@ -95,10 +180,12 @@ const AccordionPanel = (props: AccordionPanelProps) => {
 
 const SummaryPanel = (props) => {
 
+
+
   return (
     <Panel {...props}>
       <PanelContent>
-        <AccordionPanel title="Shader Info" first>
+        <AccordionPanel title="Shader Info" initOpen first>
           <ProjectInfo />
         </AccordionPanel>
         <AccordionPanel title="Files" last>

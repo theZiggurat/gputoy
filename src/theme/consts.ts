@@ -133,6 +133,32 @@ export const lightResizer = {
     borderLeft: "5px solid rgba(0, 0, 0, 0.5)",
     borderRight: "5px solid rgba(0, 0, 0, 0.5)"
   },
-  ".Resizer.disabled": { cursor: "auto"  },
+  ".Resizer.disabled": { cursor: "auto" },
   ".Resizer.disabled:hover": { borderColor: "transparent" }
+}
+
+export const scrollbarLight = {
+  "*:focus": { boxShadow: "0 0 0 0 rgba(0, 0, 0, 0) !important" },
+  "::-webkit-scrollbar": { width: "8px" },
+  "::-webkit-scrollbar-track": {
+    background: "none",
+    borderLeft: "1px red solid"
+  },
+  "::-webkit-scrollbar-thumb": { background: "#888" },
+  "::-webkit-scrollbar-thumb:hover": { background: "#555" }
+}
+
+export const scrollbarDark = {
+  "*:focus": { boxShadow: "0 0 0 0 rgba(0, 0, 0, 0) !important" },
+  "::-webkit-scrollbar": { width: "8px" },
+  "::-webkit-scrollbar-track": {
+    background: "none",
+    borderLeft: "1px red solid"
+  },
+  "::-webkit-scrollbar-thumb": { background: "#888" },
+  "::-webkit-scrollbar-thumb:hover": { background: "#555" }
+}
+
+export const scrollbarHidden = {
+  "::-webkit-scrollbar": { display: 'none' },
 }

@@ -1,27 +1,70 @@
 import * as types from '@gpu/types'
-import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
+import { atom, atomFamily, selector } from 'recoil'
 // @ts-ignore
 import defaultShader from '../../shaders/basicShader.wgsl'
 import { projectRunStatusAtom } from './controls'
 
-export type FileErrors = {
-  [key: string]: number
-}
-export const projectShaderErrorsAtom = atom<FileErrors>({
-  key: 'fileErrors',
-  default: {},
+
+export const currentProjectIDAtom = atom<string>({
+  key: 'projectID',
+  default: 'NOT_SET'
 })
 
-export const projectShadersAtom = atomFamily<types.CodeFile[], string>({
-  key: 'codefiles',
-  default: [{ file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true }],
+export const projectTitleAtom = atom<string>({
+  key: 'projectTitle',
+  default: 'Unnamed Project'
+})
+
+export const projectDescriptionAtom = atom<string>({
+  key: 'projectDescription',
+  default: '',
+})
+
+export const projectTagsAtom = atom<string[]>({
+  key: 'projectTags',
+  default: []
+})
+
+export const projectAuthorAtom = atom<types.Author | null>({
+  key: 'projectAuthor',
+  default: null
+})
+
+export const projectShadersAtom = atom<types.Shader[]>({
+  key: 'projectShaders',
+  default: [{ file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true, id: '' }],
+})
+
+export const projectParamsAtom = atom<types.ParamDesc[]>({
+  key: 'projectParams',
+  default: [],
+})
+
+export const projectForkSource = atom<{ id: string, title: string } | null>({
+  key: 'projectForkSource',
+  default: null
+})
+
+export const projectLastSave = atom<string | null>({
+  key: 'projectLastSave',
+  default: null
+})
+
+export const projectLastSaveLocal = atom<string | null>({
+  key: 'projectLastSaveLocal',
+  default: null
+})
+
+export const projectIsPublished = atom<boolean>({
+  key: 'projectIsPublihsed',
+  default: false
 })
 
 export const mousePosAtom = atom<types.MousePos>({
   key: 'mousepos',
   default: {
-    x: 0,
-    y: 0
+    x: 500,
+    y: 500
   },
 })
 
@@ -33,35 +76,28 @@ export const resolutionAtom = atom<types.Resolution>({
   },
 })
 
-export const projectParamsAtom = atomFamily<types.ParamDesc[], string>({
-  key: 'params',
-  default: [],
-})
-
-
-
-export const projectTitleAtom = atomFamily<string, string>({
-  key: 'projectTitle',
-  default: ''
-})
-
-export const currentProjectIDAtom = atom<string>({
-  key: 'projectID',
-  default: ''
-})
-
 export const canvasInitializedAtom = atom<boolean>({
   key: 'canvasInitialized',
   default: false
+})
+
+export type FileErrors = {
+  [key: string]: number
+}
+export const projectShaderErrorsAtom = atom<FileErrors>({
+  key: 'fileErrors',
+  default: {},
 })
 
 export const withDefaultParams = selector<types.ParamDesc[]>({
   key: 'defaultParams',
   get: ({ get }) => {
 
-    const mouse = get(mousePosAtom)
+    const mouseFlipped = get(mousePosAtom)
     const res = get(resolutionAtom)
     const status = get(projectRunStatusAtom)
+
+    const mouse = { x: mouseFlipped.x, y: res.height - mouseFlipped.y }
 
     return [
       { paramName: 'time', paramType: 'float', param: [status.runDuration] },
@@ -73,31 +109,5 @@ export const withDefaultParams = selector<types.ParamDesc[]>({
       { paramName: 'mouse', paramType: 'vec2i', param: [mouse.x, mouse.y] },
     ]
   },
-})
-
-export const withProjectState = selectorFamily<types.Project, string>({
-  key: 'project',
-  get: (id) => ({ get }) => {
-    const projectTitle = get(projectTitleAtom(id))
-    const projectFiles = get(projectShadersAtom(id))
-    const projectParams = get(projectParamsAtom(id))
-
-    return {
-      title: projectTitle,
-      files: projectFiles,
-      params: projectParams,
-    }
-  },
-  set: (id) => ({ set, reset }, proj) => {
-    if (proj instanceof DefaultValue) {
-      reset(projectTitleAtom(id))
-      reset(projectShadersAtom(id))
-      reset(projectParamsAtom(id))
-    } else {
-      set(projectTitleAtom(id), proj.title)
-      set(projectShadersAtom(id), proj.files)
-      set(projectParamsAtom(id), proj.params)
-    }
-  }
 })
 

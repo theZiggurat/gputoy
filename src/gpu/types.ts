@@ -20,10 +20,10 @@ export type ParamType = 'int' | 'float' | 'color' | 'vec3f' | 'vec2f' | 'vec3i' 
 * Holds data and metadata for single parameter in uniform
 */
 export type ParamDesc = {
-   paramName: string,
-   paramType: ParamType
-   param: number[]
- }
+  paramName: string,
+  paramType: ParamType
+  param: number[]
+}
 
 
 /**
@@ -34,11 +34,12 @@ export type Lang = 'wgsl' | 'glsl'
 /**
  * A single shader file
  */
-export type CodeFile = {
-    filename: string,
-    file: string,
-    lang: Lang,
-    isRender?: boolean,
+export type Shader = {
+  id: string
+  filename: string,
+  file: string,
+  lang: Lang,
+  isRender?: boolean,
 }
 
 export type MousePos = {
@@ -50,9 +51,8 @@ export type Resolution = {
   width: number,
   height: number,
 }
-
-export type Project = {
-  title: string,
-  files: CodeFile[],
-  params: ParamDesc[],
+export type Author = {
+  id: string,
+  name: string | null,
+  image: string | null
 }

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-anonymous-default-export */
 import { Project } from "@gpu/project"
 import { projectRunStatusAtom } from "@recoil/controls"
 import { withDefaultParams } from "@recoil/project"

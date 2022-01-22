@@ -1,3 +1,4 @@
+/* eslint-disable import/no-anonymous-default-export */
 import GPU from "@gpu/gpu"
 import { Project } from "@gpu/project"
 import { projectControlAtom, projectRunStatusAtom } from "@recoil/controls"
@@ -8,7 +9,9 @@ import { useClearConsole } from "./useConsole"
 import useLogger from "./useLogger"
 import useProjectLifecycle from "./useProjectLifecycle"
 
-export default (props: { projectID: string }) => {
+export default () => {
+
+  const projectID = useRecoilValue(currentProjectIDAtom)
   const projectRunStatus = useRecoilValue(projectRunStatusAtom)
   const [projectControlStatus, setProjectControlStatus] = useRecoilState(projectControlAtom)
   const isCanvasInitialized = useRecoilValue(canvasInitializedAtom)
@@ -17,9 +20,8 @@ export default (props: { projectID: string }) => {
 
   const defaultParamState = useRecoilValue(withDefaultParams)
 
-  const projectID = useRecoilValue(currentProjectIDAtom)
-  const paramState = useRecoilValue(projectParamsAtom(projectID))
-  const files = useRecoilValue(projectShadersAtom(projectID))
+  const paramState = useRecoilValue(projectParamsAtom)
+  const files = useRecoilValue(projectShadersAtom)
 
   const setClearConsole = useClearConsole()
   const setProjectControls = useSetRecoilState(projectControlAtom)
@@ -133,6 +135,6 @@ export default (props: { projectID: string }) => {
 
     if (GPU.isInitialized())
       GPU.device.onuncapturederror = errorHandler
-  }, [logger])
+  }, [logger, stop])
 }
 

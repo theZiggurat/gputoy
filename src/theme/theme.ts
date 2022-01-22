@@ -7,18 +7,22 @@ const theme = extendTheme({
   useSystemColorMode: true,
   colors: {
     dark: {
-      p: '#1C1C1C',
-      a1: '#17171A',
-      a2: '#151517',
-      bg: '#050505', 
+      p: '#0D0D0D',
+      a1: '#0C0C0C',
+      a2: '#0B0B0B',
+      bg: '#050505',
       button: 'rgba(255, 255, 255, 0.06)',//'whiteAlpha.100',
       buttonHovered: 'rgba(255, 255, 255, 0.16)',//'whiteAlpha.300',
       divider: 'rgba(255, 255, 255, 0.1)',//'blackAlpha.400',
       input: 'rgba(255, 255, 255, 0.04)', //'whiteAlpha.50',
       inputHovered: 'rgba(255, 255, 255, 0.06)', //'whiteAlpha.100'
       border: 'rgba(255, 255, 255, 0.1)',
-      textLight: 'rgba(255, 255, 255, 0.36)',
-      textMid: 'rgba(255, 255, 255, 0.8)'
+      borderLight: 'rgba(255, 255, 255, 0.05)',
+      textLight: 'rgba(255, 255, 255, 0.45)',
+      textMidLight: 'rgba(255, 255, 255, 0.6)',
+      textMid: 'rgba(255, 255, 255, 0.8)',
+      textHigh: 'rgba(255, 255, 255, 1.0)',
+      bgVisible: 'rgba(0, 0, 0, 0.4)',
     },
     light: {
       p: '#E2E2E2',
@@ -31,8 +35,12 @@ const theme = extendTheme({
       input: 'rgba(255, 255, 255, 0.2)', //'whiteAlpha.600',
       inputHovered: 'rgba(255, 255, 255, 0.4)', //'whiteAlpha.500'
       border: 'rgba(0, 0, 0, 0.2)',
+      borderLight: 'rgba(255, 255, 255, 0.05)',
       textLight: 'rgba(0, 0, 0, 0.36)',
-      textMid: 'rgba(0, 0, 0, 0.72)'
+      textMidLight: 'rgba(0, 0, 0, 0.55)',
+      textMid: 'rgba(0, 0, 0, 0.72)',
+      textHigh: 'rgba(0, 0, 0, 1.0)',
+      bgVisible: 'rgba(255, 255, 255, 0.4)',
     }
   },
   fonts: {
@@ -47,7 +55,7 @@ const theme = extendTheme({
         color: mode('rgba(0, 0, 0, 0.72)', '')(props),
         bg: mode('rgba(255, 255, 255, 0.4)', 'whiteAlpha.100')(props),
         border: '1px',
-        borderColor: mode('rgba(0, 0, 0, 0.2)', 'rgba(255, 255, 255, 0.05)')(props),
+        borderColor: 'transparent',//mode('rgba(0, 0, 0, 0.2)', 'rgba(255, 255, 255, 0.05)')(props),
         _hover: {
           bg: mode('rgba(0, 0, 0, 0.05)', 'whiteAlpha.300')(props)
         },
@@ -55,7 +63,7 @@ const theme = extendTheme({
       input: {
         bg: mode('rgba(255, 255, 255, 0.2)', 'whiteAlpha.50')(props),
         border: '1px',
-        borderColor: mode('rgba(0, 0, 0, 0.2)', 'rgba(255, 255, 255, 0.05)')(props),
+        borderColor: 'transparent',//mode('rgba(0, 0, 0, 0.2)', 'rgba(255, 255, 255, 0.05)')(props),
         _hover: {
           bg: mode('rgba(255, 255, 255, 0.4)', 'whiteAlpha.100')(props)
         },
@@ -81,6 +89,13 @@ const theme = extendTheme({
         dark: {
           bg: '#333333',
           color: 'white'
+        },
+        empty: {
+          bg: "none",
+          border: "0px",
+          _hover: {
+            bg: "none"
+          }
         }
       },
       defaultProps: {
@@ -93,6 +108,10 @@ const theme = extendTheme({
       variants: {
         base: {
           bg: '',
+        },
+        underline: {
+          border: '0px',
+          bg: 'green'
         }
       },
       defaultProps: {
@@ -112,7 +131,7 @@ const theme = extendTheme({
         size: 'sm'
       }
     },
-  }
+  },
 })
 
 

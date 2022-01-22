@@ -5,7 +5,7 @@ import useProjectStorage from '@recoil/hooks/useProjectStorage'
 import { GetServerSideProps } from 'next'
 import React, { useEffect, useState } from 'react'
 import SplitPane from 'react-split-pane'
-import prisma from '../lib/prisma'
+import prisma from '@database/prisma'
 import EditorEmbedable from '../src/components/panels/embeds/editor'
 import ViewportEmbeddable from '../src/components/panels/embeds/viewport'
 
@@ -39,8 +39,7 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
       }
     }
   }
-  else
-    return { props: { projectID: 'not_found', mode: query.theme ?? 'light' } }
+  return { props: { projectID: 'not_found', mode: query.theme ?? 'light' } }
 
 }
 

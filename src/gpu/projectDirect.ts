@@ -1,4 +1,5 @@
 import { Project as DBProject } from ".prisma/client"
+import { CreatePageProjectQueryWithId } from "@database/args"
 import { gpuStatusAtom } from "@recoil/gpu"
 import useProjectLifecycleDirect from "@recoil/hooks/useProjectLifecycleDirect"
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
@@ -13,7 +14,7 @@ class ProjectDirect {
 
   included: Params = new Params('Included', 'i', true)
   params: Params = new Params('Params', 'p', false, 1)
-  shaders: types.CodeFile[] = []
+  shaders: types.Shader[] = []
 
   // gpu state
   vertexBuffer!: GPUBuffer
@@ -29,7 +30,7 @@ class ProjectDirect {
 
   constructor() { }
 
-  init = async (project: DBProject, ...canvasIDs: string[]) => {
+  init = async (project: CreatePageProjectQueryWithId, ...canvasIDs: string[]) => {
 
     if (typeof window === 'undefined') {
       return
@@ -65,7 +66,7 @@ class ProjectDirect {
       return {
         filename: s.name,
         file: s.source,
-        lang: s.lang,
+        lang: s.lang as types.Lang,
         isRender: s.isRender,
       }
     })
@@ -88,7 +89,7 @@ class ProjectDirect {
       this.shaderDirty = this.params.set(paramDesc, GPU.device) || this.shaderDirty
   }
 
-  updateShaders = (files: types.CodeFile[]) => {
+  updateShaders = (files: types.Shader[]) => {
     this.shaders = files
     this.shaderDirty = true
   }
@@ -234,7 +235,11 @@ export default ProjectDirect
 
 
 
-export const useProjectDirect = (project: DBProject, autoplay: boolean, ...canvasIDs: string[]): [boolean, Dispatch<SetStateAction<boolean>>] => {
+export const useProjectDirect = (
+  project: CreatePageProjectQueryWithId,
+  autoplay: boolean,
+  ...canvasIDs: string[]
+): [boolean, Dispatch<SetStateAction<boolean>>] => {
 
   const projectRef = useRef<ProjectDirect | undefined>(undefined)
   const controls = useProjectLifecycleDirect(projectRef)

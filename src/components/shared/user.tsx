@@ -3,6 +3,7 @@ import {
 	Center, Flex, HStack, Icon,
 	Input, Spinner, Stack, Text, useColorMode
 } from '@chakra-ui/react';
+import useProjectSession from '@recoil/hooks/useProjectSession';
 import { Session } from 'next-auth';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import { useRouter } from 'next/router';
@@ -13,6 +14,7 @@ import { MdNightlight, MdSettings, MdWbSunny } from 'react-icons/md';
 import { RiProjector2Fill } from 'react-icons/ri';
 import { themed } from '../../theme/theme';
 import { Divider } from './misc/micro';
+import { AiOutlineUser } from 'react-icons/ai';
 
 
 
@@ -38,7 +40,7 @@ const MenuButton = (props: {
 }
 
 type UserMenuProps = {
-	session?: Session
+	session: Session | null
 	loading: boolean
 	isOpen: boolean
 }
@@ -109,7 +111,9 @@ const UserMenu = (props: UserMenuProps) => {
 const NavUser = () => {
 
 	const router = useRouter()
-	const [session, loading] = useSession()
+	const [session, loading, isOwner] = useProjectSession()
+
+	console.log(session, loading, isOwner)
 
 	const [isOpen, setIsOpen] = useState(false)
 
@@ -125,59 +129,22 @@ const NavUser = () => {
 	const { colorMode, toggleColorMode } = useColorMode();
 
 	return (
-		<Flex
-			flex="1"
-			alignItems={'center'}
-			justifyContent='center'
-			marginLeft="auto"
-			minW="min-content"
-			px="1rem"
+		<Button
+			onClick={onClick}
+			leftIcon={session ?
+				<Avatar size="2xs" src={session.user?.image ?? undefined} /> :
+				<AiOutlineUser pointerEvents="none" />
+			}
+			size="sm"
+			h="1.6rem"
+			px="0.5rem"
+			mx="0.2rem"
+			border="0px"
+			borderRadius="3px"
 		>
-			<Button
-				onClick={toggleColorMode}
-				size="sm"
-				borderEndRadius={0}
-			>
-				<Icon as={colorMode === "light" ? MdWbSunny : MdNightlight} />
-			</Button>
-			<Flex
-				backgroundColor={isOpen ? activeColor : defaultColor}
-				borderEndRadius="1rem"
-				border="1px"
-				borderColor={themed('border')}
-				borderLeft="0px"
-				userSelect="none"
-				alignItems="center"
-				cursor="pointer"
-				onClick={onClick}
-				maxH="2rem"
-				transition="all 100ms ease"
-				_hover={{
-					backgroundColor: activeColor
-				}}
-				position="relative"
-			>
-				<Text
-					px="1em"
-					fontSize="0.9em"
-					textOverflow="clip"
-					whiteSpace="nowrap"
-					pointerEvents="none"
-				>
-					{session?.user?.name ?? 'Sign In'}
-				</Text>
-				<Avatar
-					name={session?.user?.name ?? undefined}
-					src={session?.user?.image ?? undefined}
-					size="sm"
-					transition="transform 100ms ease"
-					transform={isOpen ? "scale(0.7)" : "scale(0.9)"}
-					pointerEvents="none"
-				/>
-				<UserMenu session={session ?? undefined} loading={loading} isOpen={isOpen} />
-			</Flex>
-
-		</Flex>
+			{session?.user?.name ?? 'Sign In'}
+			<UserMenu session={session} loading={loading} isOpen={isOpen} />
+		</Button>
 	)
 }
 

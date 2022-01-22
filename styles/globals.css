@@ -22,16 +22,19 @@ a {
 }
 
 /* width */
-::-webkit-scrollbar {
+/* ::-webkit-scrollbar {
   width: 10px;
-}
+} */
 
 /* Handle */
-.light::-webkit-scrollbar-thumb {
+/* .light::-webkit-scrollbar-thumb {
   background: #777777;
   border-radius: 4px;
+} */
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+::-webkit-scrollbar {
+  display: none;
 }
 
-*:focus {
-  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0) !important;
-}
+

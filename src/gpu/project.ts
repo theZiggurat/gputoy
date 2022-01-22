@@ -23,7 +23,7 @@ export class Project {
   // project state
   included: Params = new Params('Included', 'i', true)
   params: Params = new Params('Params', 'p', false, 1)
-  shaders: types.CodeFile[] = []
+  shaders: types.Shader[] = []
 
   // gpu state
   vertexBuffer!: GPUBuffer
@@ -109,7 +109,7 @@ export class Project {
       this.shaderDirty = this.params.set(paramDesc, GPU.device, logger) || this.shaderDirty
   }
 
-  updateShaders = (files: types.CodeFile[], logger?: Logger) => {
+  updateShaders = (files: types.Shader[], logger?: Logger) => {
     this.shaders = files
     this.shaderDirty = true
   }

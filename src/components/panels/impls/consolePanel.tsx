@@ -98,8 +98,6 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
             p={1}
             flex="0 0 auto"
             whiteSpace="pre-wrap"
-            borderBottom="1px dashed"
-            borderColor={themed('border')}
           >
             <Text ml={1}>
               <Text fontWeight="hairline" display="inline">

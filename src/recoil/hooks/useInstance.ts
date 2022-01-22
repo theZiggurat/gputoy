@@ -25,6 +25,8 @@ export const useInstances = () => {
  * @param props panelProps which includes {instanceID, index}
  * @returns instance state for panel
  */
-export default <T>(props: any): [T, SetterOrUpdater<T>] => {
+const useInstance = <T>(props: any): [T, SetterOrUpdater<T>] => {
   return useRecoilState<T>(panelInstanceAtom({ id: props.instanceID, index: props.panelIndex }))
 }
+
+export default useInstance

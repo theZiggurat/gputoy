@@ -1,43 +1,19 @@
 import {
-  Box, Button, chakra, Divider, Flex, Heading, HStack, Image, Stack, Text, useColorModeValue
+  Button, chakra, Flex, Heading, Image, Stack, Text, useColorModeValue
 } from '@chakra-ui/react'
+import Footer from '@components/index/footer'
 import "@fontsource/jetbrains-mono"
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import React, { useEffect, useState } from 'react'
-import { AiFillGithub, AiFillRedditCircle, AiFillTwitterCircle } from 'react-icons/ai'
 import { BiPaint } from 'react-icons/bi'
 import { BsClipboardData } from 'react-icons/bs'
-import prisma from '../lib/prisma'
-import EditorDemo from '../src/components/index/editorDemo'
+import { themed } from 'theme/theme'
 import Typer from '../src/components/shared/misc/typer'
 import Scaffold from '../src/components/shared/scaffold'
-import { darkEditor, lightEditor } from '../src/theme/consts'
 
-export const getStaticProps = async (context) => {
-  const projects = await prisma.project.findMany({
-    take: 1,
-    include: {
-      shaders: true,
-      author: {
-        select: {
-          name: true
-        }
-      }
-    }
-  })
-  projects.forEach(p => {
-    p.createdAt = p.createdAt.toISOString()
-    p.updatedAt = p.updatedAt.toISOString()
-  })
-  return {
-    props: {
-      project: projects[0]
-    },
-  };
-}
 
-const Home: NextPage = (props) => {
+const Home: NextPage = () => {
 
   const [tran, setTran] = useState(false)
   const [scrollPosition, setScrollPosition] = useState(0)
@@ -58,7 +34,7 @@ const Home: NextPage = (props) => {
         <title>GPUToy</title>
       </Head>
       <Flex width="100%" height="100%" position="relative" overflowY="scroll" overflowX="hidden" direction="column" flex="1 1 auto" onScroll={handleScroll}>
-        <Flex flex="1" w="100vw" bg={useColorModeValue('light.p', 'dark.p')} direction="column" textAlign="center">
+        <Flex flex="1" w="100vw" bg={themed('bg')} direction="column" textAlign="center">
           <Flex
             height="100%"
             direction="column"
@@ -71,21 +47,11 @@ const Home: NextPage = (props) => {
             opacity={tran ? 1 : 0}
             transition="opacity 1.5s ease-out"
           >
-            <Box
-              position="absolute"
-              minH="40%"
-              minW="100vw"
-              top="50%"
-              bg="red.500"
-              clipPath={tran ? "polygon(0 10%, 100% 0, 100% 90%, 0% 100%)" : "polygon(0 0%, 100% 0, 100% 100%, 0% 100%)"}
-              bgGradient="linear(to-r, red.400, orange.400)"
-              transition="all 2s ease"
-            />
-            <Stack m="1rem">
-              <Heading fontFamily="'Segoe UI'" fontSize="3.8rem" pb="2rem" fontWeight="black">
-                Convey your imagination <br />
-                <chakra.span fontFamily="'JetBrains Mono'" fontSize="3rem" ml="2rem" color="red.500">
-                  <Typer text="...(in code)" />
+            <Stack m="1rem" mt="5rem">
+              <Heading fontFamily="'Segoe UI'" fontSize="3.1rem" pb="2rem" fontWeight="black">
+                Convey your imagination
+                <chakra.span fontFamily="'JetBrains Mono'" fontSize="2.7rem" color="red.500">
+                  <Typer text=" in code" />
                 </chakra.span>
               </Heading>
               <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
@@ -95,7 +61,7 @@ const Home: NextPage = (props) => {
                 Unlike a video, it is handcrafted. One pixel at a time.
               </Text>
             </Stack>
-            <Box
+            {/* <Box
               position="relative"
               bg={useColorModeValue('light.a2', 'dark.a2')}
               pt="1rem"
@@ -130,13 +96,12 @@ const Home: NextPage = (props) => {
               }}
             >
               <EditorDemo />
-            </Box>
+            </Box> */}
           </Flex>
-
           <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
             <Heading fontFamily="'Segoe UI'" fontSize="3.8rem" pb="2rem" fontWeight="black">
               Collaborate and Get Inspired <br />
-              <chakra.span fontFamily="'JetBrains Mono'" fontSize="3rem" ml="2rem" color="red.500">
+              <chakra.span fontFamily="'JetBrains Mono'" ml="2rem" color="red.500">
                 <Typer text="...(or envious)" />
               </chakra.span>
             </Heading>
@@ -146,6 +111,31 @@ const Home: NextPage = (props) => {
             <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
               Has a project impressed you? Inspect it in the editor.
             </Text>
+          </Flex>
+
+          <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
+            <Heading fontFamily="'Segoe UI'" fontSize="3.8rem" pb="2rem" fontWeight="black">
+              Share Anywhere
+            </Heading>
+            <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
+              With a multitude of export options.
+            </Text>
+            <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
+              Embed the editor on any website, or use right in your project with our npm package.
+            </Text>
+            <iframe
+              width="700px"
+              height="400px"
+              src="http://localhost:3000/embed?id=ckwis98mk0053awuntswa7rnf?mode=light"
+              style={{
+                borderRadius: "10px",
+                borderColor: themed('border'),
+                borderWidth: '1px',
+                transform: tran ? '' : 'rotateX(90deg) rotateY(20deg)',
+                transition: 'transform 3s ease',
+                zoom: 1.25
+              }}
+            />
           </Flex>
 
           <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
@@ -178,64 +168,13 @@ const Home: NextPage = (props) => {
             </Button>
           </Flex>
 
-          <Flex flexDir="row" justifyContent="center" py="5rem" gridGap="10vw" flexWrap="wrap">
-            <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
-              <Text fontSize="2rem" fontWeight="extrabold" cursor="pointer" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} lineHeight="2rem">
-                GPUTOY
-              </Text>
-              <Flex gridGap="0.5rem" pt="1rem">
-                <AiFillTwitterCircle size={30} />
-                <AiFillRedditCircle size={30} />
-                <AiFillGithub size={30} />
-              </Flex>
-            </Flex>
-            <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
-              <Text fontSize="1.2rem" pb="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} fontWeight="bold">
-                Resources
-              </Text>
-              <Text fontSize="1rem">
-                Tutorial
-              </Text>
-              <Text fontSize="1rem">
-                Documentation
-              </Text>
-            </Flex>
-            <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
-              <Text fontSize="1.2rem" pb="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} fontWeight="bold">
-                About
-              </Text>
-              <Text fontSize="1rem">
-                About us
-              </Text>
-              <Text fontSize="1rem">
-                Roadmap
-              </Text>
-            </Flex>
-            <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
-              <Text fontSize="1.2rem" pb="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} fontWeight="bold">
-                Contact
-              </Text>
-              <Text fontSize="1rem">
-                Email us
-              </Text>
-              <Text fontSize="1rem">
-                Submit an issue
-              </Text>
-            </Flex>
 
-          </Flex>
-          <Divider borderColor={useColorModeValue("blackAlpha.300", "whiteAlpha.500")} />
-          <HStack gridGap="10rem" margin="auto">
-            <Text fontSize="0.8rem" py="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")}>
-              Privacy Policy
-            </Text>
-            <Text fontSize="0.8rem" py="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")}>
-              Terms of Service
-            </Text>
-          </HStack>
         </Flex>
+        <Footer />
       </Flex>
+
     </Scaffold>
+
   )
 }
 

@@ -2,7 +2,7 @@ import { NextApiHandler } from 'next';
 import NextAuth from 'next-auth';
 import Providers from 'next-auth/providers';
 import Adapters from 'next-auth/adapters';
-import prisma from '../../../lib/prisma';
+import prisma from '@database/prisma';
 
 const authHandler: NextApiHandler = (req, res) => NextAuth(req, res, options);
 export default authHandler;
@@ -19,9 +19,9 @@ const options = {
   callbacks: {
     // async signIn(user, account, profile) { return true },
     // async redirect(url, baseUrl) { return baseUrl },
-    async session(session, user) { 
+    async session(session, user) {
       session.user.id = user.id
-      return session 
+      return session
     },
     // async jwt(token, user, account, profile, isNewUser) { return token }
   },

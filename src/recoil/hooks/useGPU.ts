@@ -5,7 +5,7 @@ import { useEffect } from "react"
 import { useSetRecoilState } from "recoil"
 import useLogger from "./useLogger"
 
-export default () => {
+const useGPU = () => {
   const logger = useLogger()
   const setGPUStatus = useSetRecoilState(gpuStatusAtom)
   const toast = useToast()
@@ -49,3 +49,5 @@ export default () => {
     init()
   }, [])
 }
+
+export default useGPU
