@@ -70,7 +70,7 @@ const UserMenu = (props: UserMenuProps) => {
 				</HStack>
 				<Divider />
 				<Stack p="0.5rem" py="1rem" sx={{ border: "0" }}>
-					<Button onClick={() => signIn('github')} bg="black" leftIcon={<FaGithub />} color="white">Sign In With Github</Button>
+					<Button onClick={() => signIn('github', { callbackUrl: `${window.location.href}` })} bg="black" leftIcon={<FaGithub />} color="white">Sign In With Github</Button>
 					<Button onClick={() => signIn('google')} bg="#4588f1" leftIcon={<FaGoogle />} color="white">Sign In With Google</Button>
 					<Button onClick={() => signIn('twitter')} bg="#1DA1F2" leftIcon={<FaTwitter />} color="white">Sign In With Twitter</Button>
 				</Stack>
@@ -83,7 +83,7 @@ const UserMenu = (props: UserMenuProps) => {
 			<Stack p="0.5rem" sx={{ border: "0" }}>
 				<MenuButton text="Projects" icon={<RiProjector2Fill />} />
 				<MenuButton text="Settings" icon={<MdSettings />} />
-				<MenuButton text="Sign Out" icon={<IoExit />} onClick={() => signOut()} />
+				<MenuButton text="Sign Out" icon={<IoExit />} onClick={() => signOut({ callbackUrl: `${window.location.origin}` })} />
 			</Stack>
 		)
 	}

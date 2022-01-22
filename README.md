@@ -1,4 +1,4 @@
-# [gputoy](gputoy.io)
+# [gputoy](https://gputoy.io)
 
 A shader prototyping tool built with [`WebGPU`](https://www.w3.org/TR/webgpu/).
 
