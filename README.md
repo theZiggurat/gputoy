@@ -1,3 +1,4 @@
+#### Note: Before checking out the site, see supported browsers. 
 # [gputoy](https://gputoy.io)
 
 A shader prototyping tool built with [`WebGPU`](https://www.w3.org/TR/webgpu/).
@@ -35,3 +36,12 @@ A shader prototyping tool built with [`WebGPU`](https://www.w3.org/TR/webgpu/).
 - **Low Bandwith/Storage**
   - I dont ever plan on running ads on gputoy, so expenses should be kept to a minimum. Monetization will only be used as necessary.
   - Saving to database will be explicit.
+
+***
+
+## **Currently Supported Browsers**
+
+  - Chrome version > 94 will work automatically thanks to origin trial
+    - Chrome version > 80 with `enable-unsafe-webgpu` flag enabled
+  - Firefox version > 63 with `dom.webgpu.enabled` flag enabled
+  - Safari version > 11.1 with `WebGPU` experimental feature on MACOS (not tested)
