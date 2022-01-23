@@ -1,5 +1,6 @@
 import {
 	Avatar, Button,
+	ButtonProps,
 	Center, Flex, HStack, Icon,
 	Input, Spinner, Stack, Text, useColorMode
 } from '@chakra-ui/react';
@@ -108,7 +109,7 @@ const UserMenu = (props: UserMenuProps) => {
 	)
 }
 
-const NavUser = () => {
+const NavUser = (props: ButtonProps) => {
 
 	const router = useRouter()
 	const [session, loading, isOwner] = useProjectSession()
@@ -139,6 +140,7 @@ const NavUser = () => {
 			mx="0.2rem"
 			border="0px"
 			borderRadius="3px"
+			{...props}
 		>
 			{session?.user?.name ?? 'Sign In'}
 			<UserMenu session={session} loading={loading} isOpen={isOpen} />

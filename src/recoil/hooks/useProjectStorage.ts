@@ -1,12 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable import/no-anonymous-default-export */
+import { toast, useToast } from '@chakra-ui/toast'
 import { CreatePageProjectQuery, CreatePageProjectSaveHistorySer } from '@database/args'
 import { withCreatePageProject } from '@database/selectors'
 import { currentProjectIDAtom, projectLastSave, projectLastSaveLocal } from '@recoil/project'
 import { debounce, update } from 'lodash'
 import { Session } from 'next-auth'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
 import useProjectSession from './useProjectSession'
 
@@ -30,8 +31,30 @@ export default (props: ProjectStorageProps) => {
   const setProjectLastSaveLocal = useSetRecoilState(projectLastSaveLocal)
   const [_s, _l, isOwner] = useProjectSession()
   const [enableSave, setEnableSave] = useState(false)
+  const toast = useToast()
 
   const router = useRouter()
+
+  const [isSet, setIsSet] = useState(false)
+  const timeoutId = useRef(0)
+
+  useEffect(() => {
+    timeoutId.current = setTimeout(() => {
+      toast({
+        title: 'Project not found. Maybe that link is outdated?',
+        status: 'info',
+        duration: 2000,
+        isClosable: true
+      })
+      router.push('/create')
+    }, 1000)
+    return () => clearTimeout(timeoutId)
+  }, [])
+
+  useEffect(() => {
+    if (isSet)
+      clearTimeout(timeoutId.current)
+  }, [isSet])
 
   useEffect(() => {
 
@@ -39,7 +62,6 @@ export default (props: ProjectStorageProps) => {
 
     console.log('storage', !!projectFromStorage, 'db', !!projectFromDB, projectID)
     if (!projectFromDB && !projectFromStorage) {
-      router.push('/create')
       return
     }
 
@@ -53,6 +75,7 @@ export default (props: ProjectStorageProps) => {
       setProjectState(project)
       setProjectLastSaveLocal(updatedAt)
     }
+    setIsSet(true)
     setEnableSave(true)
 
   }, [projectID, projectFromDB, setProjectID])

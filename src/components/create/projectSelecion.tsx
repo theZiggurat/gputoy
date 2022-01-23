@@ -18,10 +18,12 @@ import useFork from "@recoil/hooks/project/useFork"
 import NavUser from "@components/shared/user"
 import generate from "project-name-generator"
 import { MdPublishedWithChanges, MdCheck } from 'react-icons/md'
+import useProjectSession from "@recoil/hooks/useProjectSession"
 
 type ProjectInfo = {
   id: string,
   title: string,
+  authorId: string | null
   updatedAt: string,
   type: number
 }
@@ -34,39 +36,52 @@ const projectAccessModeIcon = [
   <MdPublishedWithChanges key="4" title="Published with local changes" />
 ]
 
-const foldProjectArrays = (local: ProjectInfo[], remote: ProjectInfo[]) => {
+const foldProjectArrays = (local: ProjectInfo[], remote: ProjectInfo[], authorId: string | null) => {
   const localChangesSet = local.filter(i1 => remote.find(i2 => i1.id === i2.id)).map(i => { return { ...i, type: i.type + 1 } as ProjectInfo })
   const localChangesIds = localChangesSet.map(i => i.id)
   const localFiltered = local.filter(i => !localChangesIds.includes(i.id))
   const remoteFiltered = remote.filter(i => !localChangesIds.includes(i.id))
 
-  return localChangesSet.concat(localFiltered).concat(remoteFiltered).sort((a, b) => {
-    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  })
+  return localChangesSet
+    .concat(localFiltered)
+    .concat(remoteFiltered)
+    .filter(i => i.authorId == authorId)
+    .sort((a, b) => {
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    })
 }
 
-const ProjectDrawer = () => {
+const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
 
   const [localProjects, setLocalProjects] = useState<ProjectInfo[]>([])
   const [remoteProjects, setRemoteProjects] = useState<ProjectInfo[]>([])
+  const [session, _l, _i] = useProjectSession()
 
-  const allProjects = foldProjectArrays(localProjects, remoteProjects)
+  const allProjects = foldProjectArrays(localProjects, remoteProjects, session?.user?.id ?? null)
   const router = useRouter()
   const setCurrentProjectId = useSetRecoilState(currentProjectIDAtom)
+
 
   /**
    * load projects from session
    */
   useEffect(() => {
     const fetchProjects = async () => {
-      const res = await fetch('/api/myprojects', {
-        method: "GET",
-      })
-      const projects = await res.json()
-      setRemoteProjects(projects.map(p => ({ ...p, type: p.published ? 3 : 1 })))
+      if (session) {
+        const res = await fetch('/api/myprojects', {
+          method: "GET",
+        })
+        const projects = await res.json()
+        setRemoteProjects(projects.map(p => ({
+          ...p,
+          type: p.published ? 3 : 1,
+          authorId: session?.user?.id ?? null
+        })
+        ))
+      }
     }
     fetchProjects()
-  }, [])
+  }, [session])
 
   /**
    * load projects from storage
@@ -79,6 +94,7 @@ const ProjectDrawer = () => {
         localProj.push({
           id: key.match(/(?<=project_local_).*/gm)![0],
           title: project.title,
+          authorId: project.author?.id ?? null,
           updatedAt: project.updatedAt,
           type: 0
         })
@@ -142,6 +158,12 @@ const ProjectDrawer = () => {
               </HStack>
             </Flex>
           ))
+        }
+        {
+          allProjects.length == 0 &&
+          <Text alignSelf="center" fontWeight="bold" color={themed('textMidLight')} pt="1rem">
+            Choose a template to get started
+          </Text>
         }
       </Flex>
     </Flex>
@@ -311,7 +333,7 @@ const ProjectSelection = (props: { templates: CreatePageProjectQueryWithId[] }) 
             }
             {
               !session &&
-              <NavUser />
+              <NavUser size="lg" p="1rem" />
             }
 
           </HStack>

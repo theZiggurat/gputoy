@@ -2,6 +2,9 @@ import {
   Button, chakra, Flex, Heading, Image, Stack, Text, useColorModeValue
 } from '@chakra-ui/react'
 import Footer from '@components/index/footer'
+import ProjectCard from '@components/shared/projectCard'
+import { CreatePageProjectQueryWithId, createPageProjectQueryWithId } from '@database/args'
+import prisma from '@database/prisma'
 import "@fontsource/jetbrains-mono"
 import type { NextPage } from 'next'
 import Head from 'next/head'
@@ -12,8 +15,50 @@ import { themed } from 'theme/theme'
 import Typer from '../src/components/shared/misc/typer'
 import Scaffold from '../src/components/shared/scaffold'
 
+const MainHeading = (props: { children, redText: string }) => (
+  <Heading fontFamily="'Segoe UI'" fontSize="3.1rem" pb="2rem" fontWeight="black">
+    {props.children}
+    <chakra.span fontFamily="'JetBrains Mono'" fontSize="2.7rem" color="red.500">
+      &nbsp;{props.redText}
+    </chakra.span>
+  </Heading>
+)
 
-const Home: NextPage = () => {
+const MainDesc = (props: { children }) => (
+  <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
+    {props.children}
+  </Text>
+)
+
+const SubDesc = (props: { children }) => (
+  <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
+    {props.children}
+  </Text>
+)
+
+type HomePageProps = {
+  projectOfTheDay: CreatePageProjectQueryWithId
+}
+
+export async function getStaticProps() {
+  const projectOfTheDay = await prisma.project.findUnique({
+    ...createPageProjectQueryWithId,
+    where: {
+      id: 'ckynp0plu0857k0unb4njen1a'
+    }
+  })
+
+  return {
+    props: {
+      projectOfTheDay
+    }
+  }
+}
+
+
+const Home = (props: HomePageProps) => {
+
+  const { projectOfTheDay } = props
 
   const [tran, setTran] = useState(false)
   const [scrollPosition, setScrollPosition] = useState(0)
@@ -32,91 +77,44 @@ const Home: NextPage = () => {
     <Scaffold>
       <Head>
         <title>GPUToy</title>
+        <meta property="og:title" content="gputoy home" key="ogtitle" />
+        <meta property="og:description" content="Create and share stunning shaders. Sign up for free using github." key="ogdesc" />
+        <meta property="og:type" content="website" key="ogtype" />
+        <meta property="og:image" content="https://gputoy.io/og-img.jpg" key="ogimg" />
       </Head>
       <Flex width="100%" height="100%" position="relative" overflowY="scroll" overflowX="hidden" direction="column" flex="1 1 auto" onScroll={handleScroll}>
         <Flex flex="1" w="100vw" bg={themed('bg')} direction="column" textAlign="center">
-          <Flex
-            height="100%"
-            direction="column"
-            justifyContent="center"
-            alignItems="center"
-            textAlign="center"
-            position="relative"
-            mt="10vh"
-            mb="10vh"
-            opacity={tran ? 1 : 0}
-            transition="opacity 1.5s ease-out"
-          >
-            <Stack m="1rem" mt="5rem">
-              <Heading fontFamily="'Segoe UI'" fontSize="3.1rem" pb="2rem" fontWeight="black">
-                Convey your imagination
-                <chakra.span fontFamily="'JetBrains Mono'" fontSize="2.7rem" color="red.500">
-                  <Typer text=" in code" />
-                </chakra.span>
-              </Heading>
-              <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
-                A shader is a visual expression of mathematical beauty.
-              </Text>
-              <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
-                Unlike a video, it is handcrafted. One pixel at a time.
-              </Text>
-            </Stack>
-            {/* <Box
-              position="relative"
-              bg={useColorModeValue('light.a2', 'dark.a2')}
-              pt="1rem"
-              m="1rem"
-              minW="550px"
-              minH="473px"
-              zIndex={2}
-              sx={useColorModeValue(lightEditor, darkEditor)}
-              _before={{
-                content: "''",
-                position: 'absolute',
-                width: '550px',
-                height: '473px',
-                left: tran ? '20px' : '0px',
-                top: tran ? '20px' : '0px',
-                backgroundColor: useColorModeValue('light.a1', 'dark.a1'),
-                transition: 'left 0.5s ease-out, top 0.5s ease-out',
-                shadow: "lg",
-                zIndex: -1
-              }}
-              _after={{
-                content: "''",
-                position: 'absolute',
-                width: '550px',
-                height: '473px',
-                left: tran ? '10px' : '0px',
-                top: tran ? '10px' : '0px',
-                backgroundColor: 'red.500',
-                zIndex: -2,
-                transition: 'left 0.4s ease-out, top 0.4s ease-out',
-                shadow: "x-lg",
-              }}
-            >
-              <EditorDemo />
-            </Box> */}
-          </Flex>
-          <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
-            <Heading fontFamily="'Segoe UI'" fontSize="3.8rem" pb="2rem" fontWeight="black">
-              Collaborate and Get Inspired <br />
-              <chakra.span fontFamily="'JetBrains Mono'" ml="2rem" color="red.500">
-                <Typer text="...(or envious)" />
-              </chakra.span>
-            </Heading>
-            <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
-              Browse thousands of projects instantly.
-            </Text>
-            <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
-              Has a project impressed you? Inspect it in the editor.
-            </Text>
+
+          <Flex flexDir="column" minH="100vh">
+            {/* <MainHeading redText="in code">
+              Convey your imagination
+            </MainHeading>
+
+            <MainDesc>
+              A shader is a visual expression of mathematical beauty.
+            </MainDesc>
+            <SubDesc>
+              Unlike a video, it is handcrafted. One pixel at a time.
+            </SubDesc> */}
+            <ProjectCard project={projectOfTheDay} autoplay bg />
           </Flex>
 
+          <Stack m="1rem" mt="5rem">
+            <MainHeading redText="shading">
+              No headaches, just jump in and start
+            </MainHeading>
+            <MainDesc>
+              The editor provides all the tools needed to create your masterpiece.
+            </MainDesc>
+            <SubDesc>
+              Unlike a video, it is handcrafted. One pixel at a time.
+            </SubDesc>
+          </Stack>
+
           <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
-            <Heading fontFamily="'Segoe UI'" fontSize="3.8rem" pb="2rem" fontWeight="black">
-              Share Anywhere
-            </Heading>
+            <MainHeading redText="instantly">
+              Share Anywhere. Get Feedback
+            </MainHeading>
             <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
               With a multitude of export options.
             </Text>
@@ -139,18 +137,15 @@ const Home: NextPage = () => {
           </Flex>
 
           <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
-            <Heading fontFamily="'Segoe UI'" fontSize="3.8rem" pb="2rem" fontWeight="black">
-              Built different <br />
-              <chakra.span fontFamily="'JetBrains Mono'" fontSize="3rem" ml="2rem" color="red.500">
-                <Typer text="...(yet familiar)" />
-              </chakra.span>
-            </Heading>
-            <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
+            <MainHeading redText="web graphics">
+              Built for the next generation of
+            </MainHeading>
+            <MainDesc>
               Made from the ground up for WebGPU, the new graphics standard for the web.
-            </Text>
-            <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
+            </MainDesc>
+            <SubDesc>
               Try wgsl, the official shading language of WebGPU, or stick to glsl.
-            </Text>
+            </SubDesc>
 
             <Flex pt="2rem" direction="row" justifyContent="center">
               <Image src={useColorModeValue("/wgpuLogo.svg", "/wgpuLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)" alt="WebGPU" />

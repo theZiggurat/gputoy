@@ -32,7 +32,7 @@ const handleGet = async (req: NextApiRequest, res: NextApiResponse<any>) => {
         title: true,
         updatedAt: true,
         published: true,
-      }
+      },
     })
     res.status(200).send(projects)
   } catch (e) {
