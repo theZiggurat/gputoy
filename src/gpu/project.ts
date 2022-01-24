@@ -74,7 +74,7 @@ export class Project {
 
     // project is starting or restarted
     if (state.frameNum == 0 || this.shaderDirty) {
-      logger?.trace('Project', 'Preparing run')
+      //logger?.trace('Project', 'Preparing run')
 
       if (this.shaderDirty) {
         if (!Compiler.instance().isReady()) {
@@ -87,10 +87,10 @@ export class Project {
         }
         this.shaderDirty = false
       }
-      logger?.trace('Project', 'Creating Pipeline..')
+      //logger?.trace('Project', 'Creating Pipeline..')
       this.mapBuffers()
       this.createPipeline()
-      logger?.trace('Project', 'Ready')
+      //logger?.trace('Project', 'Ready')
     }
     return true
   }

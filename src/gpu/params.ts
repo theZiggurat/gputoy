@@ -191,6 +191,7 @@ class Params {
     if (this.params.length == 0) return ''
     let unidecl = []
     if (lang == 'wgsl') {
+      unidecl.push('[[block]]')
       unidecl.push(`struct ${this.name} {`)
       this.params.forEach(p => unidecl.push(`\t${p.paramName}: ${declInfo[p.paramType].wgsl};`))
       unidecl.push(`};\n[[group(${this.group}), binding(${this.binding})]]\nvar<uniform> ${this.prefix}: ${this.name};\n`)

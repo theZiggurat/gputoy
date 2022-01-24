@@ -1,3 +1,4 @@
+import { useToast } from "@chakra-ui/toast"
 import { CreatePageProjectQueryWithId } from "@database/args"
 import { withCreatePageProject } from "@database/selectors"
 import { projectLastSave, projectLastSaveLocal } from "@recoil/project"
@@ -16,6 +17,8 @@ const useFork = () => {
 
   const [currentProject, setCurrentProject] = useRecoilState(withCreatePageProject)
   const [session, loading] = useSession()
+
+  const toast = useToast()
 
   const fork = (inputProject?: CreatePageProjectQueryWithId, forkOptions?: ForkOptions) => {
 
@@ -48,6 +51,13 @@ const useFork = () => {
     setProjectLastSaveLocal(updateDateLocal)
     localStorage.setItem(`project_local_${localProjectId}`, JSON.stringify(projectWithDate))
     router.push(`/create/${localProjectId}`)
+
+    toast({
+      title: 'Project Forked',
+      status: 'info',
+      isClosable: true,
+      duration: 2000,
+    })
   }
 
   return fork

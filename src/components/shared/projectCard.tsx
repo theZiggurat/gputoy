@@ -105,13 +105,13 @@ const ProjectCard = (props: {
           display="block"
           width="fit-content"
           bg={textBg}
-          px="0.7rem"
-          pt="0rem"
+          p="0.7rem"
           top="-1px"
           left="-1px"
           fontSize="xx-large"
           fontStyle="normal"
-          fontFamily="'JetBrains Mono'"
+          fontWeight="bold"
+          //fontFamily="'JetBrains Mono'"
           zIndex={2}
         >
           {props.project?.title ?? "Placeholder"}

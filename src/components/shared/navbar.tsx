@@ -1,6 +1,6 @@
 import { ArrowDownIcon } from '@chakra-ui/icons';
 import {
-  Badge, Button, chakra, Flex, Text, HStack, useMediaQuery, IconButton
+  Badge, Button, chakra, Flex, Text, HStack, useMediaQuery, IconButton, useColorModeValue
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
@@ -148,6 +148,8 @@ export default function Nav() {
   const onHandleHover = (idx: number) => setNavLinkIndex(idx)
   const onHandleLeave = () => setNavLinkIndex(-1)
 
+  const logoColor = useColorModeValue('rgba(0, 0, 0, 0.72)', 'rgba(255, 255, 255, 0.8)')
+
   return (
     <chakra.nav
       minH='4rem'
@@ -165,7 +167,7 @@ export default function Nav() {
           <NextLink href="/">
             <HStack>
               <svg width="30" height="50" viewBox="0 0 50 50">
-                <g fill={'white'}>
+                <g fill={logoColor}>
                   <g transform="scale(10)" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M3.726,1.855C3.44,2.127,3.042,2.237,2.661,2.292c-0.34,0.05-0.695,0.071-0.999,0.203C1.344,2.634,1.144,2.864,1.16,3.22   c0.01,0.214,0.125,0.423,0.287,0.584C1.492,3.84,1.538,3.874,1.586,3.905C1.583,3.899,1.58,3.892,1.575,3.886   C1.382,3.621,1.232,2.862,2.242,2.697C2.445,2.664,2.648,2.63,2.85,2.584c0.178-0.041,0.496-0.141,0.531-0.16   c0.029-0.017-0.189,0.228-0.857,0.42C1.463,3.149,1.789,4.03,2.113,4.131C2.237,4.161,2.367,4.176,2.5,4.176   c0.926,0,1.677-0.75,1.677-1.676c0-0.333-0.097-0.643-0.264-0.903C3.868,1.695,3.805,1.779,3.726,1.855z">

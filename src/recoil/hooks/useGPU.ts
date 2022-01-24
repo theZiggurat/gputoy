@@ -19,9 +19,8 @@ const useGPU = () => {
         toast({
           title: 'Could not initialize WebGPU',
           description: 'Uknown error. Try refreshing the page.',
-          status: 'error',
+          status: 'info',
           isClosable: true,
-          position: 'top-right',
           duration: null,
         })
       }
@@ -29,22 +28,21 @@ const useGPU = () => {
       if (result == 'incompatible') {
         toast({
           title: 'Your browser is not compatible with WebGPU',
-          description: 'Use the help section to find compatible browsers.',
-          status: 'error',
+          description: 'Until the API stabilizes, this site will only function on Chrome 94 and higher or Firefox Nightly.',
+          status: 'info',
           isClosable: true,
-          position: 'top-right',
           duration: null,
         })
       }
 
-      if (result == 'ok') {
-        toast({
-          title: 'GPU Initialized',
-          status: 'success',
-          isClosable: true,
-          position: 'top-right'
-        })
-      }
+      // if (result == 'ok') {
+      //   toast({
+      //     title: 'GPU Initialized',
+      //     status: 'success',
+      //     duration: 1500,
+      //     isClosable: true,
+      //   })
+      // }
     }
     init()
   }, [])

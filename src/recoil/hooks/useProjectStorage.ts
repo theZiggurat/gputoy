@@ -41,9 +41,9 @@ export default (props: ProjectStorageProps) => {
   useEffect(() => {
     timeoutId.current = setTimeout(() => {
       toast({
-        title: 'Project not found. Maybe that link is outdated?',
+        title: 'Project not found or link outdated',
         status: 'info',
-        duration: 2000,
+        duration: 5000,
         isClosable: true
       })
       router.push('/create')

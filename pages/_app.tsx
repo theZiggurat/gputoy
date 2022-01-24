@@ -1,4 +1,4 @@
-import { ChakraProvider, Flex, Spinner } from '@chakra-ui/react'
+import { Box, ChakraProvider, Flex, Spinner } from '@chakra-ui/react'
 import "@fontsource/jetbrains-mono"
 import Compiler from '@gpu/compiler'
 import useGPU from '@recoil/hooks/useGPU'
@@ -52,18 +52,17 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Provider session={pageProps.session}>
         <RecoilRoot>
           <ChakraProvider theme={theme}>
-            {loading &&
+            {
+              loading &&
               <Flex
                 position="absolute"
                 transform="translate(-50%, -50%)"
                 left="50%"
-                top="50%"
+                top="0%"
                 zIndex={20}
-                p="1rem"
-                alignItems="center"
                 gridGap="1rem"
               >
-                <Spinner />
+                <Box width="100vw" height="0.5rem" className="loading-gradient" />
               </Flex>
             }
             <GPUController />

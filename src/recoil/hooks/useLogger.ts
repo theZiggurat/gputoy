@@ -1,27 +1,32 @@
 import { consoleAtom, MessageType } from "@recoil/console"
-import { useSetRecoilState } from "recoil"
+import { useRecoilState } from "recoil"
 
-export default () => {
-  const setConsole = useSetRecoilState(consoleAtom)
+const useLogger = () => {
+  const [console, setConsole] = useRecoilState(consoleAtom)
 
-  const trace = (header: string, body: string) => {
-    setConsole(old => [...old, { header, body, type: MessageType.Trace, time: new Date() }])
+  const isLastMessage = (message: string): boolean => {
+    const compare = console[console.length - 1]
+    if (!compare) return false
+    return compare.body == message
   }
-  const log = (header: string, body: string) => {
-    setConsole(old => [...old, { header, body, type: MessageType.Log, time: new Date() }])
-    console.log(header, body)
+
+  const pushToConsole = (header: string, body: string, type: MessageType) => {
+    if (isLastMessage(body))
+      setConsole(old => {
+        const newConsole = [...old]
+        // const replace = newConsole[newConsole.length - 1]
+        // newConsole[newConsole.length - 1] = { ...replace, occurences: (replace.occurences ?? 0) + 1 }
+        return newConsole
+      })
+    else
+      setConsole(old => [...old, { header, body, type, time: new Date() }])
   }
-  const err = (header: string, body: string) => {
-    setConsole(old => [...old, { header, body, type: MessageType.Error, time: new Date() }])
-    console.warn(header, body)
-  }
-  const fatal = (header: string, body: string) => {
-    setConsole(old => [...old, { header, body, type: MessageType.Fatal, time: new Date() }])
-    console.error(header, body)
-  }
-  const debug = (header: string, body: string) => {
-    setConsole(old => [...old, { header, body, type: MessageType.Debug, time: new Date() }])
-  }
+
+  const trace = (header: string, body: string) => pushToConsole(header, body, MessageType.Trace)
+  const log = (header: string, body: string) => pushToConsole(header, body, MessageType.Log)
+  const err = (header: string, body: string) => pushToConsole(header, body, MessageType.Error)
+  const fatal = (header: string, body: string) => pushToConsole(header, body, MessageType.Fatal)
+  const debug = (header: string, body: string) => pushToConsole(header, body, MessageType.Debug)
 
   return {
     trace,
@@ -32,3 +37,5 @@ export default () => {
   }
 
 }
+
+export default useLogger
