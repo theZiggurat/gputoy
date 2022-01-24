@@ -4,15 +4,16 @@ export interface Message {
   time: Date,
   type: MessageType,
   header: string,
-  body: string
+  body: string,
+  occurences?: number
 }
 
 export enum MessageType {
   Trace = 0,
   Log = 1,
   Error = 2,
-  Fatal = 3,
-  Debug = 4,
+  Fatal = 4,
+  Debug = 8,
 }
 
 export const consoleAtom = atom<Message[]>({

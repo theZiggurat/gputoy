@@ -33,9 +33,9 @@ const usePost = () => {
 
           }
           toast({
-            title: 'Saved Project',
-            status: 'success',
-            duration: 1000,
+            title: action == 'publish' ? 'Project Published' : 'Project Saved',
+            status: 'info',
+            duration: 2000,
             isClosable: true
           })
         })

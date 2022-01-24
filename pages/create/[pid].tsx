@@ -18,6 +18,7 @@ import RecoilDebugPanel from '@components/create/debug'
 import { useSession } from 'next-auth/client'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { currentProjectIDAtom } from '@recoil/project'
+import KeybindManager from '@components/create/keybinds'
 
 type CreatePageProps = {
   projectId: string,
@@ -87,8 +88,11 @@ const Create = (props: CreatePageProps) => {
         sx={useColorModeValue(lightResizer, darkResizer)}
         css={scrollbarHidden}
       >
+
         <RecoilDebugPanel />
         <ScopedProjectManager {...props} />
+        <KeybindManager />
+
         <Nav />
         <Panels {...panelProps} descriptors={descriptors} />
       </chakra.main>

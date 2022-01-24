@@ -19,6 +19,7 @@ import NavUser from "@components/shared/user"
 import generate from "project-name-generator"
 import { MdPublishedWithChanges, MdCheck } from 'react-icons/md'
 import useProjectSession from "@recoil/hooks/useProjectSession"
+import { LineSpinner } from "@components/shared/spinners"
 
 type ProjectInfo = {
   id: string,
@@ -56,6 +57,7 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
   const [localProjects, setLocalProjects] = useState<ProjectInfo[]>([])
   const [remoteProjects, setRemoteProjects] = useState<ProjectInfo[]>([])
   const [session, _l, _i] = useProjectSession()
+  const [isSyncing, setIsSyncing] = useState(true)
 
   const allProjects = foldProjectArrays(localProjects, remoteProjects, session?.user?.id ?? null)
   const router = useRouter()
@@ -78,6 +80,9 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
           authorId: session?.user?.id ?? null
         })
         ))
+        setIsSyncing(false)
+      } else {
+        setIsSyncing(false)
       }
     }
     fetchProjects()
@@ -105,7 +110,7 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
 
   const onClickProject = (pid: string) => {
     setCurrentProjectId(pid)
-    router.push(`/create/${pid}`)
+    router.push(`/create/${pid}`, undefined, { shallow: true })
   }
 
   return (
@@ -114,7 +119,7 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
       borderRight="1px"
       borderColor={themed('border')}
     >
-      <Box
+      <Flex
         bg={themed('a2')}
         borderBottom="1px"
         borderColor={themed('borderLight')}
@@ -123,9 +128,20 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
         fontSize="sm"
         p="0.5rem"
         pl="1rem"
+        justifyContent="space-between"
+        alignItems="center"
       >
         Recent Projects
-      </Box>
+        {
+          isSyncing &&
+          <Box fontWeight="light" fontSize="xs">
+            Syncing with account
+            <Spinner size="xs" ml="1rem" />
+          </Box>
+        }
+
+
+      </Flex>
       <Flex
         w="20rem"
         flexDir="column"

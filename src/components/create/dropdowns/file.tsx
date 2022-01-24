@@ -30,7 +30,7 @@ const useDropdown = () => {
   const router = useRouter()
   const post = usePost()
 
-  const goToOpen = () => router.replace('/create')
+  const goToOpen = () => router.replace('/create', undefined, { shallow: true })
 
   return { goToOpen, post }
 }

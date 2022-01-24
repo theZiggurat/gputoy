@@ -1,56 +1,9 @@
 /* SPLIT PANE RESIZING */
 
-/* .Resizer {
-  background: rgba(0, 0, 0, 0.2);
-  z-index: 0;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-  -moz-background-clip: padding;
-  -webkit-background-clip: padding;
-  background-clip: padding-box;
-}
 
-.Resizer:hover {
-  -webkit-transition: all 2s ease;
-  transition: all 2s ease;
-}
-
-.Resizer.horizontal {
-  height: 11px;
-  margin: -5px 0;
-  border-top: 5px solid rgba(255, 255, 255, 0);
-  border-bottom: 5px solid rgba(255, 255, 255, 0);
-  cursor: row-resize;
-  width: 100%;
-}
-
-.Resizer.horizontal:hover {
-  border-top: 5px solid rgba(0, 0, 0, 0.5);
-  border-bottom: 5px solid rgba(0, 0, 0, 0.5);
-}
-
-.Resizer.vertical {
-  width: 11px;
-  margin: 0 -5px;
-  border-left: 5px solid rgba(255, 255, 255, 0);
-  border-right: 5px solid rgba(255, 255, 255, 0);
-  cursor: col-resize;
-}
-
-.Resizer.vertical:hover {
-  border-left: 5px solid rgba(0, 0, 0, 0.5);
-  border-right: 5px solid rgba(0, 0, 0, 0.5);
-}
-.Resizer.disabled {
-  cursor: not-allowed;
-}
-.Resizer.disabled:hover {
-  border-color: transparent;
-} */
 
 /* EDITOR LINE NUMBERS */
-
+/* 
 .editor {
   counter-reset: line;
 }
@@ -78,22 +31,6 @@
 .editor .editorLineNumberTest {
   background-color: rgba(255, 0, 0, 0.192);
   position: absolute;
-}
-
-/* .tabLight {
-
-} */
-
-/* ENSURES NAVBAR DOESN'T OVERLAP SPLITPANE CONTENT IN CREATE SCREEN */
-
-/* .createWindow {
-  flex: 0 0 auto;
-  position: relative !important;
-} */
-
-/* ENSURES BOTTOM PANEL BAR DOES NOT GO BENEATH SCREEN */
-/* .SplitPane {
-  min-height: 0% !important;
 } */
 
 /* STOPS PANEL CONTENT FROM PUSHING BAR DOWN */
@@ -104,4 +41,6 @@
 *:focus {
   box-shadow: none !important;
 }
+
+
 

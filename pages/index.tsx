@@ -1,11 +1,12 @@
 import {
-  Button, chakra, Flex, Heading, Image, Stack, Text, useColorModeValue
+  Button, chakra, Flex, FlexProps, Heading, Image, Stack, Text, useColorModeValue
 } from '@chakra-ui/react'
 import Footer from '@components/index/footer'
 import ProjectCard from '@components/shared/projectCard'
 import { CreatePageProjectQueryWithId, createPageProjectQueryWithId } from '@database/args'
 import prisma from '@database/prisma'
 import "@fontsource/jetbrains-mono"
+import { props } from 'lodash/fp'
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import React, { useEffect, useState } from 'react'
@@ -15,17 +16,23 @@ import { themed } from 'theme/theme'
 import Typer from '../src/components/shared/misc/typer'
 import Scaffold from '../src/components/shared/scaffold'
 
-const MainHeading = (props: { children, redText: string }) => (
-  <Heading fontFamily="'Segoe UI'" fontSize="3.1rem" pb="2rem" fontWeight="black">
+const Section = (props: FlexProps) => (
+  <Flex flexDir="column" minH="100vh" p={["2rem", "2.5rem", "3rem", "5rem"]} pt="5rem" {...props}>
     {props.children}
-    <chakra.span fontFamily="'JetBrains Mono'" fontSize="2.7rem" color="red.500">
+  </Flex>
+)
+
+const MainHeading = (props: { children, redText: string }) => (
+  <Heading fontFamily="'Segoe UI'" fontSize={["1.5rem", "1.8rem", "2rem", "3rem"]} pb="1rem" fontWeight="black">
+    {props.children}
+    <chakra.span fontFamily="'JetBrains Mono'" color="red.500" whiteSpace="nowrap">
       &nbsp;{props.redText}
     </chakra.span>
   </Heading>
 )
 
 const MainDesc = (props: { children }) => (
-  <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
+  <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize={["0.8rem", "0.8rem", "1rem", "1.2rem"]}>
     {props.children}
   </Text>
 )
@@ -85,8 +92,8 @@ const Home = (props: HomePageProps) => {
       <Flex width="100%" height="100%" position="relative" overflowY="scroll" overflowX="hidden" direction="column" flex="1 1 auto" onScroll={handleScroll}>
         <Flex flex="1" w="100vw" bg={themed('bg')} direction="column" textAlign="center">
 
-          <Flex flexDir="column" minH="100vh">
-            {/* <MainHeading redText="in code">
+          <Section>
+            <MainHeading redText="in code">
               Convey your imagination
             </MainHeading>
 
@@ -95,11 +102,10 @@ const Home = (props: HomePageProps) => {
             </MainDesc>
             <SubDesc>
               Unlike a video, it is handcrafted. One pixel at a time.
-            </SubDesc> */}
-            <ProjectCard project={projectOfTheDay} autoplay bg />
-          </Flex>
+            </SubDesc>
+          </Section>
 
-          <Stack m="1rem" mt="5rem">
+          <Section>
             <MainHeading redText="shading">
               No headaches, just jump in and start
             </MainHeading>
@@ -109,9 +115,9 @@ const Home = (props: HomePageProps) => {
             <SubDesc>
               Unlike a video, it is handcrafted. One pixel at a time.
             </SubDesc>
-          </Stack>
+          </Section>
 
-          <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
+          <Section>
             <MainHeading redText="instantly">
               Share Anywhere. Get Feedback
             </MainHeading>
@@ -121,7 +127,7 @@ const Home = (props: HomePageProps) => {
             <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
               Embed the editor on any website, or use right in your project with our npm package.
             </Text>
-            <iframe
+            {/* <iframe
               width="700px"
               height="400px"
               src="http://localhost:3000/embed?id=ckwis98mk0053awuntswa7rnf?mode=light"
@@ -133,10 +139,10 @@ const Home = (props: HomePageProps) => {
                 transition: 'transform 3s ease',
                 zoom: 1.25
               }}
-            />
-          </Flex>
+            /> */}
+          </Section>
 
-          <Flex height="100%" direction="column" alignItems="center" textAlign="center" mt="10vh" mb="10vh">
+          <Section minH="50vh">
             <MainHeading redText="web graphics">
               Built for the next generation of
             </MainHeading>
@@ -152,16 +158,17 @@ const Home = (props: HomePageProps) => {
               <Image src={useColorModeValue("/wgslLogo.svg", "/wgslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)" alt="WGSL" />
               <Image src={useColorModeValue("/glslLogo.svg", "/glslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)" alt="GLSL" />
             </Flex>
+            <Flex alignItems="center" justifyContent="center" p="5rem" gridGap="1rem">
+              <Button size="lg" bg='red.500' rightIcon={<BiPaint />}>
+                Start Shading
+              </Button>
+              <Button size="lg" bg='red.500' rightIcon={<BsClipboardData />}>
+                Sign Up for Free
+              </Button>
+            </Flex>
 
-          </Flex>
-          <Flex bgGradient="linear(to-r, red.400, orange.400)" alignItems="center" justifyContent="center" p="5rem" gridGap="1rem">
-            <Button size="lg" bg={useColorModeValue('light.p', 'dark.p')} rightIcon={<BiPaint />}>
-              Start Shading
-            </Button>
-            <Button size="lg" bg={useColorModeValue('light.p', 'dark.p')} rightIcon={<BsClipboardData />}>
-              Sign Up for Free
-            </Button>
-          </Flex>
+          </Section>
+
 
 
         </Flex>
