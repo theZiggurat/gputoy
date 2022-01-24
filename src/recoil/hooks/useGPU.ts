@@ -28,7 +28,7 @@ const useGPU = () => {
       if (result == 'incompatible') {
         toast({
           title: 'Your browser is not compatible with WebGPU',
-          description: 'Use the help section to find compatible browsers.',
+          description: 'Until the API stabilizes, this site will only function on Chrome 94 and higher or Firefox Nightly.',
           status: 'info',
           isClosable: true,
           duration: null,

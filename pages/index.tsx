@@ -17,7 +17,7 @@ import Typer from '../src/components/shared/misc/typer'
 import Scaffold from '../src/components/shared/scaffold'
 
 const Section = (props: FlexProps) => (
-  <Flex flexDir="column" minH="100vh" p={["2rem", "2.5rem", "3rem", "5rem"]} pt="5rem" {...props}>
+  <Flex flexDir="column" minH="100vh" p={["2rem", "2.5rem", "3rem", "5rem"]} mt="5rem" {...props}>
     {props.children}
   </Flex>
 )
