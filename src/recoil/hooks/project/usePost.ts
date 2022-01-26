@@ -2,19 +2,23 @@ import { useToast } from '@chakra-ui/react'
 import { withCreatePageProject } from "@database/selectors"
 import { currentProjectIDAtom, projectLastSave } from "@recoil/project"
 import { useRouter } from "next/router"
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import { SetterOrUpdater, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import useProjectSession from '../useProjectSession'
 
 type PostAction = 'save' | 'publish'
 
 /* eslint-disable import/no-anonymous-default-export */
-const usePost = () => {
+const usePost = (): [(action: PostAction) => void, boolean] => {
   const [project, setProject] = useRecoilState(withCreatePageProject)
   const projectId = useRecoilValue(currentProjectIDAtom)
   const setLastSave = useSetRecoilState(projectLastSave)
+  const [session, _l, isOwner] = useProjectSession()
   const toast = useToast()
   const router = useRouter()
 
-  const publish = (action: PostAction) => {
+  const canPost = isOwner && session != null
+
+  const post = (action: PostAction) => {
     fetch("/api/project", {
       method: "POST",
       headers: { 'Content-Type': 'application/json' },
@@ -54,7 +58,7 @@ const usePost = () => {
     })
   }
 
-  return publish
+  return [post, canPost]
 }
 
 export default usePost

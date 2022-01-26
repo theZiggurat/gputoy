@@ -1,5 +1,5 @@
 import {
-  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input
+  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input, Skeleton
 } from '@chakra-ui/react'
 import {
   useProjectAuthor,
@@ -31,43 +31,54 @@ const ProjectInfo = () => {
 
   let titleComponent
   let descriptionComponent
-  if (isOwner) {
-    titleComponent = <Input
-      value={title}
-      bg="transparent"
-      onChange={setTitle}
-      placeholder="Project Title"
-      //isInvalid={title.isValid}
-      //color={title.isValid ? themed('textMid') : "red.500"}
-      pl="0"
-      fontWeight="bold"
-      fontSize="lg"
-    />
-    descriptionComponent = <chakra.textarea
-      value={description}
-      onChange={setDescription}
-      //color={description.isValid ? themed('textMid') : "red.500"}
-      fontSize="xs"
-      bg="transparent"
-      w="100%"
-      resize="vertical"
-      outline="none"
-      placeholder="Project Description"
-    />
-  } else {
-    titleComponent = <Text
-      fontWeight="bold"
-      fontSize="lg"
-    >
-      {title}
-    </Text>
+  if (title != null) {
+    if (isOwner) {
+      titleComponent = <Input
+        value={title}
+        bg="transparent"
+        onChange={setTitle}
+        placeholder="Project Title"
+        //isInvalid={title.isValid}
+        //color={title.isValid ? themed('textMid') : "red.500"}
+        pl="0"
+        fontWeight="bold"
+        fontSize="lg"
+      />
+      descriptionComponent = <chakra.textarea
+        value={description ?? undefined}
+        onChange={setDescription}
+        //color={description.isValid ? themed('textMid') : "red.500"}
+        fontSize="xs"
+        bg="transparent"
+        w="100%"
+        resize="vertical"
+        outline="none"
+        placeholder="Project Description"
+      />
+    } else {
+      titleComponent = <Text
+        fontWeight="bold"
+        fontSize="lg"
+      >
+        {title}
+      </Text>
 
-    descriptionComponent = <Text
-      fontSize="xs"
-    >
-      {description}
-    </Text>
+      descriptionComponent = <Text
+        fontSize="xs"
+      >
+        {description}
+      </Text>
+    }
+  } else {
+    titleComponent = <Skeleton height="20px" />
+    descriptionComponent = (
+      <>
+        <Skeleton height="10px" />
+        <Skeleton height="10px" />
+      </>
+    )
   }
+
 
   return (
     <Stack>

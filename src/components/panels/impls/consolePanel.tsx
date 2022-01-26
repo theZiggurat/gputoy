@@ -104,12 +104,12 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
                 {formatTime(message.time)}&nbsp;&nbsp;
               </Text>
               <Text
-                color={colors[message.type].concat(consoleFontColorMod)}
+                color={colors[Math.log2(message.type)].concat(consoleFontColorMod)}
                 fontWeight={consoleFontWeight}
                 transition="0.2s ease"
                 display="inline"
               >
-                {prehead[message.type]}{message.header}:&nbsp;
+                {prehead[Math.log2(message.type)]}{message.header}:&nbsp;
               </Text>
               <Text display="inline">
                 {message.body}

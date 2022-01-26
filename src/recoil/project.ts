@@ -10,14 +10,14 @@ export const currentProjectIDAtom = atom<string>({
   default: 'NOT_SET'
 })
 
-export const projectTitleAtom = atom<string>({
+export const projectTitleAtom = atom<string | null>({
   key: 'projectTitle',
-  default: 'Unnamed Project'
+  default: null
 })
 
-export const projectDescriptionAtom = atom<string>({
+export const projectDescriptionAtom = atom<string | null>({
   key: 'projectDescription',
-  default: '',
+  default: null,
 })
 
 export const projectTagsAtom = atom<string[]>({

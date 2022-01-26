@@ -9,7 +9,7 @@ const useProjectSession = (): [Session | null, boolean, boolean] => {
   const [session, loading] = useSession()
   const [projectAuthor, setProjectAuthor] = useRecoilState(projectAuthorAtom)
 
-  const ownsProject = session ? projectAuthor?.id == session?.user?.id : false
+  const ownsProject = session ? projectAuthor?.id == session?.user?.id : false || (session == null && projectAuthor?.name == null)
 
   useEffect(() => {
     if (session == null) return

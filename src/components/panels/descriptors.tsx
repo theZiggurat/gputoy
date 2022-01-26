@@ -80,7 +80,7 @@ export default [
 		component: ConsolePanel,
 		defaultInstanceProps: {
 			keywordFilter: '',
-			typeFilters: [true, true, true, true, false]
+			typeFilters: [true, true, true, true, true]
 		}
 	},
 	{

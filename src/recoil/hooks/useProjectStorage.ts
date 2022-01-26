@@ -17,7 +17,7 @@ type ProjectStorageProps = {
   session: Session | null
 }
 
-export default (props: ProjectStorageProps) => {
+const useProjectStorage = (props: ProjectStorageProps) => {
 
   const {
     projectFromDB,
@@ -84,6 +84,7 @@ export default (props: ProjectStorageProps) => {
     const updateDateLocal = new Date().toISOString()
     const projectWithDate = { ...projectState, updatedAt: updateDateLocal }
     setProjectLastSaveLocal(updateDateLocal)
+    console.log
     localStorage.setItem(`project_local_${projectID}`, JSON.stringify(projectWithDate))
   }
 
@@ -104,3 +105,5 @@ export default (props: ProjectStorageProps) => {
   }, [projectState, projectID])
 
 }
+
+export default useProjectStorage

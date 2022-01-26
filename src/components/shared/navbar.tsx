@@ -178,7 +178,7 @@ export default function Nav() {
                   </g>
                 </g>
               </svg>
-              <Text fontSize={22} fontWeight="extrabold" cursor="pointer">
+              <Text fontSize={22} fontWeight="extrabold" cursor="pointer" color={logoColor}>
                 GPUTOY
               </Text>
             </HStack>

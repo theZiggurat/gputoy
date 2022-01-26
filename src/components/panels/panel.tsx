@@ -141,7 +141,7 @@ export const PanelBar = (props: PanelBarProps) => {
 
   return (
     <Flex
-      maxHeight={12}
+      maxH={10}
       backgroundColor={themed('a2')}
       direction="row"
       alignItems="center"

@@ -67,10 +67,10 @@ const Browse = (props: { projects: Project[] }) => {
 						position="relative"
 						templateRows='repeat(6, 1fr)'
 						templateColumns='repeat(3, 1fr)'
-						height="300%"
-						gap="3rem"
-						px="8rem"
-						py="4rem"
+						height="250%"
+						gap="1rem"
+						px="20rem"
+						py="8rem"
 					>
 						{
 							projects.map((p: Project, idx: number) => {

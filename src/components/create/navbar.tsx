@@ -1,27 +1,27 @@
 import {
   Button, chakra, Flex, IconButton, useColorModeValue, Text, Box, useToast
-} from '@chakra-ui/react';
-import NextLink from 'next/link';
-import React, { useState } from 'react';
-import { BiGitRepoForked, BiShare } from 'react-icons/bi';
-import { themed } from '../../theme/theme';
-import EditDropdown from './dropdowns/edit';
-import FileDropdown from './dropdowns/file';
-import ProjectDropdown from './dropdowns/project';
-import SettingsDropdown from './dropdowns/settings';
-import ViewDropdown from './dropdowns/view';
-import { MdOutlineArrowDropDown, MdPublishedWithChanges } from 'react-icons/md';
-import { AiFillCheckCircle, AiOutlineCloudServer } from 'react-icons/ai';
-import usePanels from '@recoil/hooks/usePanels';
-import { useProjectAuthor, useProjectTitle } from '@recoil/hooks/project/useProjectMetadata';
-import { Divider } from '@components/shared/misc/micro';
-import NavUser from '@components/shared/user';
-import usePost from '@recoil/hooks/project/usePost';
-import { useRecoilValue } from 'recoil';
-import { projectLastSave, projectLastSaveLocal } from '@recoil/project';
-import { fmtTimeSpan } from 'utils/dates';
-import useFork from '@recoil/hooks/project/useFork';
-import useProjectSession from '@recoil/hooks/useProjectSession';
+} from '@chakra-ui/react'
+import NextLink from 'next/link'
+import React, { useState } from 'react'
+import { BiGitRepoForked, BiShare } from 'react-icons/bi'
+import { themed } from '../../theme/theme'
+import EditDropdown from './dropdowns/edit'
+import FileDropdown from './dropdowns/file'
+import ProjectDropdown from './dropdowns/project'
+import SettingsDropdown from './dropdowns/settings'
+import ViewDropdown from './dropdowns/view'
+import { MdOutlineArrowDropDown, MdPublishedWithChanges } from 'react-icons/md'
+import { AiFillCheckCircle, AiOutlineCloudServer } from 'react-icons/ai'
+import usePanels from '@recoil/hooks/usePanels'
+import { useProjectAuthor, useProjectTitle } from '@recoil/hooks/project/useProjectMetadata'
+import { Divider } from '@components/shared/misc/micro'
+import NavUser from '@components/shared/user'
+import usePost from '@recoil/hooks/project/usePost'
+import { useRecoilValue } from 'recoil'
+import { projectLastSave, projectLastSaveLocal } from '@recoil/project'
+import { fmtTimeSpan } from 'utils/dates'
+import useFork from '@recoil/hooks/project/useFork'
+import useProjectSession from '@recoil/hooks/useProjectSession'
 
 const Logo = (props: { color: string }) => {
   return <svg width="22" height="22" viewBox="0 0 50 50">
@@ -215,7 +215,7 @@ const NavLeft = () => {
 
 const NavEnd = () => {
 
-  const post = usePost()
+  const [post, canPost] = usePost()
   const fork = useFork()
   const [_s, _l, isOwner] = useProjectSession()
 
@@ -229,7 +229,16 @@ const NavEnd = () => {
       justifyContent="right"
       px="0.5rem"
     >
-      <Button size="sm" h="1.6rem" px="0.5rem" mx="0.2rem" border="0px" borderRadius="3px" leftIcon={<BiShare />}>
+      <Button
+        size="sm"
+        h="1.6rem"
+        px="0.5rem"
+        mx="0.2rem"
+        border="0px"
+        borderRadius="3px"
+        leftIcon={<BiShare />}
+        disabled={!canPost}
+      >
         Share
       </Button>
       <Button
@@ -241,7 +250,7 @@ const NavEnd = () => {
         borderRadius="3px"
         leftIcon={<MdPublishedWithChanges />}
         onClick={() => post('publish')}
-        disabled={!isOwner}
+        disabled={!canPost}
       >
         Publish
       </Button>
