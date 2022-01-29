@@ -126,7 +126,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
       <PanelBar>
         {/* search & type filters */}
         <PanelBarMiddle>
-          <InputGroup maxWidth="500" minWidth="100">
+          <InputGroup maxWidth="500" minWidth="100" size="xs">
             <InputLeftElement>
               <FaSearch />
             </InputLeftElement>

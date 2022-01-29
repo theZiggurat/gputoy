@@ -33,10 +33,10 @@ interface EditorProps {
 	shaders: types.Shader[],
 }
 
-const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
+const nel = (props: EditorProps & DynamicPanelProps) => {
 
 	const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
-	const { shaders: files, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender } = useEditorPanel()
+	const { shaders: files, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender } = usenel()
 	const monacoTheme = useColorModeValue('light', 'dark')
 	const monaco = useMonaco()
 
@@ -148,7 +148,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 					>
 						<PopoverTrigger>
 							<Input
-								size="sm"
+								size="xs"
 								maxWidth="500"
 								minWidth="200"
 								width="200"
@@ -216,7 +216,6 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 				<PanelBarEnd>
 					<RowButton
 						purpose="Check code"
-						size="sm"
 						icon={<MdCode />}
 						first
 					/>
@@ -235,7 +234,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 	)
 }
 
-export const useEditorPanel = (): EditorProps => {
+export const usenel = (): EditorProps => {
 
 	const projectID = useRecoilValue(currentProjectIDAtom)
 	const [filesState, setFiles] = useRecoilState(projectShadersAtom)
@@ -297,4 +296,4 @@ export const useEditorPanel = (): EditorProps => {
 	return { shaders: filesState, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender }
 }
 
-export default EditorPanel;
+export default nel;

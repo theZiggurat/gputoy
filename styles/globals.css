@@ -21,6 +21,10 @@ a {
   box-sizing: border-box;
 }
 
+option {
+  background-color: black !important;
+}
+
 /* width */
 /* ::-webkit-scrollbar {
   width: 10px;

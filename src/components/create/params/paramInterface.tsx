@@ -6,7 +6,7 @@ import { themed } from 'theme/theme'
 import { useResizeDetector } from 'react-resize-detector'
 import { projectParamsAtom } from '@recoil/project'
 import Dropdown, { DropdownItem } from '../dropdown'
-import Vec2Interface from './interface/vec2Interface'
+import Vec2InterfaceRadial from './interface/vec2Interface'
 
 
 export const typeToInterface = {
@@ -20,8 +20,8 @@ export const typeToInterface = {
 }
 
 export const interfaces = {
-  'Scroll': Vec2Interface,
-  'Radial': Vec2Interface
+  'Scroll': Vec2InterfaceRadial,
+  'Radial': Vec2InterfaceRadial
 }
 
 export type InterfaceProps = {
@@ -36,41 +36,32 @@ export type InterfaceProps = {
 export const ParamInterface = (props: { selectedParam: string | null, width: string }) => {
 
   const [param, setParam] = useRecoilState(projectParamsAtom(props.selectedParam ?? ''))
-  const elem = param ? interfaces[typeToInterface[param.paramType][0]] : null
+  const paramInterface = param ? interfaces[typeToInterface[param.paramType][0]] : null
   const { width, height, ref } = useResizeDetector()
 
   const onHandleValueChange = (newval: number[]) => {
     setParam(old => ({ ...old, param: newval }))
   }
 
-  return <Flex
-    width={props.width}
-    flex="3 0 auto"
-    bg={themed('a3')}
-    flexDir="column"
-    overflow="scroll"
-    borderLeft="1px dashed"
-    borderColor={themed('borderLight')}
-  >
-    <Flex justifyContent="space-between" alignItems="center" flex="0 0 auto" maxW="20rem" >
-      <Text p="0.25rem" px="0.5rem" fontSize="xs">
-        {param.paramName}
-      </Text>
-      <Dropdown text="Color" size="xs">
-        <DropdownItem text="Color-alpha" />
-      </Dropdown>
-    </Flex>
+  console.log(width, height)
+
+
+  return (
+
     <Box
-      m="0.5rem"
       ref={ref}
       style={{ aspectRatio: '1/1' }}
-    //p="0.5rem"
-    //border="1px dashed"
+      flex="0 0 auto"
+      bg={themed('a3')}
+      flexDir="column"
+      borderLeft="1px solid"
+      borderColor={themed('dividerLight')}
+      overflow="hidden"
     >
       {
-        elem && props.selectedParam &&
+        paramInterface && props.selectedParam &&
         React.createElement(
-          elem,
+          paramInterface,
           {
             value: param.param,
             onChange: onHandleValueChange,
@@ -80,7 +71,7 @@ export const ParamInterface = (props: { selectedParam: string | null, width: str
         )
       }
     </Box>
-  </Flex>
+  )
 }
 
 export const useInterface = (
@@ -116,7 +107,8 @@ export const useInterface = (
     const svgCoord = toSvgSpace(windowCoord)
     setSVGCoord(svgCoord)
     const paramCoord = toParamSpace(svgCoord)
-    props.onChange(paramCoord)
+    const fixedCoord = paramCoord.map(c => c.toFixed(4))
+    props.onChange(fixedCoord)
   }
 
   const EventListenerMode = { capture: true }

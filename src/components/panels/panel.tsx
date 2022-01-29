@@ -151,6 +151,8 @@ export const PanelBar = (props: PanelBarProps) => {
       flex="0 0 auto"
       justify="space-between"
       overflowX="hidden"
+      borderTop="1px"
+      borderColor={themed('dividerLight')}
       p={1}
       ref={scrollRef as LegacyRef<HTMLDivElement>}
       {...barProps}
@@ -172,6 +174,7 @@ export const PanelBar = (props: PanelBarProps) => {
         >
           <PopoverTrigger>
             <IconButton
+              size="xs"
               icon={props.panelDesc![props.panelIndex!].icon}
               borderRightRadius="0"
               purpose="Choose panel"

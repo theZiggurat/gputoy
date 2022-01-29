@@ -13,6 +13,8 @@ type ParamListExpandedProps = {
 
 const ParamListExpanded = (props: ParamListExpandedProps) => {
 
+  const error = false
+
   return <Flex flexDir="row" height="100%">
     <Flex flexDir="column" flex="1 1 auto" overflow="scroll" height="100%" py="0.5rem">
       {
@@ -22,12 +24,13 @@ const ParamListExpanded = (props: ParamListExpandedProps) => {
           onSelect={props.onChangeSelected}
           highlight={props.selectedParam == k}
           showField={false}
+          outline={error ? "1px solid #EE252550" : ""}
         />)
       }
     </Flex>
     {
       props.selectedParam &&
-      <ParamInterface selectedParam={props.selectedParam} width="18rem" />
+      <ParamInterface selectedParam={props.selectedParam} />
     }
 
   </Flex>

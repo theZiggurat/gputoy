@@ -73,11 +73,11 @@ const ProjectInfo = () => {
       </Text>
     }
   } else {
-    titleComponent = <Skeleton height="20px" />
+    titleComponent = <Skeleton height="20px" startColor={themed('border')} endColor={themed('borderLight')} speed={0.5} />
     descriptionComponent = (
       <>
-        <Skeleton height="10px" />
-        <Skeleton height="10px" />
+        <Skeleton height="10px" startColor={themed('border')} endColor={themed('borderLight')} speed={0.5} />
+        <Skeleton height="10px" startColor={themed('border')} endColor={themed('borderLight')} speed={0.5} />
       </>
     )
   }

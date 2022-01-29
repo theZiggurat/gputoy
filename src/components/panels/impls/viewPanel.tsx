@@ -76,6 +76,7 @@ const StatusInfo = () => {
             fontFamily={consts.fontMono}
             fontSize="0.9rem"
             userSelect="none"
+            height="1.5rem"
             width={120}
             onClick={() => setDisplay((display + 1) % 2)}
             unselectable="on"

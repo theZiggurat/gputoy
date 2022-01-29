@@ -190,7 +190,7 @@ const ParamPanel = (props: ParamPanelProps) => {
 			</PanelContent>
 			<PanelBar>
 				<PanelBarMiddle>
-					<InputGroup size="sm" maxWidth="500" minWidth="100" >
+					<InputGroup size="xs" maxWidth="500" minWidth="100" >
 						<InputLeftElement
 						>
 							<FaSearch />
