@@ -63,7 +63,6 @@ export const ParamInterface = (props: { selectedParam: string | null, width: str
     <Box
       m="0.5rem"
       ref={ref}
-      borderRadius="5px"
       style={{ aspectRatio: '1/1' }}
     //p="0.5rem"
     //border="1px dashed"
@@ -100,6 +99,12 @@ export const useInterface = (
       document.removeEventListener('mousemove', iterate, EventListenerMode);
     }
   }, [])
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.onmousedown = start
+    }
+  }, [ref, start])
 
 
   const preventGlobalMouseEvents = () => document.body.style['pointer-events'] = 'none'
@@ -148,7 +153,6 @@ export const useInterface = (
   return {
     svgCoord,
     dragged,
-    start,
     toDocumentSpace,
     ref
   }

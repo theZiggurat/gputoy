@@ -67,8 +67,8 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
       onChange={onParamNameChange}
     />
     <Select
-      w="10rem"
-      flex="0 1 auto"
+      w="3rem"
+      flex="0 0 auto"
       minW={0}
       value={param.paramType}
       onChange={(ev) => {

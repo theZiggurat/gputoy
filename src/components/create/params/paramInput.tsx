@@ -25,35 +25,27 @@ const FloatInput = (props: InputProps) => (
 
 const Vec2FInput = (props: InputProps) => {
   return <>
-    <NumberInput
-      variant="empty"
+    x: <NumberInput
+      bg="none"
       value={props.value[0]}
       onChange={(_s, num) => props.onChange([num, props.value[1]])}
       step={0.05}
       size="xs"
-      precision={4}
+      precision={2}
       allowMouseWheel
     >
-      <NumberInputField />
-      <NumberInputStepper>
-        <NumberIncrementStepper />
-        <NumberDecrementStepper />
-      </NumberInputStepper>
+      <NumberInputField border="0px" />
     </NumberInput>
-    <NumberInput
-      variant="empty"
+    y: <NumberInput
+      bg="none"
       value={props.value[1]}
       onChange={(_s, num) => props.onChange([props.value[1], num])}
       step={0.05}
       size="xs"
-      precision={4}
+      precision={2}
       allowMouseWheel
     >
-      <NumberInputField />
-      <NumberInputStepper>
-        <NumberIncrementStepper />
-        <NumberDecrementStepper />
-      </NumberInputStepper>
+      <NumberInputField border="0px" pr="0px" />
     </NumberInput>
   </>
 }
