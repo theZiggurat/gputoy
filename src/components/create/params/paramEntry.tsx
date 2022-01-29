@@ -1,6 +1,6 @@
-import { BoxProps, Flex, Text } from "@chakra-ui/layout"
+import { Box, BoxProps, Flex, Text } from "@chakra-ui/layout"
 import { Input, Select, IconButton, FlexboxProps } from "@chakra-ui/react"
-import { ParamDesc } from "@gpu/types"
+import { ParamDesc, ParamType } from "@gpu/types"
 import { projectParamsAtom } from "@recoil/project"
 import React, { useState } from "react"
 import { useRecoilState } from "recoil"
@@ -61,32 +61,45 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
     <Input
       value={param.paramName}
       bg="none"
-      width="24rem"
+      width="16rem"
       _hover={{ bg: 'none' }}
 
       onChange={onParamNameChange}
     />
     <Select
       w="10rem"
+      flex="0 1 auto"
+      minW={0}
       value={param.paramType}
-      onChange={(ev) => { }}
-      //borderColor={themed('border')}
+      onChange={(ev) => {
+        setParam(old => ({ ...old, paramType: ev.target.value as ParamType }))
+      }}
       bg='none'
       border="none"
       size="xs"
     >
-      <option value="int">Integer</option>
-      <option value="float">Float</option>
-      <option value="color">Color</option>
+      <option value="int">int</option>
+      <option value="float">float</option>
+      <option value="color">color</option>
+      <option value="vec2f">vec2f</option>
+      <option value="vec3f">vec3f</option>
+      <option value="vec2i">vec2i</option>
+      <option value="vec3i">vec3i</option>
     </Select>
-    {React.createElement(input,
-      {
-        value: param.param,
-        onChange: onHandleValueChange,
-        opened: open
+    <Flex
+      flexDir="row"
+      width="20rem"
+    >
+      {React.createElement(input,
+        {
+          value: param.param,
+          onChange: onHandleValueChange,
+          opened: open
+        }
+      )
       }
-    )
-    }
+    </Flex>
+
   </Flex>
 }
 

@@ -27,7 +27,7 @@ const ParamListExpanded = (props: ParamListExpandedProps) => {
     </Flex>
     {
       props.selectedParam &&
-      <ParamInterface selectedParam={props.selectedParam} width="15rem" />
+      <ParamInterface selectedParam={props.selectedParam} width="18rem" />
     }
 
   </Flex>

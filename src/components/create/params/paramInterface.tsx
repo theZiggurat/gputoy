@@ -12,11 +12,16 @@ import Vec2Interface from './interface/vec2Interface'
 export const typeToInterface = {
   'int': ['Scroll', 'Step Scroll'],
   'float': ['Scroll', 'Step Scroll'],
-  'color': ['Color Picker'],
+  'color': ['RGB', 'HSV'],
   'vec3f': [],
   'vec3i': [],
-  'vec2f': [],
+  'vec2f': ['Radial'],
   'vec2i': [],
+}
+
+export const interfaces = {
+  'Scroll': Vec2Interface,
+  'Radial': Vec2Interface
 }
 
 export type InterfaceProps = {
@@ -35,7 +40,7 @@ export const ParamInterface = (props: { selectedParam: string | null, width: str
   const { width, height, ref } = useResizeDetector()
 
   const onHandleValueChange = (newval: number[]) => {
-
+    setParam(old => ({ ...old, param: newval }))
   }
 
   return <Flex
@@ -96,6 +101,7 @@ export const useInterface = (
     }
   }, [])
 
+
   const preventGlobalMouseEvents = () => document.body.style['pointer-events'] = 'none'
   const restoreGlobalMouseEvents = () => document.body.style['pointer-events'] = 'auto'
 
@@ -146,10 +152,6 @@ export const useInterface = (
     toDocumentSpace,
     ref
   }
-}
-
-export const interfaces = {
-  'Scroll': Vec2Interface,
 }
 
 

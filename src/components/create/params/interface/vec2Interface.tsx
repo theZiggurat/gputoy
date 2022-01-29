@@ -64,7 +64,6 @@ const Vec2Interface = (props: InterfaceProps) => {
           <line x2={windowCoord[0] + 4} y2={windowCoord[1] + 4} x1={documentOrigin[0]} y1={documentOrigin[1]} strokeWidth="3px" stroke={red} strokeLinecap="round" strokeDasharray={half / 4} />
         </DocumentSVG>
       }
-
     </>
   )
 }
