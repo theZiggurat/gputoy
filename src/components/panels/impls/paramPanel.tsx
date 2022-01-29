@@ -9,21 +9,25 @@ import {
 	NumberInputField,
 	NumberInputStepper, Popover, PopoverArrow, PopoverBody, PopoverContent, PopoverTrigger, Portal, Select
 } from '@chakra-ui/react';
+import ParamListCompact from '@components/create/params/paramListCompact';
 import { decode, encode } from '@gpu/params';
 import * as types from '@gpu/types';
 import useInstance from '@recoil/hooks/useInstance';
-import { currentProjectIDAtom, projectParamsAtom } from '@recoil/project';
+import { currentProjectIDAtom, projectParamKeys, projectParamsAtom } from '@recoil/project';
 import { debounce } from 'lodash';
-import React, { useCallback } from 'react';
+import { nanoid } from 'nanoid';
+import React, { useCallback, useEffect, useState } from 'react';
 import { HexColorPicker } from "react-colorful";
 import { FaMinus, FaSearch } from 'react-icons/fa';
 import { MdAdd, MdSettings } from 'react-icons/md';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { themed } from '../../../theme/theme';
 import { useDebounce } from '../../../utils/lodashHooks';
 import { RowButton } from '../../shared/rowButton';
 import { ParamInstanceState } from '../descriptors';
 import { Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel';
+import { useResizeDetector } from 'react-resize-detector';
+import ParamListExpanded from '@components/create/params/paramListExpanded';
 
 const gridSpacing = [12, 8, 12, 2]
 const totalGridSpace = 35
@@ -145,75 +149,44 @@ const ParamRow = (props: ParamRowProps) => {
 }
 
 interface ParamPanelProps {
-	params: types.ParamDesc[],
+	paramKeys: string[],
 	addParam: () => void,
-	deleteParam: (idx: number) => void,
-	setParamAtIndex: (p: types.ParamDesc, idx: number, changedType: boolean) => void,
+	removeParam: (key: string) => void,
 }
 
 const ParamPanel = (props: ParamPanelProps) => {
 
-	const { params, addParam, deleteParam, setParamAtIndex } = useParamsPanel()
+	const { paramKeys, addParam, removeParam } = useParamsPanel()
+	const [selectedParam, setSelectedParam] = useState<string | null>(null)
+	const { width, height, ref } = useResizeDetector()
 
 	const { ...panelProps } = props
 
 	const [instanceState, setInstanceState] = useInstance<ParamInstanceState>(props)
 
+	const renderCompact = (width ?? 0) < (height ?? 0) * 1.5
+
 	const setKeywordFilter = (filter: string) => setInstanceState({ ...instanceState, keywordFilter: filter })
-	const setNameErrors = (errors: boolean[]) => setInstanceState({ ...instanceState, nameErrors: errors })
 
-	const onHandleParamNameChange = (idx: number, paramName: string) =>
-		setParamAtIndex({ ...params[idx], paramName }, idx, false)
-
-	const onHandleParamTypeChange = (idx: number, paramType: types.ParamType) =>
-		setParamAtIndex({ ...params[idx], paramType }, idx, true)
-
-	useDebounce(() => setNameErrors(params.map(p => !(/^[a-z0-9]+$/i.test(p.paramName)))), 500, [params])
+	//useDebounce(() => setNameErrors(params.map(p => !(/^[a-z0-9]+$/i.test(p.paramName)))), 500, [params])
 
 	return (
 		<Panel {...panelProps}>
-			<PanelContent>
-				<Flex direction="column" minWidth={500}>
-					<Grid
-						templateColumns={`repeat(${totalGridSpace}, 1fr)`}
-						position="sticky"
-						top={0}
-						borderBottom="1px"
-						borderColor={themed('border')}
-						zIndex={1}
-					>
-						<GridItem colSpan={1} bg={themed('a1')} />
-						<GridItem colSpan={gridSpacing[0]} pl="0.8rem" fontSize="smaller" bg={themed('a1')}>
-							Name
-						</GridItem>
-						<GridItem colSpan={gridSpacing[1]} pl="0.2rem" fontSize="smaller" bg={themed('a1')}>
-							Type
-						</GridItem>
-						<GridItem colSpan={gridSpacing[2]} fontSize="smaller" bg={themed('a1')}>
-							Value
-						</GridItem>
-						<GridItem colSpan={gridSpacing[3]} bg={themed('a1')} />
-					</Grid>
-					<Flex flex="1 0 auto" direction="column" mt="1" pr={5}>
-						{
-							params.map((p, idx) =>
-								p.paramName.match(new RegExp(instanceState.keywordFilter, 'i')) &&
-								<ParamRow
-									key={idx}
-									idx={idx}
-									param={encode(p.param, p.paramType)}
-									paramType={p.paramType}
-									paramName={p.paramName}
-									onParamChange={(val: string) => setParamAtIndex({ ...p, param: decode(val, p.paramType) }, idx, false)}
-									onParamNameChange={onHandleParamNameChange}
-									onParamTypeChange={onHandleParamTypeChange}
-									onParamDelete={deleteParam}
-									isInvalid={instanceState.nameErrors[idx]}
-								/>
-							)
-						}
-					</Flex>
-				</Flex>
+			<PanelContent ref={ref}>
+				{
+					renderCompact && <ParamListCompact
+						keys={paramKeys}
+						selectedParam={selectedParam}
+						onChangeSelected={k => setSelectedParam(k)}
+					/>
+				}
+				{
+					!renderCompact && <ParamListExpanded
+						keys={paramKeys}
+						selectedParam={selectedParam}
+						onChangeSelected={k => setSelectedParam(k)}
+					/>
+				}
 			</PanelContent>
 			<PanelBar>
 				<PanelBarMiddle>
@@ -259,46 +232,50 @@ export default ParamPanel
 export const useParamsPanel = (): ParamPanelProps => {
 
 	const projectID = useRecoilValue(currentProjectIDAtom)
-	const [paramsState, setParams] = useRecoilState<types.ParamDesc[]>(projectParamsAtom)
+	const [paramKeys, setParamKeys] = useRecoilState(projectParamKeys)
 
 
 	const addParam = useCallback(() => {
-		setParams(oldParams => {
-			let newParams = [...oldParams]
-			newParams.push({
-				paramName: `param${newParams.length}`,
-				paramType: 'int',
-				param: [0]
-			})
+		// setParams(oldParams => {
+		// 	let newParams = [...oldParams]
+		// 	newParams.push({
+		// 		paramName: `param${newParams.length}`,
+		// 		paramType: 'int',
+		// 		param: [0]
+		// 	})
+		// 	return newParams
+		// })
+
+		setParamKeys(old => [...old, nanoid(8)])
+
+	}, [setParamKeys])
+
+	const removeParam = useCallback((key: string) => {
+		setParamKeys(oldKeys => {
+			let newParams = [...oldKeys]
+			newParams.splice(oldKeys.indexOf(key), 1)
 			return newParams
 		})
+	}, [setParamKeys])
 
-	}, [paramsState])
+	// const setParamAtIndex = useCallback((p: types.ParamDesc, idx: number, changedType: boolean) => {
 
-	const deleteParam = useCallback((idx: number) => {
-		setParams(oldParams => {
-			let newParams = [...oldParams]
-			newParams.splice(idx, 1)
-			return newParams
-		})
-	}, [paramsState])
+	// 	if (changedType) {
+	// 		if (p.paramType === 'color') {
+	// 			p.param = [1, 0, 0]
+	// 		} else {
+	// 			p.param = [0]
+	// 		}
+	// 	}
 
-	const setParamAtIndex = useCallback((p: types.ParamDesc, idx: number, changedType: boolean) => {
+	// 	setParams(oldParams => {
+	// 		let newParams = [...oldParams]
+	// 		newParams[idx] = p
+	// 		return newParams
+	// 	})
+	// }, [paramsState])
 
-		if (changedType) {
-			if (p.paramType === 'color') {
-				p.param = [1, 0, 0]
-			} else {
-				p.param = [0]
-			}
-		}
-
-		setParams(oldParams => {
-			let newParams = [...oldParams]
-			newParams[idx] = p
-			return newParams
-		})
-	}, [paramsState])
-
-	return { params: paramsState, addParam, deleteParam, setParamAtIndex }
+	return { paramKeys, addParam, removeParam }
 }
+
+var id = 0

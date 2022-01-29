@@ -5,7 +5,8 @@ import { themed } from "theme/theme"
 
 type DropdownProps = {
   text: string,
-  children: ReactNode
+  size?: string,
+  children: ReactNode,
 }
 
 const Dropdown = (props: DropdownProps) => {
@@ -31,6 +32,7 @@ const Dropdown = (props: DropdownProps) => {
         color={open ? themed('textHigh') : themed('textMid')}
         _hover={{ color: themed('textHigh') }}
         borderRadius="none"
+        size={props.size}
       >
         {props.text}
       </Button>
@@ -46,6 +48,7 @@ const Dropdown = (props: DropdownProps) => {
           borderColor={themed('border')}
           flexDirection="column"
           shadow="xl"
+          size={props.size}
         >
           {props.children}
         </Flex>

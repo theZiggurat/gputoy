@@ -10,6 +10,7 @@ import {
   projectTagsAtom,
   projectForkSource,
   projectIsPublished,
+  withUserParams,
 } from "@recoil/project";
 import { DefaultValue, selector } from "recoil";
 import { CreatePageProjectQuery } from "./args";
@@ -23,7 +24,7 @@ export const withCreatePageProject = selector<CreatePageProjectQuery>({
     const title = get(projectTitleAtom)
     const description = get(projectDescriptionAtom)
     const author = get(projectAuthorAtom)
-    const params = JSON.stringify(get(projectParamsAtom))
+    const params = JSON.stringify(get(withUserParams))
     const shaders = get(projectShadersAtom).map(s => {
       return {
         source: s.file,
@@ -62,7 +63,7 @@ export const withCreatePageProject = selector<CreatePageProjectQuery>({
       reset(projectDescriptionAtom)
       reset(projectAuthorAtom)
       reset(projectShadersAtom)
-      reset(projectParamsAtom)
+      reset(withUserParams)
       reset(layoutAtom)
       reset(projectForkSource)
       reset(projectIsPublished)
@@ -85,7 +86,7 @@ export const withCreatePageProject = selector<CreatePageProjectQuery>({
           id: s.id
         }
       }) : new DefaultValue())
-      set(projectParamsAtom, JSON.parse(proj.params ?? '[]'))
+      set(withUserParams, JSON.parse(proj.params ?? '[]'))
     }
   }
 })

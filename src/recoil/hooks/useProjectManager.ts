@@ -2,7 +2,7 @@
 import GPU from "@gpu/gpu"
 import { Project } from "@gpu/project"
 import { projectControlAtom, projectRunStatusAtom } from "@recoil/controls"
-import { canvasInitializedAtom, currentProjectIDAtom, projectParamsAtom, projectShaderErrorsAtom, projectShadersAtom, withDefaultParams } from "@recoil/project"
+import { canvasInitializedAtom, currentProjectIDAtom, projectParamsAtom, projectShaderErrorsAtom, projectShadersAtom, withDefaultParams, withUserParams } from "@recoil/project"
 import { useEffect, useRef } from "react"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { useClearConsole } from "./useConsole"
@@ -20,7 +20,7 @@ export default () => {
 
   const defaultParamState = useRecoilValue(withDefaultParams)
 
-  const paramState = useRecoilValue(projectParamsAtom)
+  const paramState = useRecoilValue(withUserParams)
   const files = useRecoilValue(projectShadersAtom)
 
   const setClearConsole = useClearConsole()

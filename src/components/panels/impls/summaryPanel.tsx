@@ -1,5 +1,5 @@
 import {
-  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input, Skeleton
+  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input, Skeleton, Button
 } from '@chakra-ui/react'
 import {
   useProjectAuthor,
@@ -18,6 +18,9 @@ import { themed } from "../../../theme/theme"
 import { Divider } from "../../shared/misc/micro"
 import { Panel, PanelBar, PanelContent } from "../panel"
 import Link from 'next/link'
+import { IoOpenOutline } from 'react-icons/io5'
+import OutwardLink from '@components/shared/outwardLink'
+import Label from '@components/shared/label'
 
 const ProjectInfo = () => {
 
@@ -118,9 +121,9 @@ const ProjectInfo = () => {
 
         {
           forkSource &&
-          <Text fontSize="sm" fontWeight="bold">
-            Forks: <Link href={`/create/${forkSource.id}`} >{forkSource.title}</Link>
-          </Text>
+          <Label text="Forks">
+            <OutwardLink title={forkSource.title} href={`/create/${forkSource.id}`} />
+          </Label>
         }
       </Stack>
 
@@ -172,6 +175,7 @@ const AccordionPanel = (props: AccordionPanelProps) => {
           display="inline"
           color={themed('textMid')}
           userSelect="none"
+          fontSize="sm"
         >
           {title}
         </Text>
@@ -179,7 +183,8 @@ const AccordionPanel = (props: AccordionPanelProps) => {
       {isOpen &&
         <Box
           maxHeight={isOpen ? "1000px" : "0px"}
-          transition="max-height 0.5s ease"
+          transition="min-height 0.5s ease"
+          bg={themed('bg')}
         >
           {children}
         </Box>
