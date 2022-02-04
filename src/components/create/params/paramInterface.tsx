@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { ParamDesc } from "@gpu/types"
 import { SetterOrUpdater, useRecoilState } from "recoil"
-import { Flex, Input, Text, Box } from '@chakra-ui/react'
+import { Flex, Input, Text, Box, BoxProps, IconButton } from '@chakra-ui/react'
 import { themed } from 'theme/theme'
 import { useResizeDetector } from 'react-resize-detector'
 import { projectParamsAtom } from '@recoil/project'
 import Dropdown, { DropdownItem } from '../dropdown'
-import Vec2InterfaceRadial from './interface/vec2Interface'
+import { Vec2InterfaceRadial } from './interface/vec2Interface'
+import { FiMoreHorizontal } from 'react-icons/fi'
 
 
 export const typeToInterface = {
@@ -19,7 +20,7 @@ export const typeToInterface = {
   'vec2i': [],
 }
 
-export const interfaces = {
+export const interfaces: { [key: string]: ReactNode } = {
   'Scroll': Vec2InterfaceRadial,
   'Radial': Vec2InterfaceRadial
 }
@@ -33,7 +34,9 @@ export type InterfaceProps = {
   mouseY: number,
 }
 
-export const ParamInterface = (props: { selectedParam: string | null, width: string }) => {
+export const ParamInterface = (props: { selectedParam: string | null } & BoxProps) => {
+
+  const { selectedParam, ...rest } = props
 
   const [param, setParam] = useRecoilState(projectParamsAtom(props.selectedParam ?? ''))
   const paramInterface = param ? interfaces[typeToInterface[param.paramType][0]] : null
@@ -43,12 +46,11 @@ export const ParamInterface = (props: { selectedParam: string | null, width: str
     setParam(old => ({ ...old, param: newval }))
   }
 
-  console.log(width, height)
-
 
   return (
 
     <Box
+      position="relative"
       ref={ref}
       style={{ aspectRatio: '1/1' }}
       flex="0 0 auto"
@@ -57,7 +59,11 @@ export const ParamInterface = (props: { selectedParam: string | null, width: str
       borderLeft="1px solid"
       borderColor={themed('dividerLight')}
       overflow="hidden"
+      {...rest}
     >
+      <IconButton variant="empty" position="absolute" right="0%" icon={<FiMoreHorizontal color="white" />} />
+
+
       {
         paramInterface && props.selectedParam &&
         React.createElement(
@@ -79,68 +85,68 @@ export const useInterface = (
   toParamSpace: (svgCoord: number[]) => number[],
   fromParamSpace: (paramCoord: number[]) => number[],
 ) => {
+
   const ref = useRef<SVGSVGElement | null>(null)
   const [svgCoord, setSVGCoord] = useState(fromParamSpace(props.value))
   const [dragged, setDragged] = useState(false)
+  const [scroll, setScroll] = useState(0)
 
-  useEffect(() => {
-    return () => {
-      restoreGlobalMouseEvents();
-      document.removeEventListener('mouseup', end, EventListenerMode);
-      document.removeEventListener('mousemove', iterate, EventListenerMode);
+  const preventGlobalMouseEvents = () => document.body.style.pointerEvents = 'none'
+  const restoreGlobalMouseEvents = () => document.body.style.pointerEvents = 'auto'
+
+  const iterate = useCallback((ev: MouseEvent) => {
+
+    const toSvgSpace = (vec: number[]): number[] => {
+      if (!ref.current) return vec
+      const bbox = ref.current.getBoundingClientRect()
+      return [vec[0] - bbox.left, vec[1] - bbox.top]
     }
-  }, [])
 
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.onmousedown = start
-    }
-  }, [ref, start])
-
-
-  const preventGlobalMouseEvents = () => document.body.style['pointer-events'] = 'none'
-  const restoreGlobalMouseEvents = () => document.body.style['pointer-events'] = 'auto'
-
-  function iterate(ev: MouseEvent) {
     ev.stopPropagation()
     const windowCoord = [ev.clientX, ev.clientY]
     const svgCoord = toSvgSpace(windowCoord)
     setSVGCoord(svgCoord)
     const paramCoord = toParamSpace(svgCoord)
-    const fixedCoord = paramCoord.map(c => c.toFixed(4))
-    props.onChange(fixedCoord)
-  }
+    props.onChange(paramCoord)
+    //console.log('window', windowCoord, 'svg', svgCoord, 'param', paramCoord)
+  }, [toParamSpace, setSVGCoord, props])
 
-  const EventListenerMode = { capture: true }
-  function end(ev: MouseEvent) {
+  const end = useCallback((ev: MouseEvent) => {
     restoreGlobalMouseEvents()
-    document.removeEventListener('mouseup', end, EventListenerMode)
-    document.removeEventListener('mousemove', iterate, EventListenerMode)
+    document.removeEventListener('mouseup', end)
+    document.removeEventListener('mousemove', iterate)
     ev.stopPropagation()
     setDragged(false)
-  }
+  }, [iterate])
 
-  function start(ev: MouseEvent) {
-    preventGlobalMouseEvents()
-    document.addEventListener('mouseup', end, EventListenerMode)
-    document.addEventListener('mousemove', iterate, EventListenerMode)
-    ev.preventDefault()
-    ev.stopPropagation()
-    setDragged(true)
-  }
+  useEffect(() => {
+    return () => {
+      restoreGlobalMouseEvents();
+      document.removeEventListener('mouseup', end, { capture: true })
+      document.removeEventListener('mousemove', iterate, { capture: true })
+    }
+  }, [end, iterate])
+
+  useEffect(() => {
+    function start(ev: MouseEvent) {
+      preventGlobalMouseEvents()
+      document.addEventListener('mouseup', end)
+      document.addEventListener('mousemove', iterate)
+      ev.preventDefault()
+      ev.stopPropagation()
+      setDragged(true)
+    }
+
+    if (ref.current) {
+      ref.current.onmousedown = start
+    }
+  }, [end, iterate, props.value, ref])
 
   const toDocumentSpace = (vec: number[]): number[] => {
     if (!ref.current) return vec
     const bbox = ref.current.getBoundingClientRect()
     return [vec[0] + bbox.left, vec[1] + bbox.top]
   }
-
-  const toSvgSpace = (vec: number[]): number[] => {
-    if (!ref.current) return vec
-    const bbox = ref.current.getBoundingClientRect()
-    return [vec[0] - bbox.left, vec[1] - bbox.top]
-  }
-
 
   return {
     svgCoord,

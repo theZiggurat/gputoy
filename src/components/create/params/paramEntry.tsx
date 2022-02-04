@@ -41,8 +41,11 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
     my="3px"
     transition="background-color 0.1s ease"
     _hover={{
-      bg: highlight ? themed('a1') : themed('input')
+      bg: themed('a1')
     }}
+    borderY={highlight ? "1px" : "0px"}
+    borderColor={themed("dividerLight")}
+    boxSizing="border-box"
     alignItems="center"
     {...flexProps}
   >
@@ -63,8 +66,12 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
       bg="none"
       width="16rem"
       _hover={{ bg: 'none' }}
-
+      placeholder="param name"
       onChange={onParamNameChange}
+      borderRadius="0px"
+    //border="1px solid"
+    //borderColor="red.500"
+
     />
     <Select
       w="3rem"

@@ -89,7 +89,7 @@ const Create = (props: CreatePageProps) => {
         css={scrollbarHidden}
       >
 
-        <RecoilDebugPanel />
+        {/* <RecoilDebugPanel /> */}
         <ScopedProjectManager {...props} />
         <KeybindManager />
 

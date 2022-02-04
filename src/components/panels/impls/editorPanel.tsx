@@ -33,10 +33,10 @@ interface EditorProps {
 	shaders: types.Shader[],
 }
 
-const nel = (props: EditorProps & DynamicPanelProps) => {
+const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
 	const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
-	const { shaders: files, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender } = usenel()
+	const { shaders: files, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender } = useEditor()
 	const monacoTheme = useColorModeValue('light', 'dark')
 	const monaco = useMonaco()
 
@@ -234,7 +234,7 @@ const nel = (props: EditorProps & DynamicPanelProps) => {
 	)
 }
 
-export const usenel = (): EditorProps => {
+export const useEditor = (): EditorProps => {
 
 	const projectID = useRecoilValue(currentProjectIDAtom)
 	const [filesState, setFiles] = useRecoilState(projectShadersAtom)
@@ -296,4 +296,4 @@ export const usenel = (): EditorProps => {
 	return { shaders: filesState, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender }
 }
 
-export default nel;
+export default EditorPanel;

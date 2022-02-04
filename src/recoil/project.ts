@@ -132,7 +132,6 @@ export const withUserParams = selector<types.ParamDesc[]>({
     } else {
       set(projectParamKeys, params.map(p => p.key!))
       params.forEach(p => {
-        console.log(p)
         set(projectParamsAtom(p.key!), p)
       })
     }

@@ -6,14 +6,22 @@ import { InterfaceProps, useInterface } from "../paramInterface"
 
 export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
+  const normalize = (coord: number[]) => {
+    const [x, y] = coord
+    const len = Math.sqrt(x * x + y * y)
+    return [len > 0 ? x / len : 0, len > 0 ? y / len : 0]
+  }
+
+
   const size = Math.min(props.width ?? 0, props.height ?? 0)
   const half = size / 2
 
   const toParamSpace = (svgCoord: number[]) => {
     const x = svgCoord[0] / half - 1
-    const y = svgCoord[1] / half - 1
-    const len = Math.sqrt(x * x + y * y)
-    return [x / len, -y / len]
+    const y = -(svgCoord[1] / half - 1)
+    return normalize([x, y])
+    // const len = Math.sqrt(x * x + y * y)
+    // return [len > 0 ? x / len : 0, len > 0 ? y / len : 0]
   }
 
   const fromParamSpace = (paramCoord: number[]) => {
@@ -28,9 +36,6 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
     ref
   } = useInterface(props, toParamSpace, fromParamSpace)
 
-  const documentOrigin = toDocumentSpace([half + 4, half + 4])
-  const windowCoord = toDocumentSpace(svgCoord)
-
   const bg = themedRaw('bgInterface')
   const s1 = themedRaw('s1Interface')
   const s2 = themedRaw('s2Interface')
@@ -40,11 +45,13 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
   const offsetPos = Math.SQRT2 / 2 * half
   const offsetNeg = -Math.SQRT2 / 2 * half
 
-  const paramVal = toParamSpace(svgCoord)
+  const paramVal = props.value
   const activeParam = fromParamSpace(paramVal)
   const angle = Math.atan2(paramVal[1], paramVal[0])
 
-  console.log(activeParam)
+  const onHandleScroll = (ev) => {
+    console.log(ev.target.deltaY)
+  }
 
   return (
     <>
@@ -61,8 +68,13 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
           <line x1={0} x2={activeParam[0]} y1={0} y2={activeParam[1]} strokeWidth="3px" stroke={redAlpha} strokeLinecap="round" />
         }
 
-        <text x={half - 40} y={16} fill={text} fontSize="0.7rem" fontFamily="JetBrains Mono">
-          {(angle * (180 / Math.PI)).toFixed(0)}°
+        <text x={5} y={5} fill={text} fontSize="0.6em" fontFamily="JetBrains Mono">
+          <tspan dominantBaseline="hanging">Θ: {(angle * (180 / Math.PI)).toFixed(0)}°</tspan>
+          <tspan x={-half / 2 + 5} y={5} dominantBaseline="hanging">0.5</tspan>
+          <tspan x={-half + 5} y={5} dominantBaseline="hanging">1.0</tspan>
+          <tspan x={-half + 5} y={20} dominantBaseline="hanging">x: {normalize(paramVal)[0].toFixed(2)}, y: {normalize(paramVal)[1].toFixed(2)}</tspan>
+
+
         </text>
       </svg>
       {/* {

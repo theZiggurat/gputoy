@@ -31,6 +31,7 @@
     "react": "17.0.2",
     "react-colorful": "^5.5.0",
     "react-dom": "17.0.2",
+    "react-draggable": "^4.4.4",
     "react-icons": "^4.3.1",
     "react-json-view-ssr": "^1.19.1",
     "react-resize-detector": "^6.7.6",
