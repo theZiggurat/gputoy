@@ -32,6 +32,7 @@ export type InterfaceProps = {
   height: number,
   mouseX: number,
   mouseY: number,
+  scroll: number,
 }
 
 export const ParamInterface = (props: { selectedParam: string | null } & BoxProps) => {
@@ -41,10 +42,13 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
   const [param, setParam] = useRecoilState(projectParamsAtom(props.selectedParam ?? ''))
   const paramInterface = param ? interfaces[typeToInterface[param.paramType][0]] : null
   const { width, height, ref } = useResizeDetector()
+  const [scroll, setScroll] = useState(0)
 
   const onHandleValueChange = (newval: number[]) => {
     setParam(old => ({ ...old, param: newval }))
   }
+
+  const onHandleWheel = (ev) => setScroll(old => old + ev.deltaY)
 
 
   return (
@@ -59,6 +63,7 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
       borderLeft="1px solid"
       borderColor={themed('dividerLight')}
       overflow="hidden"
+      onWheel={onHandleWheel}
       {...rest}
     >
       <IconButton variant="empty" position="absolute" right="0%" icon={<FiMoreHorizontal color="white" />} />
@@ -72,7 +77,8 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
             value: param.param,
             onChange: onHandleValueChange,
             width: width ? width : 0,
-            height: height ? height : 0
+            height: height ? height : 0,
+            scroll
           }
         )
       }
@@ -89,7 +95,7 @@ export const useInterface = (
   const ref = useRef<SVGSVGElement | null>(null)
   const [svgCoord, setSVGCoord] = useState(fromParamSpace(props.value))
   const [dragged, setDragged] = useState(false)
-  const [scroll, setScroll] = useState(0)
+  //const [scroll, setScroll] = useState(0)
 
   const preventGlobalMouseEvents = () => document.body.style.pointerEvents = 'none'
   const restoreGlobalMouseEvents = () => document.body.style.pointerEvents = 'auto'
@@ -120,6 +126,8 @@ export const useInterface = (
   }, [iterate])
 
   useEffect(() => {
+    // if (ref.current)
+    //   ref.current.onwheel = (ev) => setScroll(old => old + ev.deltaY / 100)
     return () => {
       restoreGlobalMouseEvents();
       document.removeEventListener('mouseup', end, { capture: true })
@@ -152,6 +160,7 @@ export const useInterface = (
     svgCoord,
     dragged,
     toDocumentSpace,
+    //scroll,
     ref
   }
 }
