@@ -9,9 +9,10 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
   const [isNorm, setIsNorm] = useState(false)
 
+  const mag = (t: number[]) => Math.sqrt(t[0] * t[0] + t[1] * t[1])
   const normalize = (coord: number[]) => {
     const [x, y] = coord
-    const len = Math.sqrt(x * x + y * y)
+    const len = mag(coord)
     return [len > 0 ? x / len : 0, len > 0 ? y / len : 0]
   }
 
@@ -47,8 +48,9 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
   const activeParam = fromParamSpace(paramVal)
   const angle = Math.atan2(paramVal[1], paramVal[0])
 
-  const radius = 50
+
   const endCoord = normalize(paramVal)
+  const radius = Math.min(50, mag(paramVal) * size / 2)
   const arcPath = `M ${radius} 0 A ${-radius} ${radius} 0 0 ${angle < 0 ? 1 : 0} ${endCoord[0] * radius} ${-endCoord[1] * radius}`
 
   return (
