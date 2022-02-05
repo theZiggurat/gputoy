@@ -11,7 +11,7 @@ import {
 import ParamListCompact from '@components/create/params/paramListCompact';
 import * as types from '@gpu/types';
 import useInstance from '@recoil/hooks/useInstance';
-import { currentProjectIDAtom, projectParamKeys } from '@recoil/project';
+import { currentProjectIdAtom, projectParamKeys } from '@recoil/project';
 import { debounce } from 'lodash';
 import { nanoid } from 'nanoid';
 import React, { useCallback, useState } from 'react';

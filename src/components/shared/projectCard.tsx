@@ -1,6 +1,6 @@
 
 import React, { useState } from "react"
-import { useProjectDirect } from "@gpu/projectDirect"
+import useProjectDirect from "@recoil/hooks/useProjectDirect"
 import {
   Text,
   Box,

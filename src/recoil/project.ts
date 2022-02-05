@@ -5,7 +5,7 @@ import defaultShader from '../../shaders/basicShader.wgsl'
 import { projectRunStatusAtom } from './controls'
 
 
-export const currentProjectIDAtom = atom<string>({
+export const currentProjectIdAtom = atom<string>({
   key: 'projectID',
   default: 'NOT_SET'
 })

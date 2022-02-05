@@ -1,5 +1,5 @@
 /* eslint-disable import/no-anonymous-default-export */
-import { currentProjectIDAtom, projectAuthorAtom, projectDescriptionAtom, projectTitleAtom } from "@recoil/project"
+import { currentProjectIdAtom, projectAuthorAtom, projectDescriptionAtom, projectTitleAtom } from "@recoil/project"
 import { TypeScriptConfig } from "next/dist/server/config-shared"
 import { useRecoilValue, useRecoilState } from "recoil"
 import * as types from '@gpu/types'

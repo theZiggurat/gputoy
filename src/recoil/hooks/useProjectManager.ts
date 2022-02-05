@@ -1,22 +1,24 @@
 /* eslint-disable import/no-anonymous-default-export */
 import GPU from "@gpu/gpu"
 import { Project } from "@gpu/project"
-import { projectControlAtom, projectRunStatusAtom } from "@recoil/controls"
-import { canvasInitializedAtom, currentProjectIDAtom, projectParamsAtom, projectShaderErrorsAtom, projectShadersAtom, withDefaultParams, withUserParams } from "@recoil/project"
-import { useEffect, useRef } from "react"
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import { ProjectControl, projectRunStatusAtom } from "@recoil/controls"
+import { canvasInitializedAtom, currentProjectIdAtom, projectShaderErrorsAtom, projectShadersAtom, withDefaultParams, withUserParams } from "@recoil/project"
+import { useCallback, useEffect, useRef } from "react"
+import { useRecoilValue, useSetRecoilState } from "recoil"
 import { useClearConsole } from "./useConsole"
 import useLogger from "./useLogger"
-import useProjectLifecycle from "./useProjectLifecycle"
+import useProjectControls from "./useProjectControls"
 
-export default () => {
+const useProjectManager = () => {
 
-  const projectID = useRecoilValue(currentProjectIDAtom)
+  const projectID = useRecoilValue(currentProjectIdAtom)
   const projectRunStatus = useRecoilValue(projectRunStatusAtom)
-  const [projectControlStatus, setProjectControlStatus] = useRecoilState(projectControlAtom)
+
   const isCanvasInitialized = useRecoilValue(canvasInitializedAtom)
   const setFileError = useSetRecoilState(projectShaderErrorsAtom)
-  const { play, pause, stop, step } = useProjectLifecycle()
+
+  const { controlStatus, play, pause, stop } = useProjectControls()
+  const { _smPlay, _smPause, _smStop, _smStep } = useProjectStateMachine()
 
   const defaultParamState = useRecoilValue(withDefaultParams)
 
@@ -24,7 +26,6 @@ export default () => {
   const files = useRecoilValue(projectShadersAtom)
 
   const setClearConsole = useClearConsole()
-  const setProjectControls = useSetRecoilState(projectControlAtom)
 
   const logger = useLogger()
 
@@ -38,35 +39,35 @@ export default () => {
 
     const renderStep = () => {
       if (isRunning.current) {
-        step()
+        _smStep()
         Project.instance().renderFrame()
         intervalHandle.current = window.requestAnimationFrame(renderStep)
       }
     }
 
     const onControlChange = async () => {
-      if (projectControlStatus == 'play') {
-        play()
+      if (controlStatus == ProjectControl.PLAY) {
+        _smPlay()
         isRunning.current = true
         if (await Project.instance().prepareRun(projectRunStatus, logger, setFileError))
           window.requestAnimationFrame(renderStep)
         else {
-          setProjectControlStatus('stop')
+          stop()
         }
 
         return () => cancelAnimationFrame(intervalHandle.current)
       }
-      if (projectControlStatus == 'pause') {
-        pause()
+      if (controlStatus == ProjectControl.PAUSE) {
+        _smPause()
         isRunning.current = false
       }
-      if (projectControlStatus == 'stop') {
-        stop()
+      if (controlStatus == ProjectControl.STOP) {
+        _smStop()
         isRunning.current = false
       }
     }
     onControlChange()
-  }, [projectControlStatus])
+  }, [controlStatus])
 
   /**
    * Update default param states as recoil default params change
@@ -98,10 +99,10 @@ export default () => {
    */
   useEffect(() => {
     return () => {
-      stop()
+      _smStop()
       cancelAnimationFrame(intervalHandle.current)
       setClearConsole()
-      setProjectControls('stop')
+      stop()
     }
   }, [projectID])
 
@@ -138,3 +139,64 @@ export default () => {
   }, [logger, stop])
 }
 
+const useProjectStateMachine = () => {
+  const setProjectRunStatus = useSetRecoilState(projectRunStatusAtom)
+  const defaultParamState = useRecoilValue(withDefaultParams)
+
+  useEffect(() => {
+    Project.instance().updateDefaultParams(defaultParamState)
+  }, [defaultParamState])
+
+  const _smPause = useCallback(() => {
+    setProjectRunStatus(old => {
+      return {
+        ...old,
+        running: false,
+        prevDuration: old.runDuration
+      }
+    })
+  }, [setProjectRunStatus])
+
+  const _smPlay = useCallback(() => {
+    setProjectRunStatus(old => {
+      return {
+        ...old,
+        running: true,
+        lastStartTime: performance.now(),
+      }
+    })
+  }, [setProjectRunStatus])
+
+  const _smStop = useCallback(() => {
+    setProjectRunStatus(old => {
+      return {
+        ...old,
+        running: false,
+        frameNum: 0,
+        runDuration: 0,
+        prevDuration: 0,
+      }
+    })
+  }, [setProjectRunStatus])
+
+  const _smStep = useCallback(() => {
+    setProjectRunStatus(old => {
+      let now = performance.now()
+      return {
+        ...old,
+        runDuration: (now - old.lastStartTime) / 1000 + old.prevDuration,
+        lastFrameRendered: now,
+        dt: now - old.lastFrameRendered,
+        frameNum: old.frameNum + 1
+      }
+    })
+  }, [setProjectRunStatus])
+
+  useEffect(() => {
+    return () => _smStop()
+  }, [_smStop])
+
+  return { _smPlay, _smPause, _smStop, _smStep }
+}
+
+export default useProjectManager

@@ -4,7 +4,7 @@ import {
 import * as types from '@gpu/types';
 import useInstance from '@recoil/hooks/useInstance';
 import useLogger from '@recoil/hooks/useLogger';
-import { currentProjectIDAtom, projectShaderErrorsAtom, projectShadersAtom } from '@recoil/project';
+import { currentProjectIdAtom, projectShaderErrorsAtom, projectShadersAtom } from '@recoil/project';
 
 import React, { useCallback, useEffect } from 'react';
 import { FaRegTrashAlt } from 'react-icons/fa';
@@ -236,11 +236,10 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
 export const useEditor = (): EditorProps => {
 
-	const projectID = useRecoilValue(currentProjectIDAtom)
-	const [filesState, setFiles] = useRecoilState(projectShadersAtom)
+	const [shaders, setShaders] = useRecoilState(projectShadersAtom)
 
 	const onEditCode = useCallback((idx: number, code: string) => {
-		setFiles(prevCode => {
+		setShaders(prevCode => {
 			let updated = [...prevCode]
 			updated[idx] = {
 				...prevCode[idx],
@@ -248,14 +247,14 @@ export const useEditor = (): EditorProps => {
 			}
 			return updated
 		})
-	}, [setFiles])
+	}, [setShaders])
 
 	const onCreateFile = useCallback((lang: types.Lang): number => {
 		let idx = 0
-		let len = filesState.length
-		while (filesState.map((c) => c.filename).includes(`shader${idx}`))
+		let len = shaders.length
+		while (shaders.map((c) => c.filename).includes(`shader${idx}`))
 			++idx
-		setFiles(prevCode => [...prevCode, {
+		setShaders(prevCode => [...prevCode, {
 			filename: `shader${idx}`,
 			file: 'hehe test',
 			lang: lang,
@@ -263,26 +262,26 @@ export const useEditor = (): EditorProps => {
 			id: ''
 		}])
 		return len
-	}, [filesState, setFiles])
+	}, [shaders, setShaders])
 
 	const onDeleteFile = useCallback((idx: number) => {
-		setFiles(prevCode => {
+		setShaders(prevCode => {
 			let updated = [...prevCode]
 			updated.splice(idx, 1)
 			return updated
 		})
-	}, [setFiles])
+	}, [setShaders])
 
 	const onEditFileName = useCallback((idx: number, filename: string) => {
-		setFiles(prevCode => {
+		setShaders(prevCode => {
 			let updated = [...prevCode]
 			updated[idx] = Object.assign({}, prevCode[idx], { filename })
 			return updated
 		})
-	}, [setFiles])
+	}, [setShaders])
 
 	const setRender = (idx: number) => {
-		setFiles(curr => {
+		setShaders(curr => {
 			return curr.map((f, i) => {
 				const newf = { ...f }
 				if (i == idx) newf.isRender = true
@@ -293,7 +292,7 @@ export const useEditor = (): EditorProps => {
 	}
 
 
-	return { shaders: filesState, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender }
+	return { shaders, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender }
 }
 
 export default EditorPanel;

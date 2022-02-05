@@ -1,10 +1,14 @@
 import * as types from '@gpu/types'
 import { atom } from 'recoil'
 
-type ProjectControl = 'play' | 'pause' | 'stop'
+export enum ProjectControl {
+  PLAY,
+  PAUSE,
+  STOP
+}
 export const projectControlAtom = atom<ProjectControl>({
   key: 'projectControl',
-  default: 'stop'
+  default: ProjectControl.STOP
 })
 
 export const projectStatusDefault = {

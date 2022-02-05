@@ -1,6 +1,6 @@
 import { useToast } from '@chakra-ui/react'
 import { withCreatePageProject } from "@database/selectors"
-import { currentProjectIDAtom, projectLastSave } from "@recoil/project"
+import { currentProjectIdAtom, projectLastSave } from "@recoil/project"
 import { useRouter } from "next/router"
 import { SetterOrUpdater, useRecoilCallback, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import useProjectSession from '../useProjectSession'
@@ -11,7 +11,7 @@ type PostAction = 'save' | 'publish'
 const usePost = (): [(action: PostAction) => void, boolean] => {
   const setProject = useSetRecoilState(withCreatePageProject)
   const getProject = useRecoilCallback(({ snapshot: { getLoadable } }) => () => getLoadable(withCreatePageProject).getValue())
-  const projectId = useRecoilValue(currentProjectIDAtom)
+  const projectId = useRecoilValue(currentProjectIdAtom)
   const setLastSave = useSetRecoilState(projectLastSave)
   const [session, _l, isOwner] = useProjectSession()
   const toast = useToast()

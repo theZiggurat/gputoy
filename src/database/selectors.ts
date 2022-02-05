@@ -6,7 +6,7 @@ import {
   projectAuthorAtom,
   projectShadersAtom,
   projectParamsAtom,
-  currentProjectIDAtom,
+  currentProjectIdAtom,
   projectTagsAtom,
   projectForkSource,
   projectIsPublished,
@@ -20,7 +20,7 @@ export const withCreatePageProject = selector<CreatePageProjectQuery>({
   key: 'createPageProject',
   get: ({ get }): CreatePageProjectQuery => {
 
-    const id = get(currentProjectIDAtom)
+    const id = get(currentProjectIdAtom)
     const title = get(projectTitleAtom)
     const description = get(projectDescriptionAtom)
     const author = get(projectAuthorAtom)
@@ -58,7 +58,7 @@ export const withCreatePageProject = selector<CreatePageProjectQuery>({
   },
   set: ({ set, reset }, proj) => {
     if (proj instanceof DefaultValue) {
-      reset(currentProjectIDAtom)
+      reset(currentProjectIdAtom)
       reset(projectTitleAtom)
       reset(projectDescriptionAtom)
       reset(projectAuthorAtom)
@@ -70,7 +70,7 @@ export const withCreatePageProject = selector<CreatePageProjectQuery>({
       //reset(projectConfigAtom)
       //reset(projectGraphAtom)
     } else {
-      set(currentProjectIDAtom, proj.id)
+      set(currentProjectIdAtom, proj.id)
       set(projectTitleAtom, proj.title ?? `${generate().dashed}`)
       set(projectDescriptionAtom, proj.description ?? new DefaultValue())
       set(projectAuthorAtom, proj.author)

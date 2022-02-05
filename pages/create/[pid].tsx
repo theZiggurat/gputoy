@@ -17,7 +17,7 @@ import { CreatePageProjectQuery, createPageProjectQuery, createPageProjectSaveHi
 import RecoilDebugPanel from '@components/create/debug'
 import { useSession } from 'next-auth/client'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { currentProjectIDAtom } from '@recoil/project'
+import { currentProjectIdAtom } from '@recoil/project'
 import KeybindManager from '@components/create/keybinds'
 
 type CreatePageProps = {
@@ -70,7 +70,7 @@ const ScopedProjectManager = (props: CreatePageProps) => {
 const Create = (props: CreatePageProps) => {
 
   const panelProps = usePanels({})
-  const setProjectId = useSetRecoilState(currentProjectIDAtom)
+  const setProjectId = useSetRecoilState(currentProjectIdAtom)
 
   useEffect(() => {
     setProjectId(props.projectId)

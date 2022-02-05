@@ -6,6 +6,7 @@ import { nanoid } from "nanoid"
 import { useSession } from "next-auth/client"
 import router from "next/router"
 import { useRecoilCallback, useRecoilState, useSetRecoilState } from "recoil"
+import useProjectSession from "../useProjectSession"
 
 type ForkOptions = {
   title?: string,
@@ -16,7 +17,7 @@ const useFork = () => {
   const setProjectLastSaveLocal = useSetRecoilState(projectLastSaveLocal)
 
   const getProject = useRecoilCallback(({ snapshot: { getLoadable } }) => () => getLoadable(withCreatePageProject).getValue())
-  const [session, loading] = useSession()
+  const [session, loading, isOwner] = useProjectSession()
 
   const toast = useToast()
 

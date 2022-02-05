@@ -3,7 +3,7 @@ import { Modal } from '@components/shared/modal'
 import { Box, Flex, Text, Grid, HStack, Avatar, Center, Spinner, useColorModeValue, Input, Button, IconButton } from '@chakra-ui/react'
 import { themed } from "theme/theme"
 import { CreatePageProjectQueryWithId } from "@database/args"
-import { useProjectDirect } from "@gpu/projectDirect"
+import useProjectDirect from "@recoil/hooks/useProjectDirect"
 import prisma from "@database/prisma"
 import { session, useSession } from "next-auth/client"
 import { Session } from "next-auth"
@@ -11,7 +11,7 @@ import Link from 'next/link'
 import { FiHardDrive, FiMoreVertical } from 'react-icons/fi'
 import { BsCloudArrowUp, BsCloudCheck } from "react-icons/bs"
 import { useSetRecoilState } from "recoil"
-import { currentProjectIDAtom, projectLastSaveLocal } from "@recoil/project"
+import { currentProjectIdAtom, projectLastSaveLocal } from "@recoil/project"
 import { nanoid } from "nanoid"
 import { useRouter } from "next/router"
 import useFork from "@recoil/hooks/project/useFork"
@@ -61,7 +61,7 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
 
   const allProjects = foldProjectArrays(localProjects, remoteProjects, session?.user?.id ?? null)
   const router = useRouter()
-  const setCurrentProjectId = useSetRecoilState(currentProjectIDAtom)
+  const setCurrentProjectId = useSetRecoilState(currentProjectIdAtom)
 
 
   /**

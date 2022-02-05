@@ -3,7 +3,7 @@
 import { toast, useToast } from '@chakra-ui/toast'
 import { CreatePageProjectQuery, CreatePageProjectSaveHistorySer } from '@database/args'
 import { withCreatePageProject } from '@database/selectors'
-import { currentProjectIDAtom, projectLastSave, projectLastSaveLocal } from '@recoil/project'
+import { currentProjectIdAtom, projectLastSave, projectLastSaveLocal } from '@recoil/project'
 import { debounce, update } from 'lodash'
 import { Session } from 'next-auth'
 import { useRouter } from 'next/router'
@@ -26,7 +26,7 @@ const useProjectStorage = (props: ProjectStorageProps) => {
   } = props
 
   const [projectState, setProjectState] = useRecoilState(withCreatePageProject)
-  const [projectID, setProjectID] = useRecoilState(currentProjectIDAtom)
+  const [projectID, setProjectID] = useRecoilState(currentProjectIdAtom)
   const setProjectLastSave = useSetRecoilState(projectLastSave)
   const setProjectLastSaveLocal = useSetRecoilState(projectLastSaveLocal)
   const [_s, _l, isOwner] = useProjectSession()

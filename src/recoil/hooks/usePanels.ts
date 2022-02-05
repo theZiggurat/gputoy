@@ -31,7 +31,7 @@ export default (options: PanelOptions): PanelProps => {
 
   const { fixed, initialLayout } = options
 
-  const [panelTreeLayout, setPanelTreeLayout] = useRecoilState(layoutAtom)
+  const [layout, setLayout] = useRecoilState(layoutAtom)
   const resetPanelTreeLayout = useResetRecoilState(layoutAtom)
 
   const [layoutSize, setLayoutSize] = useState([0, 0])
@@ -51,12 +51,12 @@ export default (options: PanelOptions): PanelProps => {
 
   // save layout to local storage on change
   useEffect(debounce(() => {
-    cleaner(instances(panelTreeLayout))
-  }, 1000), [panelTreeLayout])
+    cleaner(instances(layout))
+  }, 1000), [layout])
 
-  const trySetLayout = (layout: any | undefined) => { if (layout !== undefined) setPanelTreeLayout(layout) }
+  const trySetLayout = (layout: any | undefined) => { if (layout !== undefined) setLayout(layout) }
   const onSplit = (path: string, direction: 'horizontal' | 'vertical', panelIndex: number) => {
-    trySetLayout(replaceAtPath(panelTreeLayout, path, layout => {
+    trySetLayout(replaceAtPath(layout, path, layout => {
       const obj: any = {}
       obj['left'] = { instanceID: layout['instanceID'], index: layout['index'], type: 'leaf' }
       obj['right'] = { instanceID: genID(), index: panelIndex, type: 'leaf' }
@@ -69,7 +69,7 @@ export default (options: PanelOptions): PanelProps => {
 
   const onCombine = (path: string) => {
     const dir = path.charAt(path.length - 1) === 'r' ? 'left' : 'right'
-    trySetLayout(replaceAtPath(panelTreeLayout, path.substr(0, path.length - 1), layout => {
+    trySetLayout(replaceAtPath(layout, path.substr(0, path.length - 1), layout => {
       const obj: any = {}
       const child = layout[dir]
       obj['index'] = child['index']
@@ -83,8 +83,8 @@ export default (options: PanelOptions): PanelProps => {
   }
 
   const onSwitch = (path: string, panelIndex: number) => {
-    if (get(panelTreeLayout, arrpath(path).concat('index')) === panelIndex) return
-    trySetLayout(replaceAtPath(panelTreeLayout, path, layout => {
+    if (get(layout, arrpath(path).concat('index')) === panelIndex) return
+    trySetLayout(replaceAtPath(layout, path, layout => {
       const obj: any = {}
       obj['index'] = panelIndex
       obj['type'] = 'leaf'
@@ -113,7 +113,7 @@ export default (options: PanelOptions): PanelProps => {
   }
 
   const onPanelSizeChange = debounce((path: string, newSize: number, totalSize: number) => {
-    trySetLayout(replaceAtPath(panelTreeLayout, path, layout => {
+    trySetLayout(replaceAtPath(layout, path, layout => {
       const obj: any = { ...layout }
       obj['size'] = newSize / totalSize
       return obj
@@ -123,7 +123,7 @@ export default (options: PanelOptions): PanelProps => {
   const resetPanels = resetPanelTreeLayout
 
   return {
-    panelLayout: panelTreeLayout,
+    panelLayout: layout,
     onCombinePanel: onCombine,
     onSplitPanel: onSplit,
     onSwitchPanel: onSwitch,
