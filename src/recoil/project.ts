@@ -1,23 +1,23 @@
 import * as types from '@gpu/types'
-import { atom, atomFamily, selector } from 'recoil'
+import { atom, atomFamily, DefaultValue, selector } from 'recoil'
 // @ts-ignore
 import defaultShader from '../../shaders/basicShader.wgsl'
 import { projectRunStatusAtom } from './controls'
 
 
-export const currentProjectIDAtom = atom<string>({
+export const currentProjectIdAtom = atom<string>({
   key: 'projectID',
   default: 'NOT_SET'
 })
 
-export const projectTitleAtom = atom<string>({
+export const projectTitleAtom = atom<string | null>({
   key: 'projectTitle',
-  default: 'Unnamed Project'
+  default: null
 })
 
-export const projectDescriptionAtom = atom<string>({
+export const projectDescriptionAtom = atom<string | null>({
   key: 'projectDescription',
-  default: '',
+  default: null,
 })
 
 export const projectTagsAtom = atom<string[]>({
@@ -35,10 +35,19 @@ export const projectShadersAtom = atom<types.Shader[]>({
   default: [{ file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true, id: '' }],
 })
 
-export const projectParamsAtom = atom<types.ParamDesc[]>({
+var _idx = 0
+const idx = () => _idx++
+export const projectParamsAtom = atomFamily<types.ParamDesc, string>({
   key: 'projectParams',
-  default: [],
+  default: (key: string) => ({ paramName: undefined, paramType: "int", param: [0], key }),
 })
+
+export const projectParamKeys = atom<string[]>({
+  key: 'projectParamKeys',
+  default: []
+})
+
+
 
 export const projectForkSource = atom<{ id: string, title: string } | null>({
   key: 'projectForkSource',
@@ -109,5 +118,23 @@ export const withDefaultParams = selector<types.ParamDesc[]>({
       { paramName: 'mouse', paramType: 'vec2i', param: [mouse.x, mouse.y] },
     ]
   },
+})
+
+export const withUserParams = selector<types.ParamDesc[]>({
+  key: 'userParams',
+  get: ({ get }) => {
+    const paramKeys = get(projectParamKeys)
+    return paramKeys.map(k => get(projectParamsAtom(k)))
+  },
+  set: ({ set, reset }, params) => {
+    if (params instanceof DefaultValue) {
+      reset(projectParamKeys)
+    } else {
+      set(projectParamKeys, params.map(p => p.key!))
+      params.forEach(p => {
+        set(projectParamsAtom(p.key!), p)
+      })
+    }
+  }
 })
 

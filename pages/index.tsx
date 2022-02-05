@@ -144,7 +144,7 @@ const Home = (props: HomePageProps) => {
 
           <Section minH="50vh">
             <MainHeading redText="web graphics">
-              Built for the next generation of
+              Build for the next generation of
             </MainHeading>
             <MainDesc>
               Made from the ground up for WebGPU, the new graphics standard for the web.

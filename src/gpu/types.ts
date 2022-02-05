@@ -20,9 +20,10 @@ export type ParamType = 'int' | 'float' | 'color' | 'vec3f' | 'vec2f' | 'vec3i' 
 * Holds data and metadata for single parameter in uniform
 */
 export type ParamDesc = {
-  paramName: string,
+  paramName?: string,
   paramType: ParamType
-  param: number[]
+  param: number[],
+  key?: string
 }
 
 

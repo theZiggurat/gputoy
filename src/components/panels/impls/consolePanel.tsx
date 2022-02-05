@@ -90,7 +90,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
       <PanelContent
         fontFamily='"JetBrains Mono", "Fira code", "Fira Mono", monospace'
         fontSize="sm"
-        p="0.5rem"
+        p="0.3rem"
       >
         {console.map((message: Message, idx) =>
           <Box
@@ -98,18 +98,21 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
             p={1}
             flex="0 0 auto"
             whiteSpace="pre-wrap"
+            bg={themed('a3')}
+            borderBottom="4px"
+            borderColor={themed('p')}
           >
             <Text ml={1}>
-              <Text fontWeight="hairline" display="inline">
+              <Text display="inline" color={themed('textMid')} fontFamily="mono">
                 {formatTime(message.time)}&nbsp;&nbsp;
               </Text>
               <Text
-                color={colors[message.type].concat(consoleFontColorMod)}
+                color={colors[Math.log2(message.type)].concat(consoleFontColorMod)}
                 fontWeight={consoleFontWeight}
                 transition="0.2s ease"
                 display="inline"
               >
-                {prehead[message.type]}{message.header}:&nbsp;
+                {prehead[Math.log2(message.type)]}{message.header}:&nbsp;
               </Text>
               <Text display="inline">
                 {message.body}
@@ -123,7 +126,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
       <PanelBar>
         {/* search & type filters */}
         <PanelBarMiddle>
-          <InputGroup maxWidth="500" minWidth="100">
+          <InputGroup maxWidth="500" minWidth="100" size="xs">
             <InputLeftElement>
               <FaSearch />
             </InputLeftElement>

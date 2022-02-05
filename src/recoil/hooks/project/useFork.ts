@@ -5,7 +5,8 @@ import { projectLastSave, projectLastSaveLocal } from "@recoil/project"
 import { nanoid } from "nanoid"
 import { useSession } from "next-auth/client"
 import router from "next/router"
-import { useRecoilState, useSetRecoilState } from "recoil"
+import { useRecoilCallback, useRecoilState, useSetRecoilState } from "recoil"
+import useProjectSession from "../useProjectSession"
 
 type ForkOptions = {
   title?: string,
@@ -15,8 +16,8 @@ const useFork = () => {
   const setProjectLastSave = useSetRecoilState(projectLastSave)
   const setProjectLastSaveLocal = useSetRecoilState(projectLastSaveLocal)
 
-  const [currentProject, setCurrentProject] = useRecoilState(withCreatePageProject)
-  const [session, loading] = useSession()
+  const getProject = useRecoilCallback(({ snapshot: { getLoadable } }) => () => getLoadable(withCreatePageProject).getValue())
+  const [session, loading, isOwner] = useProjectSession()
 
   const toast = useToast()
 
@@ -24,7 +25,7 @@ const useFork = () => {
 
     const localProjectId = nanoid(8)
     const updateDateLocal = new Date().toISOString()
-    const project = inputProject ?? currentProject
+    const project = inputProject ?? getProject()
     const projectWithDate = {
       ...project,
       forkedFrom: {

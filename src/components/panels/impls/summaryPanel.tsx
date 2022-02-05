@@ -1,5 +1,5 @@
 import {
-  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input
+  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input, Skeleton, Button
 } from '@chakra-ui/react'
 import {
   useProjectAuthor,
@@ -18,6 +18,9 @@ import { themed } from "../../../theme/theme"
 import { Divider } from "../../shared/misc/micro"
 import { Panel, PanelBar, PanelContent } from "../panel"
 import Link from 'next/link'
+import { IoOpenOutline } from 'react-icons/io5'
+import OutwardLink from '@components/shared/outwardLink'
+import Label from '@components/shared/label'
 
 const ProjectInfo = () => {
 
@@ -31,43 +34,54 @@ const ProjectInfo = () => {
 
   let titleComponent
   let descriptionComponent
-  if (isOwner) {
-    titleComponent = <Input
-      value={title}
-      bg="transparent"
-      onChange={setTitle}
-      placeholder="Project Title"
-      //isInvalid={title.isValid}
-      //color={title.isValid ? themed('textMid') : "red.500"}
-      pl="0"
-      fontWeight="bold"
-      fontSize="lg"
-    />
-    descriptionComponent = <chakra.textarea
-      value={description}
-      onChange={setDescription}
-      //color={description.isValid ? themed('textMid') : "red.500"}
-      fontSize="xs"
-      bg="transparent"
-      w="100%"
-      resize="vertical"
-      outline="none"
-      placeholder="Project Description"
-    />
-  } else {
-    titleComponent = <Text
-      fontWeight="bold"
-      fontSize="lg"
-    >
-      {title}
-    </Text>
+  if (title != null) {
+    if (isOwner) {
+      titleComponent = <Input
+        value={title}
+        bg="transparent"
+        onChange={setTitle}
+        placeholder="Project Title"
+        //isInvalid={title.isValid}
+        //color={title.isValid ? themed('textMid') : "red.500"}
+        pl="0"
+        fontWeight="bold"
+        fontSize="lg"
+      />
+      descriptionComponent = <chakra.textarea
+        value={description ?? undefined}
+        onChange={setDescription}
+        //color={description.isValid ? themed('textMid') : "red.500"}
+        fontSize="xs"
+        bg="transparent"
+        w="100%"
+        resize="vertical"
+        outline="none"
+        placeholder="Project Description"
+      />
+    } else {
+      titleComponent = <Text
+        fontWeight="bold"
+        fontSize="lg"
+      >
+        {title}
+      </Text>
 
-    descriptionComponent = <Text
-      fontSize="xs"
-    >
-      {description}
-    </Text>
+      descriptionComponent = <Text
+        fontSize="xs"
+      >
+        {description}
+      </Text>
+    }
+  } else {
+    titleComponent = <Skeleton height="20px" startColor={themed('border')} endColor={themed('borderLight')} speed={0.5} />
+    descriptionComponent = (
+      <>
+        <Skeleton height="10px" startColor={themed('border')} endColor={themed('borderLight')} speed={0.5} />
+        <Skeleton height="10px" startColor={themed('border')} endColor={themed('borderLight')} speed={0.5} />
+      </>
+    )
   }
+
 
   return (
     <Stack>
@@ -107,9 +121,9 @@ const ProjectInfo = () => {
 
         {
           forkSource &&
-          <Text fontSize="sm" fontWeight="bold">
-            Forks: <Link href={`/create/${forkSource.id}`} >{forkSource.title}</Link>
-          </Text>
+          <Label text="Forks">
+            <OutwardLink title={forkSource.title} href={`/create/${forkSource.id}`} />
+          </Label>
         }
       </Stack>
 
@@ -161,6 +175,7 @@ const AccordionPanel = (props: AccordionPanelProps) => {
           display="inline"
           color={themed('textMid')}
           userSelect="none"
+          fontSize="sm"
         >
           {title}
         </Text>
@@ -168,7 +183,8 @@ const AccordionPanel = (props: AccordionPanelProps) => {
       {isOpen &&
         <Box
           maxHeight={isOpen ? "1000px" : "0px"}
-          transition="max-height 0.5s ease"
+          transition="min-height 0.5s ease"
+          bg={themed('bg')}
         >
           {children}
         </Box>

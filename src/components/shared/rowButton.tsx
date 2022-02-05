@@ -14,6 +14,7 @@ export const RowButton = (props: RowButtonProps) => {
   const { first, last, purpose, ...iconButtonProps } = props
   return (
     <IconButton
+      size="xs"
       title={purpose}
       aria-label={purpose}
       borderStartRadius={first ? "" : "0"}
@@ -37,6 +38,7 @@ export const RowToggleButton = (props: RowToggleButtonProps) => {
 
   return (
     <Button
+      size="xs"
       fontWeight="normal"
       bg={toggled ? '' : color}
       borderStartRadius={first ? "" : "0px"}

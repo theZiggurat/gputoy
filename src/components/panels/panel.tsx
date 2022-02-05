@@ -3,7 +3,7 @@ import {
 } from '@chakra-ui/react'
 import useInstance, { useInstances } from '@recoil/hooks/useInstance'
 import { PanelProps } from '@recoil/hooks/usePanels'
-import React, { LegacyRef, ReactElement, ReactNode, useEffect } from 'react'
+import React, { forwardRef, LegacyRef, ReactElement, ReactNode, useEffect } from 'react'
 import { VscClose, VscSplitHorizontal, VscSplitVertical } from 'react-icons/vsc'
 import SplitPane from 'react-split-pane'
 import { themed } from '../../theme/theme'
@@ -83,7 +83,7 @@ interface PanelContentProps {
   children: ReactNode,
   noBg?: boolean
 }
-export const PanelContent = (props: PanelContentProps & any) => {
+const _PanelContent = (props: PanelContentProps & any, ref) => {
   const { children, noBg, ...contentProps } = props
   return (
     <Box
@@ -91,12 +91,15 @@ export const PanelContent = (props: PanelContentProps & any) => {
       overflowY="auto"
       overflowX="clip"
       bg={noBg ? '' : themed('p')}
+      ref={ref}
       {...contentProps}
     >
       {props.children}
     </Box>
   )
 }
+
+export const PanelContent = forwardRef(_PanelContent)
 
 // --------- PANEL BAR --------------
 
@@ -141,13 +144,15 @@ export const PanelBar = (props: PanelBarProps) => {
 
   return (
     <Flex
-      maxHeight={12}
+      maxH={10}
       backgroundColor={themed('a2')}
       direction="row"
       alignItems="center"
       flex="0 0 auto"
       justify="space-between"
       overflowX="hidden"
+      borderTop="1px"
+      borderColor={themed('dividerLight')}
       p={1}
       ref={scrollRef as LegacyRef<HTMLDivElement>}
       {...barProps}
@@ -169,6 +174,7 @@ export const PanelBar = (props: PanelBarProps) => {
         >
           <PopoverTrigger>
             <IconButton
+              size="xs"
               icon={props.panelDesc![props.panelIndex!].icon}
               borderRightRadius="0"
               purpose="Choose panel"

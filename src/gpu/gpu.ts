@@ -17,7 +17,7 @@ class _GPU {
 
     initCalled: boolean = false
 
-    constuctor() {}
+    constuctor() { }
 
     async init(logger?: Logger): Promise<GPUInitResult> {
 
@@ -35,7 +35,7 @@ class _GPU {
             if (!this.adapter) return 'error'
         }
 
-        logger?.debug('GPU', 'Device found')
+        logger?.trace('GPU', 'Device found')
         return 'ok'
     }
 
@@ -49,7 +49,7 @@ class _GPU {
             }
         }
 
-        logger?.debug('GPU', `Adapter found: ${this.adapter.name}`)
+        logger?.trace('GPU', `Adapter found: ${this.adapter.name}`)
         this.device = await this.adapter.requestDevice()
 
         // this.device.lost.then((info) => {
@@ -62,7 +62,7 @@ class _GPU {
         return !(this.adapter == null || this.device == null)
     }
 
-    attachCanvas = async (canvasID : string, logger?: Logger): Promise<AttachResult | null> => {
+    attachCanvas = async (canvasID: string, logger?: Logger): Promise<AttachResult | null> => {
 
         if (!GPU.isInitialized()) {
             logger?.err('GPU', 'Trying to attach canvas without GPU initialized.')
@@ -94,7 +94,7 @@ class _GPU {
             logger?.err('GPU', "Cannot attach canvas: Canvas doesn't exist")
             return null
         }
-            
+
         const canvasContext = canvas.getContext('webgpu')!
         if (!canvasContext) {
             logger?.fatal('GPU', 'Cannot attach canvas: Failed to create WEBGPU context')
@@ -118,7 +118,7 @@ class _GPU {
         const targetTexture = canvasContext.getCurrentTexture()
 
         logger?.debug('GPU', `Attached canvas id=${canvasID}`)
-        
+
         return {
             canvas,
             canvasContext,
@@ -144,7 +144,7 @@ class _GPU {
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-  }
+}
 
 const GPU = new _GPU;
 export default GPU;

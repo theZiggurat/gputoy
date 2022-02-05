@@ -9,11 +9,11 @@ export interface Message {
 }
 
 export enum MessageType {
-  Trace = 0,
-  Log = 1,
-  Error = 2,
-  Fatal = 4,
-  Debug = 8,
+  Trace = 1,
+  Log = 2,
+  Error = 4,
+  Fatal = 8,
+  Debug = 16,
 }
 
 export const consoleAtom = atom<Message[]>({

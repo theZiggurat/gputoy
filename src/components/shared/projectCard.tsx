@@ -1,6 +1,6 @@
 
 import React, { useState } from "react"
-import { useProjectDirect } from "@gpu/projectDirect"
+import useProjectDirect from "@recoil/hooks/useProjectDirect"
 import {
   Text,
   Box,
@@ -25,7 +25,7 @@ const ProjectCard = (props: {
     autoplay = false,
     bg = false,
     bgScale = 1,
-    blur = 24,
+    blur = 16,
     onHover
   } = props
 
@@ -57,9 +57,9 @@ const ProjectCard = (props: {
         className="group"
         transition="transform 0.2s ease"
         cursor="pointer"
-        _hover={{
-          transform: 'scale(1.005)'
-        }}
+      // _hover={{
+      //   transform: 'scale(1.005)'
+      // }}
       >
         {
           loading &&
@@ -95,7 +95,7 @@ const ProjectCard = (props: {
               opacity: hovered ? 1 : 0,
               transform: `scale(${bgScale})`,
               filter: `blur(${blur}px) contrast(200%)`,
-              transition: 'opacity 1.0s ease',
+              transition: 'opacity 0.3s ease',
               pointerEvents: 'none'
             }}
           />

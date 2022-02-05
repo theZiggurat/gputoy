@@ -15,6 +15,7 @@ const useGPU = () => {
       const result = await GPU.init(logger)
       setGPUStatus(result)
 
+
       if (result == 'error') {
         toast({
           title: 'Could not initialize WebGPU',

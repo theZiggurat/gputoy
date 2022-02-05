@@ -4,7 +4,7 @@ const useHorizontalScroll = (prevent: boolean = false): MutableRefObject<HTMLDiv
   const elRef = useRef<HTMLDivElement>()
 
   useEffect(() => {
-    
+
     const el = elRef.current
     if (el) {
       const onWheel = (e: WheelEvent) => {
@@ -12,10 +12,10 @@ const useHorizontalScroll = (prevent: boolean = false): MutableRefObject<HTMLDiv
         e.preventDefault()
         el.scrollTo({
           left: el.scrollLeft + e.deltaY,
-          behavior: "smooth"
+          behavior: "smooth",
         })
       };
-      el.addEventListener("wheel", onWheel)
+      el.addEventListener("wheel", onWheel, { passive: true })
       return () => el.removeEventListener("wheel", onWheel)
     }
   }, [prevent])

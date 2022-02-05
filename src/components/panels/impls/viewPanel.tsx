@@ -1,35 +1,32 @@
 import {
     Box,
-    Button,
-    Center, chakra, Fade, Flex, Portal, Text,
-    useColorModeValue,
-    useDisclosure
+    Center, chakra, Flex, Text,
+    useColorModeValue
 } from '@chakra-ui/react';
 import { Project } from '@gpu/project';
-import { projectControlAtom, projectRunStatusAtom } from '@recoil/controls';
+import { ProjectControl, projectRunStatusAtom } from '@recoil/controls';
 import { gpuStatusAtom } from '@recoil/gpu';
 import useInstance from '@recoil/hooks/useInstance';
 import useLogger from '@recoil/hooks/useLogger';
 import { canvasInitializedAtom, mousePosAtom, resolutionAtom, withDefaultParams } from '@recoil/project';
 import { throttle } from 'lodash';
-import React, { forwardRef, MutableRefObject, useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { BsRecordFill } from 'react-icons/bs';
-import { FaPause, FaPlay, FaRecordVinyl, FaStop, FaVideo } from 'react-icons/fa';
+import { FaPause, FaPlay, FaStop, FaVideo } from 'react-icons/fa';
 import { MdInfo, MdSettings } from 'react-icons/md';
 import { useResizeDetector } from 'react-resize-detector';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { themed } from 'theme/theme';
 import consts from '../../../theme/consts';
 import { RowButton } from '../../shared/rowButton';
-import { EditorInstanceState, ViewportInstanceState } from '../descriptors';
+import { ViewportInstanceState } from '../descriptors';
 import {
     DynamicPanelProps, Panel,
     PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent
 } from '../panel';
 
 import { Modal, useModal } from '@components/shared/modal'
-
-const canvasMargin = 2
+import useProjectControls from '@recoil/hooks/useProjectControls';
 
 const ViewportInfo = () => {
 
@@ -76,6 +73,7 @@ const StatusInfo = () => {
             fontFamily={consts.fontMono}
             fontSize="0.9rem"
             userSelect="none"
+            height="1.5rem"
             width={120}
             onClick={() => setDisplay((display + 1) % 2)}
             unselectable="on"
@@ -87,10 +85,9 @@ const StatusInfo = () => {
 
 const ViewportPanelBarMiddle = () => {
 
-
-    const [projectControlValue, setProjectControl] = useRecoilState(projectControlAtom)
-    const onHandlePlayPause = () => setProjectControl(old => old == 'play' ? 'pause' : 'play')
-    const onHandleStop = () => setProjectControl('stop')
+    const { controlStatus, play, pause, stop } = useProjectControls()
+    const isPlay = controlStatus == ProjectControl.PLAY
+    const onHandlePlayPause = isPlay ? pause : play
 
     const handleKeyDown = (ev: KeyboardEvent) => {
         if (ev.code == 'Space' && ev.ctrlKey) {
@@ -111,14 +108,14 @@ const ViewportPanelBarMiddle = () => {
     return <>
         <RowButton
             purpose="Play"
-            icon={projectControlValue == 'play' ? <FaPause /> : <FaPlay />}
+            icon={isPlay ? <FaPause /> : <FaPlay />}
             onClick={onHandlePlayPause}
             first
         />
         <RowButton
             purpose="Stop"
             icon={<FaStop />}
-            onClick={onHandleStop}
+            onClick={stop}
         />
         <StatusInfo />
     </>
@@ -128,12 +125,11 @@ const _ViewportCanvas = (props: { instanceID: number, width: number, height: num
 
     const setMousePos = useSetRecoilState(mousePosAtom)
     const setCanvasInitialized = useSetRecoilState(canvasInitializedAtom)
-    //const canvasRef = useRef<HTMLCanvasElement | null>(null)
     const logger = useLogger()
     const gpuStatusValue = useRecoilValue(gpuStatusAtom)
     const id = `canvas_${props.instanceID}`
 
-    const projectControlValue = useRecoilValue(projectControlAtom)
+    const { controlStatus } = useProjectControls()
 
     const onHandleMousePos = throttle((evt) => {
         if (ref.current) {
@@ -157,7 +153,7 @@ const _ViewportCanvas = (props: { instanceID: number, width: number, height: num
     return <canvas id={id} ref={ref} onMouseMove={onHandleMousePos} style={{
         width: props.width,
         height: props.height,
-        visibility: projectControlValue == 'stop' ? 'hidden' : 'visible',
+        visibility: controlStatus == ProjectControl.STOP ? 'hidden' : 'visible',
         cursor: 'crosshair'
     }} />
 }

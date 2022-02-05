@@ -2,24 +2,25 @@ import { consoleAtom, MessageType } from "@recoil/console"
 import { useRecoilState } from "recoil"
 
 const useLogger = () => {
-  const [console, setConsole] = useRecoilState(consoleAtom)
+  const [consoleState, setConsole] = useRecoilState(consoleAtom)
 
   const isLastMessage = (message: string): boolean => {
-    const compare = console[console.length - 1]
+    const compare = consoleState[consoleState.length - 1]
     if (!compare) return false
     return compare.body == message
   }
 
   const pushToConsole = (header: string, body: string, type: MessageType) => {
-    if (isLastMessage(body))
-      setConsole(old => {
-        const newConsole = [...old]
-        // const replace = newConsole[newConsole.length - 1]
-        // newConsole[newConsole.length - 1] = { ...replace, occurences: (replace.occurences ?? 0) + 1 }
-        return newConsole
-      })
-    else
-      setConsole(old => [...old, { header, body, type, time: new Date() }])
+    console.log(header, body, type)
+    // if (isLastMessage(body))
+    //   setConsole(old => {
+    //     const newConsole = [...old]
+    //     // const replace = newConsole[newConsole.length - 1]
+    //     // newConsole[newConsole.length - 1] = { ...replace, occurences: (replace.occurences ?? 0) + 1 }
+    //     return newConsole
+    //   })
+    // else
+    setConsole(old => [...old, { header, body, type, time: new Date() }])
   }
 
   const trace = (header: string, body: string) => pushToConsole(header, body, MessageType.Trace)

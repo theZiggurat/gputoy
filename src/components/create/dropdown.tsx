@@ -5,7 +5,8 @@ import { themed } from "theme/theme"
 
 type DropdownProps = {
   text: string,
-  children: ReactNode
+  size?: string,
+  children: ReactNode,
 }
 
 const Dropdown = (props: DropdownProps) => {
@@ -31,6 +32,7 @@ const Dropdown = (props: DropdownProps) => {
         color={open ? themed('textHigh') : themed('textMid')}
         _hover={{ color: themed('textHigh') }}
         borderRadius="none"
+        size={props.size}
       >
         {props.text}
       </Button>
@@ -46,6 +48,7 @@ const Dropdown = (props: DropdownProps) => {
           borderColor={themed('border')}
           flexDirection="column"
           shadow="xl"
+          size={props.size}
         >
           {props.children}
         </Flex>
@@ -76,7 +79,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
       <Text textAlign="left" fontSize="xs" color={themed('textMid')}>
         {props.text}
       </Text>
-      <Text textAlign="right" color={themed('textLight')} fontSize="xs">
+      <Text textAlign="right" color={themed('textLight')} fontSize="xx-small">
         {props.rightText ?? ""}
       </Text>
     </Flex>
@@ -85,6 +88,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
 
 type DropdownSubDropdownProps = {
   text: string,
+  children: ReactNode,
   onClick?: () => void,
   disabled?: boolean
 }
@@ -106,6 +110,7 @@ export const DropdownSubDropdown = (props: DropdownSubDropdownProps) => {
         {props.text}
       </Text>
       <MdArrowRight fill={useColorModeValue('rgba(0, 0, 0, 0.36)', 'rgba(255, 255, 255, 0.45)')} />
+
     </Flex>
   )
 }
