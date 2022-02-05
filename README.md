@@ -1,7 +1,13 @@
-#### Note: Before checking out the site, see supported browsers. 
+![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white)
+![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
+
+#### Note: See supported browsers 
 # [gputoy](https://gputoy.io)
 
-A shader prototyping tool built with [`WebGPU`](https://www.w3.org/TR/webgpu/).
+## A shader prototyping tool built for [`WebGPU`](https://www.w3.org/TR/webgpu/).
+![A screenshot of gputoy running in firefox](./docs/ui-demo.png)
 
 ## **Top Goals**
 
@@ -40,8 +46,9 @@ A shader prototyping tool built with [`WebGPU`](https://www.w3.org/TR/webgpu/).
 ***
 
 ## **Currently Supported Browsers**
-
   - Chrome version > 94 will work automatically thanks to origin trial
     - Chrome version > 80 with `enable-unsafe-webgpu` flag enabled
   - Firefox version > 63 with `dom.webgpu.enabled` flag enabled
   - Safari version > 11.1 with `WebGPU` experimental feature on MACOS (not tested)
+
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

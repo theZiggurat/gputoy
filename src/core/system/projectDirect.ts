@@ -1,13 +1,8 @@
-import { Project as DBProject } from ".prisma/client"
 import { CreatePageProjectQueryWithId } from "core/types/queries"
-import { gpuStatusAtom } from "core/recoil/atoms/gpu"
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
-import { useRecoilValue } from "recoil"
-import Compiler from '../core/system/compiler'
+import Compiler from '@core/system/compiler'
 import GPU, { AttachResult } from './gpu'
 import Params from "./params"
-import staticdecl from './staticdecl'
-import * as types from '../core/types'
+import * as types from '@core/types'
 
 class ProjectDirect {
 

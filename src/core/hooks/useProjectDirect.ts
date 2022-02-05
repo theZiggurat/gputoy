@@ -1,5 +1,5 @@
 import { CreatePageProjectQueryWithId } from "core/types/queries"
-import ProjectDirect from "@gpu/projectDirect"
+import ProjectDirect from "@core/system/projectDirect"
 import { projectStatusDefault } from "core/recoil/atoms/controls"
 import { Dispatch, SetStateAction, useRef, useState, useEffect, MutableRefObject } from "react"
 import { useRecoilValue } from "recoil"
