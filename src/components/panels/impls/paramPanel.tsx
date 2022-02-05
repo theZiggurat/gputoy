@@ -9,9 +9,9 @@ import {
 	NumberInputStepper, Popover, PopoverArrow, PopoverBody, PopoverContent, PopoverTrigger, Portal, Select
 } from '@chakra-ui/react';
 import ParamListCompact from '@components/create/params/paramListCompact';
-import * as types from '@gpu/types';
-import useInstance from '@recoil/hooks/useInstance';
-import { currentProjectIdAtom, projectParamKeys } from '@recoil/project';
+import * as types from 'core/types';
+import useInstance from '@core/hooks/useInstance';
+import { currentProjectIdAtom, projectParamKeys } from 'core/recoil/atoms/project';
 import { debounce } from 'lodash';
 import { nanoid } from 'nanoid';
 import React, { useCallback, useState } from 'react';

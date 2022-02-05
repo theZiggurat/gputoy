@@ -1,4 +1,4 @@
-import usePost from '@recoil/hooks/project/usePost'
+import usePost from '@core/hooks/usePost'
 import React, { useCallback, useEffect } from 'react'
 
 const KeybindManager = () => {

@@ -1,7 +1,7 @@
 import { chakra, HStack, Text } from '@chakra-ui/react'
 import React from 'react'
 import { BsSearch } from 'react-icons/bs'
-import Scaffold from '../src/components/shared/scaffold'
+import Scaffold from '@components/shared/scaffold'
 
 const NotFoundPage = () => {
   return (

@@ -1,10 +1,10 @@
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
-import { ParamDesc } from "@gpu/types"
+import { ParamDesc } from "core/types"
 import { SetterOrUpdater, useRecoilState } from "recoil"
 import { Flex, Input, Text, Box, BoxProps, IconButton } from '@chakra-ui/react'
 import { themed } from 'theme/theme'
 import { useResizeDetector } from 'react-resize-detector'
-import { projectParamsAtom } from '@recoil/project'
+import { projectParamsAtom } from 'core/recoil/atoms/project'
 import Dropdown, { DropdownItem } from '../dropdown'
 import { Vec2InterfaceRadial } from './interface/vec2Interface'
 import { FiMoreHorizontal } from 'react-icons/fi'

@@ -2,23 +2,23 @@ import React, { useEffect, useState } from "react"
 import { Modal } from '@components/shared/modal'
 import { Box, Flex, Text, Grid, HStack, Avatar, Center, Spinner, useColorModeValue, Input, Button, IconButton } from '@chakra-ui/react'
 import { themed } from "theme/theme"
-import { CreatePageProjectQueryWithId } from "@database/args"
-import useProjectDirect from "@recoil/hooks/useProjectDirect"
-import prisma from "@database/prisma"
+import { CreatePageProjectQueryWithId } from "core/types/queries"
+import useProjectDirect from "@core/hooks/useProjectDirect"
+import prisma from "core/backend/prisma"
 import { session, useSession } from "next-auth/client"
 import { Session } from "next-auth"
 import Link from 'next/link'
 import { FiHardDrive, FiMoreVertical } from 'react-icons/fi'
 import { BsCloudArrowUp, BsCloudCheck } from "react-icons/bs"
 import { useSetRecoilState } from "recoil"
-import { currentProjectIdAtom, projectLastSaveLocal } from "@recoil/project"
+import { currentProjectIdAtom, projectLastSaveLocal } from "core/recoil/atoms/project"
 import { nanoid } from "nanoid"
 import { useRouter } from "next/router"
-import useFork from "@recoil/hooks/project/useFork"
+import useFork from "core/hooks/useFork"
 import NavUser from "@components/shared/user"
 import generate from "project-name-generator"
 import { MdPublishedWithChanges, MdCheck } from 'react-icons/md'
-import useProjectSession from "@recoil/hooks/useProjectSession"
+import useProjectSession from "@core/hooks/useProjectSession"
 import { LineSpinner } from "@components/shared/spinners"
 
 type ProjectInfo = {

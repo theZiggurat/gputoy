@@ -6,10 +6,10 @@ import {
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import React from 'react'
-import prisma from '@database/prisma'
-import ProjectCard from '../src/components/shared/projectCard'
-import Scaffold from '../src/components/shared/scaffold'
-import { themed } from '../src/theme/theme'
+import prisma from 'core/backend/prisma'
+import ProjectCard from '@components/shared/projectCard'
+import Scaffold from '@components/shared/scaffold'
+import { themed } from '@theme/theme'
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 	const projects = await prisma.project.findMany({

@@ -1,10 +1,10 @@
 import {
 	Box, Button, Checkbox, Flex, HStack, Input, Popover, PopoverContent, PopoverTrigger, Portal, useColorModeValue
 } from '@chakra-ui/react';
-import * as types from '@gpu/types';
-import useInstance from '@recoil/hooks/useInstance';
-import useLogger from '@recoil/hooks/useLogger';
-import { currentProjectIdAtom, projectShaderErrorsAtom, projectShadersAtom } from '@recoil/project';
+import * as types from 'core/types';
+import useInstance from '@core/hooks/useInstance';
+import useLogger from 'core/hooks/useLogger';
+import { currentProjectIdAtom, projectShaderErrorsAtom, projectShadersAtom } from 'core/recoil/atoms/project';
 
 import React, { useCallback, useEffect } from 'react';
 import { FaRegTrashAlt } from 'react-icons/fa';
@@ -14,7 +14,7 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { darkEditor, lightEditor } from '../../../theme/consts';
 import { themed } from '../../../theme/theme';
-import { RowButton } from '../../shared/rowButton';
+import { RowButton } from '@components/shared/rowButton';
 import { EditorInstanceState } from '../descriptors';
 import { DynamicPanelProps, Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel';
 import Editor, { Monaco, useMonaco } from '@monaco-editor/react'

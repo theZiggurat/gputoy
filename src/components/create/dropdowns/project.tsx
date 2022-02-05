@@ -1,4 +1,4 @@
-import usePanels from "@recoil/hooks/usePanels"
+import usePanels from "@core/hooks/usePanels"
 import React from "react"
 import Dropdown, { DropdownDivider, DropdownItem, DropdownSubDropdown } from "../dropdown"
 

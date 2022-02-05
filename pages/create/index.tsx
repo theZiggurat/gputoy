@@ -1,15 +1,15 @@
 import { chakra, useColorModeValue } from '@chakra-ui/react'
-import usePanels from '@recoil/hooks/usePanels'
+import usePanels from '@core/hooks/usePanels'
 import { GetStaticProps } from 'next'
 import Head from 'next/head'
 import React from 'react'
 import { lightResizer, darkResizer } from 'theme/consts'
-import prisma from '@database/prisma'
+import prisma from 'core/backend/prisma'
 import descriptors from '@components/panels/descriptors'
 import { Panels } from '@components/panels/panel'
 import Nav from '@components/create/navbar'
 import { scrollbarHidden } from 'theme/consts'
-import { CreatePageProjectQueryWithId, createPageProjectQueryWithId } from '@database/args'
+import { CreatePageProjectQueryWithId, createPageProjectQueryWithId } from 'core/types/queries'
 import ProjectSelection from '@components/create/projectSelecion'
 
 export const getStaticProps: GetStaticProps = async ({ req, res }) => {

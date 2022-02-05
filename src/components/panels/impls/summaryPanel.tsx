@@ -1,24 +1,22 @@
 import {
-  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input, Skeleton, Button
+  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input, Skeleton
 } from '@chakra-ui/react'
 import {
   useProjectAuthor,
   useProjectDescription,
   useProjectTitle
-} from '@recoil/hooks/project/useProjectMetadata'
-import useProjectSession from '@recoil/hooks/useProjectSession'
-import { projectForkSource, projectIsPublished } from '@recoil/project'
+} from '@core/hooks/useProjectMetadata'
+import useProjectSession from '@core/hooks/useProjectSession'
+import { projectForkSource, projectIsPublished } from 'core/recoil/atoms/project'
 import React, { ReactElement, useState } from "react"
 import { AiFillLike } from 'react-icons/ai'
 import { BiGitRepoForked } from 'react-icons/bi'
 import { IoIosEye } from 'react-icons/io'
 import { MdArrowRight } from 'react-icons/md'
 import { useRecoilValue } from 'recoil'
-import { themed } from "../../../theme/theme"
-import { Divider } from "../../shared/misc/micro"
+import { themed } from "@theme/theme"
+import { Divider } from "@components/shared/misc/micro"
 import { Panel, PanelBar, PanelContent } from "../panel"
-import Link from 'next/link'
-import { IoOpenOutline } from 'react-icons/io5'
 import OutwardLink from '@components/shared/outwardLink'
 import Label from '@components/shared/label'
 

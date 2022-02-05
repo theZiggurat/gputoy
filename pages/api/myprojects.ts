@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from "next-auth/client";
-import prisma from "@database/prisma";
+import prisma from "core/backend/prisma";
 
 export default function handler(
   req: NextApiRequest,

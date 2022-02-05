@@ -4,7 +4,7 @@ import {
 	Center, Flex, HStack, Icon,
 	Input, Spinner, Stack, Text, useColorMode
 } from '@chakra-ui/react';
-import useProjectSession from '@recoil/hooks/useProjectSession';
+import useProjectSession from '@core/hooks/useProjectSession';
 import { Session } from 'next-auth';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import { useRouter } from 'next/router';

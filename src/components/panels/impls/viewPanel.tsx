@@ -3,12 +3,12 @@ import {
     Center, chakra, Flex, Text,
     useColorModeValue
 } from '@chakra-ui/react';
-import { Project } from '@gpu/project';
-import { ProjectControl, projectRunStatusAtom } from '@recoil/controls';
-import { gpuStatusAtom } from '@recoil/gpu';
-import useInstance from '@recoil/hooks/useInstance';
-import useLogger from '@recoil/hooks/useLogger';
-import { canvasInitializedAtom, mousePosAtom, resolutionAtom, withDefaultParams } from '@recoil/project';
+import { Project } from '@core/system/project'
+import { ProjectControl, projectRunStatusAtom } from 'core/recoil/atoms/controls';
+import { gpuStatusAtom } from 'core/recoil/atoms/gpu';
+import useInstance from '@core/hooks/useInstance';
+import useLogger from 'core/hooks/useLogger';
+import { canvasInitializedAtom, mousePosAtom, resolutionAtom, withDefaultParams } from 'core/recoil/atoms/project';
 import { throttle } from 'lodash';
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { BsRecordFill } from 'react-icons/bs';
@@ -26,7 +26,7 @@ import {
 } from '../panel';
 
 import { Modal, useModal } from '@components/shared/modal'
-import useProjectControls from '@recoil/hooks/useProjectControls';
+import useProjectControls from '@core/hooks/useProjectControls';
 
 const ViewportInfo = () => {
 

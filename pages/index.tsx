@@ -1,20 +1,16 @@
 import {
-  Button, chakra, Flex, FlexProps, Heading, Image, Stack, Text, useColorModeValue
+  Button, chakra, Flex, FlexProps, Heading, Image, Text, useColorModeValue
 } from '@chakra-ui/react'
 import Footer from '@components/index/footer'
-import ProjectCard from '@components/shared/projectCard'
-import { CreatePageProjectQueryWithId, createPageProjectQueryWithId } from '@database/args'
-import prisma from '@database/prisma'
+import { CreatePageProjectQueryWithId, createPageProjectQueryWithId } from 'core/types/queries'
+import prisma from 'core/backend/prisma'
 import "@fontsource/jetbrains-mono"
-import { props } from 'lodash/fp'
-import type { NextPage } from 'next'
 import Head from 'next/head'
 import React, { useEffect, useState } from 'react'
 import { BiPaint } from 'react-icons/bi'
 import { BsClipboardData } from 'react-icons/bs'
 import { themed } from 'theme/theme'
-import Typer from '../src/components/shared/misc/typer'
-import Scaffold from '../src/components/shared/scaffold'
+import Scaffold from '@components/shared/scaffold'
 
 const Section = (props: FlexProps) => (
   <Flex flexDir="column" minH="100vh" p={["2rem", "2.5rem", "3rem", "5rem"]} mt="5rem" {...props}>
