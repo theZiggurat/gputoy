@@ -105,7 +105,7 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
 
   const onClickProject = (pid: string) => {
     setCurrentProjectId(pid)
-    router.push(`/create/${pid}`, undefined, { shallow: true })
+    router.push(`/editor/${pid}`, undefined, { shallow: true })
   }
 
   return (

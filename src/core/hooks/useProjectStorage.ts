@@ -44,7 +44,7 @@ const useProjectStorage = (props: ProjectStorageProps) => {
         duration: 5000,
         isClosable: true
       })
-      router.push('/create')
+      router.push('/editor')
     }, 1000)
     return () => clearTimeout(timeoutId)
   }, [])

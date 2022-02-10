@@ -2,7 +2,7 @@ import { chakra, useColorModeValue } from '@chakra-ui/react'
 import usePanels from '@core/hooks/usePanels'
 import useProjectManager from '@core/hooks/useProjectManager'
 import useProjectStorage from '@core/hooks/useProjectStorage'
-import { GetServerSideProps } from 'next'
+import { GetServerSideProps, GetStaticPaths, GetStaticProps } from 'next'
 import React, { useEffect } from 'react'
 import { lightResizer, darkResizer } from 'theme/consts'
 import prisma from 'core/backend/prisma'
@@ -22,9 +22,23 @@ type CreatePageProps = {
   dateInfo: CreatePageProjectSaveHistorySer | null
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ query }) => {
+export const getStaticPaths: GetStaticPaths = async () => {
+  const query = await prisma.project.findMany({
+    select: {
+      id: true
+    },
+    where: {
+      template: true
+    }
+  })
+  const paths = query.map(q => ({ params: { pid: q.id } }))
 
-  const id = query.pid as string
+  return { paths, fallback: true }
+}
+
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+
+  const id = params.pid as string
 
   const project = await prisma.project.findUnique({
     ...createPageProjectQuery,

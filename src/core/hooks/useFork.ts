@@ -50,7 +50,7 @@ const useFork = () => {
     setProjectLastSave(null)
     setProjectLastSaveLocal(updateDateLocal)
     localStorage.setItem(`project_local_${localProjectId}`, JSON.stringify(projectWithDate))
-    router.push(`/create/${localProjectId}`)
+    router.push(`/editor/${localProjectId}`)
 
     toast({
       title: 'Project Forked',

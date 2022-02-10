@@ -81,7 +81,7 @@ const Browse = (props: { projects: Project[] }) => {
 										colSpan={idx == 0 || idx == 7 ? 2 : 1}
 										cursor="pointer"
 									>
-										<ProjectCard project={p} bg />
+										<ProjectCard project={p} bg blur={6} />
 									</GridItem>
 								)
 							})

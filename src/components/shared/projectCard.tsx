@@ -47,7 +47,7 @@ const ProjectCard = (props: {
   }
 
   return (
-    <Link href={`/create/${project.id}`} passHref>
+    <Link href={`/editor/${project.id}`} passHref>
       <Box
         width="100%"
         height="100%"

@@ -34,7 +34,7 @@ const usePost = (): [(action: PostAction) => void, boolean] => {
           setLastSave(new Date().toISOString())
           localStorage.removeItem(`project_local_${projectId}`)
           if (newproj.id != projectId) {
-            setTimeout(() => router.push(`/create/${newproj.id}`), 0.5)
+            setTimeout(() => router.push(`/editor/${newproj.id}`), 0.5)
 
           }
           toast({

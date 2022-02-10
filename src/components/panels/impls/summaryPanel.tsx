@@ -120,7 +120,7 @@ const ProjectInfo = () => {
         {
           forkSource &&
           <Label text="Forks">
-            <OutwardLink title={forkSource.title} href={`/create/${forkSource.id}`} />
+            <OutwardLink title={forkSource.title} href={`/editor/${forkSource.id}`} />
           </Label>
         }
       </Stack>
