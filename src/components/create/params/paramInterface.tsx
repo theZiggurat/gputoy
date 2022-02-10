@@ -29,9 +29,8 @@ export type InterfaceProps = {
   onChange: (newval: number[]) => void,
   width: number,
   height: number,
-  mouseX: number,
-  mouseY: number,
-  scroll: number,
+  interfaceProps: any,
+  setInterfaceProps: (props: any, merge?: boolean) => void,
 }
 
 export const ParamInterface = (props: { selectedParam: string | null } & BoxProps) => {
@@ -42,13 +41,18 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
   const interfaceType = typeToInterface[param.paramType][param.interface ?? 0]
   const paramInterface = param ? interfaces[interfaceType] : null
   const { width, height, ref } = useResizeDetector()
-  const [scroll, setScroll] = useState(0)
 
   const onHandleValueChange = (newval: number[]) => {
     setParam(old => ({ ...old, param: newval }))
   }
 
-  const onHandleWheel = (ev) => setScroll(old => old + ev.deltaY)
+  const onHandleSetInterfaceProps = (props: any, merge?: boolean) => {
+    setParam(old => ({
+      ...old,
+      interfaceProps: merge ? { ...old.interfaceProps, ...props } : { ...props }
+    }))
+  }
+
 
 
   return (
@@ -63,7 +67,6 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
       borderLeft="1px solid"
       borderColor={themed('dividerLight')}
       overflow="hidden"
-      onWheel={onHandleWheel}
       {...rest}
     >
 
@@ -74,10 +77,11 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
           paramInterface,
           {
             value: param.param,
+            interfaceProps: param.interfaceProps ?? {},
+            setInterfaceProps: onHandleSetInterfaceProps,
             onChange: onHandleValueChange,
             width: width ? width : 0,
             height: height ? height : 0,
-            scroll
           }
         )
       }

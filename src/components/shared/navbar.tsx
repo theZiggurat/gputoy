@@ -1,6 +1,6 @@
 import { ArrowDownIcon } from '@chakra-ui/icons';
 import {
-  Badge, Button, chakra, Flex, Text, HStack, useMediaQuery, IconButton, useColorModeValue
+  Badge, Button, chakra, Flex, Text, HStack, useMediaQuery, IconButton, useColorModeValue, Box
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
@@ -14,6 +14,8 @@ import { MdMenu, MdMonitor } from 'react-icons/md';
 import Link from 'next/link';
 import { FaTags } from 'react-icons/fa';
 import { AiFillStar } from 'react-icons/ai'
+import { themedRaw } from '../../theme/theme';
+import { IoCode } from 'react-icons/io5';
 
 
 const navlinks = [
@@ -192,12 +194,27 @@ export default function Nav() {
             <NavLink text="Extend" onHover={onHandleHover} index={2} />
             <NavLink text="Resources" onHover={onHandleHover} index={3} />
           </chakra.ul >
+
           <NavUser variant="empty" fontWeight="normal" color={themed('textMid')} textAlign="center" lineHeight="short" leftIcon={undefined} offset="2.5rem" center />
-          <Link href="/editor" passHref>
-            <Button bg="red.500" color="dark.textMid" border="none" size="sm" ml="3rem" px="1rem" leftIcon={<MdMonitor />}>
-              Editor
+          <Box>
+            <Button
+              mx="4rem"
+              px="1rem"
+              maxW="8rem"
+              leftIcon={<IoCode fill={themedRaw('textMid')} />}
+              lineHeight="short"
+              variant="heavy"
+              flex="0 0 auto"
+              p="0.5rem"
+            >
+              <Link href="/editor" passHref>
+                Editor
+              </Link>
+
             </Button>
-          </Link>
+          </Box>
+
+
 
           <Flex
             justifyContent="center"

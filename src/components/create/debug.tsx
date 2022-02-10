@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Flex, Input, Portal, Text } from '@chakra-ui/react'
+import { Box, Divider, Flex, Input, Portal, Text } from '@chakra-ui/react'
 import { themed } from 'theme/theme'
 import { useRecoilSnapshot } from 'recoil'
 import ReactJson from 'react-json-view-ssr'
@@ -44,17 +44,6 @@ const RecoilDebugPanel = () => {
       {
         show &&
         <>
-          <Box
-            pos="absolute"
-            left="0px"
-            top="0px"
-            width="100%"
-            height="100%"
-            zIndex={19}
-            bg={themed('button')}
-            backdropFilter="blur(2px)"
-            onClick={() => setShow(false)}
-          />
           <Flex
             pos="absolute"
             width="35%"
@@ -68,27 +57,28 @@ const RecoilDebugPanel = () => {
             zIndex={20}
             transform="translate(-50%, 0)"
             flexDir="column"
-            p="1rem"
             gridGap="1rem"
+
           >
-            <Flex gridGap="1rem">
+            <Flex gridGap="1rem" borderBottom="1px" borderColor={themed("border")} p="0.5rem">
               <Text fontWeight="bold" minW="max-content" color={themed('textMid')}>
                 State Debug
               </Text >
-              <Input val={filter} onChange={ev => setFilter(ev.target.value)} />
+              <Input val={filter} onChange={ev => setFilter(ev.target.value)} size="xs" autoFocus />
             </Flex>
-            <ReactJson
-              src={filteredNodes}
-              displayDataTypes={false}
-              collapsed={1}
-              theme="google"
-              collapseStringsAfterLength={50}
-              enableClipboard={false}
-              style={{
-                background: 'none',
-                overflowY: "scroll"
-              }}
-            />
+            <Box p="1rem" flex="1 1 auto" height="100%" overflow="scroll">
+              <ReactJson
+                src={filteredNodes}
+                displayDataTypes={false}
+                collapsed={2}
+                theme="google"
+                collapseStringsAfterLength={75}
+                enableClipboard={false}
+                style={{
+                  background: 'none'
+                }}
+              />
+            </Box>
           </Flex>
         </>
       }

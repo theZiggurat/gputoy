@@ -11,6 +11,7 @@ import { BiPaint } from 'react-icons/bi'
 import { BsClipboardData } from 'react-icons/bs'
 import { themed } from 'theme/theme'
 import Scaffold from '@components/shared/scaffold'
+import { MdCode } from 'react-icons/md'
 
 const Section = (props: FlexProps) => (
   <Flex flexDir="column" minH="100vh" p={["2rem", "2.5rem", "3rem", "5rem"]} mt="5rem" {...props}>
@@ -155,10 +156,10 @@ const Home = (props: HomePageProps) => {
               <Image src={useColorModeValue("/glslLogo.svg", "/glslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)" alt="GLSL" />
             </Flex>
             <Flex alignItems="center" justifyContent="center" p="5rem" gridGap="1rem">
-              <Button size="lg" bg='red.500' rightIcon={<BiPaint />}>
+              <Button variant="heavy" leftIcon={<MdCode size={22} />} fontSize="xl" p="1.2rem" textAlign="center">
                 Start Shading
               </Button>
-              <Button size="lg" bg='red.500' rightIcon={<BsClipboardData />}>
+              <Button variant="heavy" leftIcon={<MdCode size={22} />} fontSize="xl" p="1.2rem" textAlign="center">
                 Sign Up for Free
               </Button>
             </Flex>

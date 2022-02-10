@@ -7,6 +7,10 @@ import Checkbox from "@components/shared/checkbox"
 export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
   const [isNorm, setIsNorm] = useState(false)
+  const [scroll, setScroll] = useState(props.interfaceProps.scroll as number ?? 0)
+
+  const onHandleWheel = (ev) => setScroll(old => old + ev.deltaY)
+  // useEffect(() => { props.setInterfaceProps(scroll) }, [scroll, props])
 
   const mag = (t: number[]) => Math.sqrt(t[0] * t[0] + t[1] * t[1])
   const normalize = (coord: number[]) => {
@@ -15,7 +19,7 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
     return [len > 0 ? x / len : 0, len > 0 ? y / len : 0]
   }
 
-  const zoom = isNorm ? 1 : Math.pow(10, props.scroll / 100_00)
+  const zoom = isNorm ? 1 : Math.pow(10, scroll / 100_00)
   const size = props.width//Math.min(props.width ?? 0, props.height ?? 0)
   const half = size / 2
 
@@ -59,7 +63,7 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
   return (
     <>
-      <svg width={size} height={size} viewBox={`-${half + 8} -${half + 8} ${size + 16} ${size + 16}`} ref={ref}>
+      <svg width={size} height={size} viewBox={`-${half + 8} -${half + 8} ${size + 16} ${size + 16}`} ref={ref} onWheel={onHandleWheel}>
         <defs>
           <clipPath id="clip">
             <circle cx={0} cy={0} r={half} />

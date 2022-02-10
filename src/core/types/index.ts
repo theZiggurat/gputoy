@@ -25,6 +25,7 @@ export type ParamDesc = {
   param: number[],
   key?: string,
   interface?: number,
+  interfaceProps?: any
 }
 
 

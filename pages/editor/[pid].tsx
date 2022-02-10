@@ -12,9 +12,11 @@ import Nav from '@components/create/navbar'
 import { scrollbarHidden } from 'theme/consts'
 import { CreatePageProjectQuery, createPageProjectQuery, createPageProjectSaveHistory, CreatePageProjectSaveHistorySer } from 'core/types/queries'
 import { useSession } from 'next-auth/client'
-import { useSetRecoilState } from 'recoil'
-import { currentProjectIdAtom } from 'core/recoil/atoms/project'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { currentProjectIdAtom, projectTitleAtom } from 'core/recoil/atoms/project'
 import KeybindManager from '@components/create/keybinds'
+import RecoilDebugPanel from '@components/create/debug'
+import Head from 'next/head'
 
 type CreatePageProps = {
   projectId: string,
@@ -67,6 +69,13 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }
 }
 
+const EditorTitle = () => {
+  const title = useRecoilValue(projectTitleAtom)
+  return <Head>
+    <title>{title != null && title.length > 0 ? title : "Editor"}</title>
+  </Head>
+}
+
 const ScopedProjectManager = (props: CreatePageProps) => {
 
   const [session, loading] = useSession()
@@ -88,6 +97,7 @@ const Create = (props: CreatePageProps) => {
 
   return (
     <>
+      <EditorTitle />
       <chakra.main
         display="flex"
         flexFlow="column"
@@ -99,7 +109,7 @@ const Create = (props: CreatePageProps) => {
         css={scrollbarHidden}
       >
 
-        {/* <RecoilDebugPanel /> */}
+        <RecoilDebugPanel />
         <ScopedProjectManager {...props} />
         <KeybindManager />
 

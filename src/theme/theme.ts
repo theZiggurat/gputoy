@@ -113,6 +113,16 @@ const theme = extendTheme({
           _hover: {
             bg: "none"
           }
+        },
+        heavy: {
+          color: "textMid",
+          bg: "red.500",
+          _hover: {
+            bg: "red.600"
+          },
+          border: "2px",
+          borderRadius: "4px",
+          borderColor: "red.600"
         }
       },
       defaultProps: {

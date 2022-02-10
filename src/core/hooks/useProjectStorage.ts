@@ -59,8 +59,9 @@ const useProjectStorage = (props: ProjectStorageProps) => {
    */
   useEffect(() => {
 
+    console.log(`project_local_${projectID}`)
     const projectFromStorage = localStorage.getItem(`project_local_${projectID}`)
-
+    console.log(projectFromStorage)
     console.log('storage', !!projectFromStorage, 'db', !!projectFromDB, projectID)
     if (!projectFromDB && !projectFromStorage) {
       return
