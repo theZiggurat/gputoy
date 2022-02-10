@@ -10,7 +10,7 @@ import { themed } from '../../theme/theme';
 import NavUser from './user';
 import { IoMdArrowDropdown } from 'react-icons/io'
 import { RiArrowDownSLine } from 'react-icons/ri';
-import { MdMenu } from 'react-icons/md';
+import { MdMenu, MdMonitor } from 'react-icons/md';
 import Link from 'next/link';
 import { FaTags } from 'react-icons/fa';
 import { AiFillStar } from 'react-icons/ai'
@@ -189,16 +189,16 @@ export default function Nav() {
             mx="4rem"
           >
             <NavLink text="Browse" onHover={onHandleHover} index={0} />
-            <NavLink text="Create" onHover={onHandleHover} index={1} />
             <NavLink text="Extend" onHover={onHandleHover} index={2} />
             <NavLink text="Resources" onHover={onHandleHover} index={3} />
           </chakra.ul >
-          <Text fontWeight="med" fontSize="sm" color={themed('textMid')}>
-            Sign in
-          </Text>
-          <Button bg="red.500" color="dark.textMid" border="none" size="sm" ml="3rem">
-            Start Shading
-          </Button>
+          <NavUser variant="empty" fontWeight="normal" color={themed('textMid')} textAlign="center" lineHeight="short" leftIcon={undefined} offset="2.5rem" center />
+          <Link href="/editor" passHref>
+            <Button bg="red.500" color="dark.textMid" border="none" size="sm" ml="3rem" px="1rem" leftIcon={<MdMonitor />}>
+              Editor
+            </Button>
+          </Link>
+
           <Flex
             justifyContent="center"
             alignItems="center"
@@ -253,7 +253,7 @@ export default function Nav() {
           </HStack>
         </Flex>
       }
-    </chakra.nav>
+    </chakra.nav >
 
 
   );

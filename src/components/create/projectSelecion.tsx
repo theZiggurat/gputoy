@@ -1,25 +1,20 @@
 import React, { useEffect, useState } from "react"
 import { Modal } from '@components/shared/modal'
-import { Box, Flex, Text, Grid, HStack, Avatar, Center, Spinner, useColorModeValue, Input, Button, IconButton } from '@chakra-ui/react'
+import { Box, Flex, Text, Grid, HStack, Avatar, Center, Spinner, useColorModeValue, Input } from '@chakra-ui/react'
 import { themed } from "theme/theme"
 import { CreatePageProjectQueryWithId } from "core/types/queries"
 import useProjectDirect from "@core/hooks/useProjectDirect"
-import prisma from "core/backend/prisma"
-import { session, useSession } from "next-auth/client"
-import { Session } from "next-auth"
-import Link from 'next/link'
-import { FiHardDrive, FiMoreVertical } from 'react-icons/fi'
+import { useSession } from "next-auth/client"
+import { FiHardDrive } from 'react-icons/fi'
 import { BsCloudArrowUp, BsCloudCheck } from "react-icons/bs"
 import { useSetRecoilState } from "recoil"
-import { currentProjectIdAtom, projectLastSaveLocal } from "core/recoil/atoms/project"
-import { nanoid } from "nanoid"
+import { currentProjectIdAtom } from "core/recoil/atoms/project"
 import { useRouter } from "next/router"
 import useFork from "core/hooks/useFork"
 import NavUser from "@components/shared/user"
 import generate from "project-name-generator"
 import { MdPublishedWithChanges, MdCheck } from 'react-icons/md'
 import useProjectSession from "@core/hooks/useProjectSession"
-import { LineSpinner } from "@components/shared/spinners"
 
 type ProjectInfo = {
   id: string,
@@ -208,9 +203,9 @@ const ProjectTemplates = (props: { templates: CreatePageProjectQueryWithId[] }) 
         <Text>
           Templates
         </Text>
-        <Input size="xs" maxW="50%" h="1.3rem">
+        {/* <Input size="xs" maxW="50%" h="1.3rem">
 
-        </Input>
+        </Input> */}
       </Flex>
       <Grid templateColumns="repeat(3, 1fr)" p="1rem" gridGap="1rem" maxH="600px" overflowY="scroll">
         {
@@ -349,7 +344,7 @@ const ProjectSelection = (props: { templates: CreatePageProjectQueryWithId[] }) 
             }
             {
               !session &&
-              <NavUser size="lg" p="1rem" />
+              <NavUser size="lg" p="1rem" offset="2.5rem" />
             }
 
           </HStack>
