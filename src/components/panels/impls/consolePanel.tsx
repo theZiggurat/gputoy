@@ -5,9 +5,9 @@ import {
   InputLeftElement,
   InputRightElement, Text, useColorModeValue, useToast
 } from "@chakra-ui/react";
-import { Message } from '@recoil/console';
-import useConsole, { useClearConsole } from '@recoil/hooks/useConsole';
-import useInstance from '@recoil/hooks/useInstance';
+import { Message } from 'core/recoil/atoms/console';
+import useConsole, { useClearConsole } from 'core/hooks/useConsole';
+import useInstance from '@core/hooks/useInstance';
 import React, { useEffect } from 'react';
 import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa';
 import { MdSettings } from 'react-icons/md';

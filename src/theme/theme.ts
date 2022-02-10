@@ -12,8 +12,8 @@ const dark = {
   a2: '#0B0B0B',
   a3: '#090909',
   bg: '#050505',
-  button: 'rgba(255, 0, 0, 0.04)',//'whiteAlpha.100',
-  buttonHovered: 'rgba(255, 255, 255, 0.8)',//'whiteAlpha.300',
+  button: 'rgba(255, 255, 255, 0.04)',//'whiteAlpha.100',
+  buttonHovered: 'rgba(255, 255, 255, 0.08)',//'whiteAlpha.300',
   divider: 'rgba(255, 255, 255, 0.1)',//'blackAlpha.400',
   dividerLight: 'rgba(255, 255, 255, 0.03)',
   input: 'rgba(255, 255, 255, 0.04)', //'whiteAlpha.50',
@@ -70,7 +70,7 @@ const theme = extendTheme({
       },
       button: {
         color: mode('rgba(0, 0, 0, 0.72)', 'rgba(255, 255, 255, 0.72)')(props),
-        bg: mode('rgba(255, 255, 255, 0.04)', 'rgba(255, 255, 255, 0.04)')(props),
+        bg: mode('rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.04)')(props),
         border: '1px',
         borderColor: 'transparent',//mode('rgba(0, 0, 0, 0.2)', 'rgba(255, 255, 255, 0.05)')(props),
         _hover: {

@@ -1,7 +1,14 @@
-#### Note: Before checking out the site, see supported browsers. 
+[![License](https://img.shields.io/github/license/theZiggurat/gputoy)]()
+![GitHub package.json version](https://img.shields.io/github/package-json/v/theZiggurat/gputoy?color=blue)
+![GitHub deployments](https://img.shields.io/github/deployments/theZiggurat/gputoy/preview?label=production&logo=vercel&logoColor=white)
+![GitHub deployments](https://img.shields.io/github/deployments/theZiggurat/gputoy/preview?label=preview&logo=vercel&logoColor=white)
+
+#### `Note: See supported browsers`
+#### `Note++: This project is a major work in progress. Many ui functions are not implemented yet and some implemented features may be inconsistent or buggy. Check the `[docs](docs/)&nbsp;`if you're interesting in contributing.`
 # [gputoy](https://gputoy.io)
 
-A shader prototyping tool built with [`WebGPU`](https://www.w3.org/TR/webgpu/).
+## A shader prototyping tool built for [`WebGPU`](https://www.w3.org/TR/webgpu/).
+![A screenshot of gputoy running in firefox](./docs/ui-demo.png)
 
 ## **Top Goals**
 
@@ -35,13 +42,22 @@ A shader prototyping tool built with [`WebGPU`](https://www.w3.org/TR/webgpu/).
 
 - **Low Bandwith/Storage**
   - I dont ever plan on running ads on gputoy, so expenses should be kept to a minimum. Monetization will only be used as necessary.
-  - Saving to database will be explicit.
+  - Database queries should only be used when needed.
 
 ***
 
 ## **Currently Supported Browsers**
-
   - Chrome version > 94 will work automatically thanks to origin trial
     - Chrome version > 80 with `enable-unsafe-webgpu` flag enabled
   - Firefox version > 63 with `dom.webgpu.enabled` flag enabled
   - Safari version > 11.1 with `WebGPU` experimental feature on MACOS (not tested)
+
+## **Stack**
+
+- Nextjs - Framework
+- Vercel - Hosting
+- React - UI
+- Recoil - State management
+- Prisma - ORM
+- Chakra - Styling
+- Monaco - VSCode-like editor

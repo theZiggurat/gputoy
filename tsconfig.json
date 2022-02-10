@@ -35,6 +35,12 @@
       ],
       "@database/*": [
         "database/*"
+      ],
+      "@core/*": [
+        "core/*"
+      ],
+      "@theme/*": [
+        "theme/*"
       ]
     }
   },

@@ -6,10 +6,10 @@ import {
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import React from 'react'
-import prisma from '@database/prisma'
-import ProjectCard from '../src/components/shared/projectCard'
-import Scaffold from '../src/components/shared/scaffold'
-import { themed } from '../src/theme/theme'
+import prisma from 'core/backend/prisma'
+import ProjectCard from '@components/shared/projectCard'
+import Scaffold from '@components/shared/scaffold'
+import { themed } from '@theme/theme'
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 	const projects = await prisma.project.findMany({
@@ -81,7 +81,7 @@ const Browse = (props: { projects: Project[] }) => {
 										colSpan={idx == 0 || idx == 7 ? 2 : 1}
 										cursor="pointer"
 									>
-										<ProjectCard project={p} bg />
+										<ProjectCard project={p} bg blur={6} />
 									</GridItem>
 								)
 							})

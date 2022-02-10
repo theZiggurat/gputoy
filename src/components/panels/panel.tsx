@@ -1,8 +1,8 @@
 import {
   Box, Button, Divider, Flex, IconButton, Popover, PopoverContent, PopoverTrigger, Portal, Text
 } from '@chakra-ui/react'
-import useInstance, { useInstances } from '@recoil/hooks/useInstance'
-import { PanelProps } from '@recoil/hooks/usePanels'
+import useInstance, { useInstances } from '@core/hooks/useInstance'
+import { PanelProps } from '@core/hooks/usePanels'
 import React, { forwardRef, LegacyRef, ReactElement, ReactNode, useEffect } from 'react'
 import { VscClose, VscSplitHorizontal, VscSplitVertical } from 'react-icons/vsc'
 import SplitPane from 'react-split-pane'

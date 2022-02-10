@@ -4,7 +4,7 @@ import {
 	Center, Flex, HStack, Icon,
 	Input, Spinner, Stack, Text, useColorMode
 } from '@chakra-ui/react';
-import useProjectSession from '@recoil/hooks/useProjectSession';
+import useProjectSession from '@core/hooks/useProjectSession';
 import { Session } from 'next-auth';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import { useRouter } from 'next/router';
@@ -23,7 +23,8 @@ const MenuButton = (props: {
 	text: string,
 	onClick?: () => void,
 	icon?: ReactElement,
-	last?: boolean
+	last?: boolean,
+
 }) => {
 	return (
 		<Flex
@@ -44,6 +45,8 @@ type UserMenuProps = {
 	session: Session | null
 	loading: boolean
 	isOpen: boolean
+	offset?: string
+	center?: boolean
 }
 const UserMenu = (props: UserMenuProps) => {
 
@@ -62,7 +65,7 @@ const UserMenu = (props: UserMenuProps) => {
 		inner = (
 			<>
 				<Stack p="0.5rem" pt="1rem">
-					<Input type="text" placeholder="Username or Email" />
+					<Input type="text" placeholder="Email" />
 					<Input type="password" placeholder="Password" />
 				</Stack>
 				<HStack p="0.5rem" pb="1rem" justifyContent="center">
@@ -96,20 +99,25 @@ const UserMenu = (props: UserMenuProps) => {
 			direction="column"
 			borderRadius="0px"
 			position="absolute"
-			top="120%"
-			right="0%"
+			top={props.offset ?? "2rem"}
+			right={props.center ? "50%" : "0"}
 			bg={themed('a1')}
 			visibility={props.isOpen ? 'visible' : 'hidden'}
 			border="1px"
 			borderColor={themed('border')}
 			shadow="xl"
+			transform={props.center ? "translateX(50%)" : ""}
 		>
 			{inner}
 		</Flex>
 	)
 }
 
-const NavUser = (props: ButtonProps) => {
+type NavUserProps = {
+	offset?: string
+	center?: boolean
+}
+const NavUser = (props: ButtonProps & NavUserProps) => {
 
 	const router = useRouter()
 	const [session, loading, isOwner] = useProjectSession()
@@ -143,7 +151,7 @@ const NavUser = (props: ButtonProps) => {
 			{...props}
 		>
 			{session?.user?.name ?? 'Sign In'}
-			<UserMenu session={session} loading={loading} isOpen={isOpen} />
+			<UserMenu session={session} loading={loading} isOpen={isOpen} offset={props.offset} center={props.center} />
 		</Button>
 	)
 }

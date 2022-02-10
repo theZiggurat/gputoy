@@ -2,7 +2,7 @@ import { NextApiHandler } from 'next';
 import NextAuth from 'next-auth';
 import Providers from 'next-auth/providers';
 import Adapters from 'next-auth/adapters';
-import prisma from '@database/prisma';
+import prisma from 'core/backend/prisma';
 
 const authHandler: NextApiHandler = (req, res) => NextAuth(req, res, options);
 export default authHandler;

@@ -1,6 +1,6 @@
 
 import React, { useState } from "react"
-import useProjectDirect from "@recoil/hooks/useProjectDirect"
+import useProjectDirect from "@core/hooks/useProjectDirect"
 import {
   Text,
   Box,
@@ -9,7 +9,7 @@ import {
   useColorModeValue
 } from '@chakra-ui/react'
 import Link from "next/link"
-import { CreatePageProjectQueryWithId } from "@database/args"
+import { CreatePageProjectQueryWithId } from "core/types/queries"
 
 const ProjectCard = (props: {
   project: CreatePageProjectQueryWithId
@@ -47,7 +47,7 @@ const ProjectCard = (props: {
   }
 
   return (
-    <Link href={`/create/${project.id}`} passHref>
+    <Link href={`/editor/${project.id}`} passHref>
       <Box
         width="100%"
         height="100%"

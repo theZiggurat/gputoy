@@ -1,5 +1,5 @@
 import { useToast } from "@chakra-ui/toast"
-import usePost from "@recoil/hooks/project/usePost"
+import usePost from "@core/hooks/usePost"
 import { useRouter } from "next/router"
 import React from "react"
 import Dropdown, { DropdownDivider, DropdownItem, DropdownSubDropdown } from "../dropdown"
@@ -30,7 +30,7 @@ const useDropdown = () => {
   const router = useRouter()
   const post = usePost()
 
-  const goToOpen = () => router.replace('/create', undefined, { shallow: true })
+  const goToOpen = () => router.replace('/editor', undefined, { shallow: true })
 
   return { goToOpen, post }
 }

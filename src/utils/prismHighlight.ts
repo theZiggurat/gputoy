@@ -5,7 +5,7 @@ import "prismjs/components/prism-clike";
 import "prismjs/components/prism-c";
 import "prismjs/components/prism-glsl";
 import "prismjs/components/prism-rust";
-import { FileErrors } from "@recoil/project";
+import { FileErrors } from "core/recoil/atoms/project";
 
 export default (input: string, lang: string, filename: string, fileErrors: FileErrors) =>
   highlight(input, lang == 'wgsl' ? languages.rust : languages.glsl)
