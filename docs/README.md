@@ -1,6 +1,6 @@
 # Docs
 
-## Non-comprehensive schematic of data flow in gputoy. This is *not* a UML table or anything official.
+## Non-comprehensive schematic of data flow in gputoy.
  (updated 2/5/2022)
 ![](./gputoy-dataflow.png)
 

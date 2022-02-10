@@ -1,11 +1,12 @@
-/* eslint-disable import/no-anonymous-default-export */
-import { layoutAtom } from "core/recoil/atoms/layout"
+import { useEffect, useState } from "react"
+import { useRecoilState, useResetRecoilState } from "recoil"
 import { debounce, get } from "lodash"
 import { set } from "lodash/fp"
 import { nanoid } from "nanoid"
-import { useEffect, useState } from "react"
-import { useRecoilState, useResetRecoilState } from "recoil"
+
+import { layoutAtom } from "@core/recoil/atoms/layout"
 import { useInstanceCleaner } from "./useInstance"
+
 
 type Location = 'top' | 'bottom' | 'left' | 'right'
 
@@ -27,7 +28,7 @@ type PanelOptions = {
   initialLayout?: any
 }
 
-export default (options: PanelOptions): PanelProps => {
+const usePanels = (options: PanelOptions): PanelProps => {
 
   const { fixed, initialLayout } = options
 
@@ -154,3 +155,5 @@ const instances = (obj: any, path: string = ''): any[] => {
 }
 
 const genID = () => nanoid(8)
+
+export default usePanels

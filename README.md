@@ -1,9 +1,10 @@
-![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white)
-![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
-![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
-![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
+[![License](https://img.shields.io/github/license/theZiggurat/gputoy)]()
+![GitHub package.json version](https://img.shields.io/github/package-json/v/theZiggurat/gputoy?color=blue)
+![GitHub deployments](https://img.shields.io/github/deployments/theZiggurat/gputoy/preview?label=production&logo=vercel&logoColor=white)
+![GitHub deployments](https://img.shields.io/github/deployments/theZiggurat/gputoy/preview?label=preview&logo=vercel&logoColor=white)
 
-#### Note: See supported browsers 
+#### `Note: See supported browsers`
+#### `Note++: This project is a major work in progress. Many ui functions are not implemented yet and some implemented features may be inconsistent or buggy. Check the `[docs](docs/)&nbsp;`if you're interesting in contributing.`
 # [gputoy](https://gputoy.io)
 
 ## A shader prototyping tool built for [`WebGPU`](https://www.w3.org/TR/webgpu/).
@@ -41,7 +42,7 @@
 
 - **Low Bandwith/Storage**
   - I dont ever plan on running ads on gputoy, so expenses should be kept to a minimum. Monetization will only be used as necessary.
-  - Saving to database will be explicit.
+  - Database queries should only be used when needed.
 
 ***
 
@@ -51,4 +52,12 @@
   - Firefox version > 63 with `dom.webgpu.enabled` flag enabled
   - Safari version > 11.1 with `WebGPU` experimental feature on MACOS (not tested)
 
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+## **Stack**
+
+- Nextjs - Framework
+- Vercel - Hosting
+- React - UI
+- Recoil - State management
+- Prisma - ORM
+- Chakra - Styling
+- Monaco - VSCode-like editor

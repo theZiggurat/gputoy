@@ -1,5 +1,5 @@
 import { Box, BoxProps, Flex, Text } from "@chakra-ui/layout"
-import { Input, Select, IconButton, FlexboxProps } from "@chakra-ui/react"
+import { Input, Select, IconButton, FlexboxProps, chakra } from "@chakra-ui/react"
 import { ParamDesc, ParamType } from "core/types"
 import { projectParamsAtom } from "core/recoil/atoms/project"
 import React, { useState } from "react"
@@ -34,7 +34,6 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
   }
 
   return <Flex
-    //width={highlight ? "100%" : "98%"}
     height="2.5rem"
     onFocus={() => onSelect(paramKey)}
     bg={highlight ? themed('a3') : themed('a2')}
@@ -73,17 +72,13 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
     //borderColor="red.500"
 
     />
-    <Select
-      w="3rem"
-      flex="0 0 auto"
-      minW={0}
+    <chakra.select
+      bg="none"
+      fontSize="xs"
       value={param.paramType}
       onChange={(ev) => {
         setParam(old => ({ ...old, paramType: ev.target.value as ParamType }))
       }}
-      bg='none'
-      border="none"
-      size="xs"
     >
       <option value="int">int</option>
       <option value="float">float</option>
@@ -92,18 +87,19 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
       <option value="vec3f">vec3f</option>
       <option value="vec2i">vec2i</option>
       <option value="vec3i">vec3i</option>
-    </Select>
+    </chakra.select>
     <Flex
       flexDir="row"
       width="20rem"
     >
-      {React.createElement(input,
-        {
-          value: param.param,
-          onChange: onHandleValueChange,
-          opened: open
-        }
-      )
+      {
+        React.createElement(input,
+          {
+            value: param.param,
+            onChange: onHandleValueChange,
+            opened: open
+          }
+        )
       }
     </Flex>
 

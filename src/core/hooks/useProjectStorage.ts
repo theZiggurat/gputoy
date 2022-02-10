@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable import/no-anonymous-default-export */
 import { toast, useToast } from '@chakra-ui/toast'
 import { CreatePageProjectQuery, CreatePageProjectSaveHistorySer } from 'core/types/queries'
 import { withCreatePageProject } from 'core/recoil/selectors/queries'
@@ -56,6 +54,9 @@ const useProjectStorage = (props: ProjectStorageProps) => {
       clearTimeout(timeoutId.current)
   }, [isSet])
 
+  /**
+   * 
+   */
   useEffect(() => {
 
     const projectFromStorage = localStorage.getItem(`project_local_${projectID}`)
@@ -78,6 +79,7 @@ const useProjectStorage = (props: ProjectStorageProps) => {
     setIsSet(true)
     setEnableSave(true)
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectID, projectFromDB, setProjectID])
 
   const saveToLocalStorage = () => {
@@ -102,7 +104,7 @@ const useProjectStorage = (props: ProjectStorageProps) => {
       debouncedSaveToLocalStorage()
     }
     return () => debouncedSaveToLocalStorage.cancel()
-  }, [projectState, projectID])
+  }, [projectState, projectID, isOwner, enableSave, debouncedSaveToLocalStorage])
 
 }
 

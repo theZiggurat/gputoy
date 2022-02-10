@@ -23,7 +23,8 @@ export type ParamDesc = {
   paramName?: string,
   paramType: ParamType
   param: number[],
-  key?: string
+  key?: string,
+  interface?: number,
 }
 
 

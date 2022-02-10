@@ -1,13 +1,23 @@
-/* eslint-disable import/no-anonymous-default-export */
-import GPU from "core/system/gpu"
-import { Project } from "@core/system/project"
-import { ProjectControl, projectRunStatusAtom } from "core/recoil/atoms/controls"
-import { canvasInitializedAtom, currentProjectIdAtom, projectShaderErrorsAtom, projectShadersAtom, withDefaultParams, withUserParams } from "core/recoil/atoms/project"
 import { useCallback, useEffect, useRef } from "react"
 import { useRecoilValue, useSetRecoilState } from "recoil"
-import { useClearConsole } from "../../core/hooks/useConsole"
+
 import useLogger from "./useLogger"
 import useProjectControls from "./useProjectControls"
+import GPU from "@core/system/gpu"
+import { Project } from "@core/system/project"
+import { useClearConsole } from "@core/hooks/useConsole"
+import { ProjectControl, projectRunStatusAtom } from "@core/recoil/atoms/controls"
+import {
+  canvasInitializedAtom,
+  currentProjectIdAtom,
+  projectShaderErrorsAtom,
+  projectShadersAtom,
+  withDefaultParams,
+  withUserParams
+} from "@core/recoil/atoms/project"
+
+
+
 
 const useProjectManager = () => {
 

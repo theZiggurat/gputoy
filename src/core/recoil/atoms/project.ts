@@ -39,7 +39,7 @@ var _idx = 0
 const idx = () => _idx++
 export const projectParamsAtom = atomFamily<types.ParamDesc, string>({
   key: 'projectParams',
-  default: (key: string) => ({ paramName: undefined, paramType: "int", param: [0], key }),
+  default: (key: string) => ({ paramName: undefined, paramType: "int", param: [0], key, interface: 0 }),
 })
 
 export const projectParamKeys = atom<string[]>({

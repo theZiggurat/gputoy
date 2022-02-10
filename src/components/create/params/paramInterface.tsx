@@ -1,28 +1,27 @@
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
-import { ParamDesc } from "core/types"
-import { SetterOrUpdater, useRecoilState } from "recoil"
-import { Flex, Input, Text, Box, BoxProps, IconButton } from '@chakra-ui/react'
+import { useRecoilState } from "recoil"
+import { Box, BoxProps, Select } from '@chakra-ui/react'
 import { themed } from 'theme/theme'
 import { useResizeDetector } from 'react-resize-detector'
 import { projectParamsAtom } from 'core/recoil/atoms/project'
-import Dropdown, { DropdownItem } from '../dropdown'
 import { Vec2InterfaceRadial } from './interface/vec2Interface'
-import { FiMoreHorizontal } from 'react-icons/fi'
+import { FloatInterfaceKnob } from './interface/floatInterface'
 
 
 export const typeToInterface = {
-  'int': ['Scroll', 'Step Scroll'],
-  'float': ['Scroll', 'Step Scroll'],
+  'int': ['Knob'],
+  'float': ['Knob'],
   'color': ['RGB', 'HSV'],
   'vec3f': [],
   'vec3i': [],
-  'vec2f': ['Radial'],
-  'vec2i': [],
+  'vec2f': ['Radial', 'Cartesian'],
+  'vec2i': ['Cartesian'],
 }
 
 export const interfaces: { [key: string]: ReactNode } = {
   'Scroll': Vec2InterfaceRadial,
-  'Radial': Vec2InterfaceRadial
+  'Radial': Vec2InterfaceRadial,
+  'Knob': FloatInterfaceKnob
 }
 
 export type InterfaceProps = {
@@ -40,7 +39,8 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
   const { selectedParam, ...rest } = props
 
   const [param, setParam] = useRecoilState(projectParamsAtom(props.selectedParam ?? ''))
-  const paramInterface = param ? interfaces[typeToInterface[param.paramType][0]] : null
+  const interfaceType = typeToInterface[param.paramType][param.interface ?? 0]
+  const paramInterface = param ? interfaces[interfaceType] : null
   const { width, height, ref } = useResizeDetector()
   const [scroll, setScroll] = useState(0)
 
@@ -66,7 +66,6 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
       onWheel={onHandleWheel}
       {...rest}
     >
-      <IconButton variant="empty" position="absolute" right="0%" icon={<FiMoreHorizontal color="white" />} />
 
 
       {
@@ -95,7 +94,6 @@ export const useInterface = (
   const ref = useRef<SVGSVGElement | null>(null)
   const [svgCoord, setSVGCoord] = useState(fromParamSpace(props.value))
   const [dragged, setDragged] = useState(false)
-  //const [scroll, setScroll] = useState(0)
 
   const preventGlobalMouseEvents = () => document.body.style.pointerEvents = 'none'
   const restoreGlobalMouseEvents = () => document.body.style.pointerEvents = 'auto'
@@ -126,8 +124,6 @@ export const useInterface = (
   }, [iterate])
 
   useEffect(() => {
-    // if (ref.current)
-    //   ref.current.onwheel = (ev) => setScroll(old => old + ev.deltaY / 100)
     return () => {
       restoreGlobalMouseEvents();
       document.removeEventListener('mouseup', end, { capture: true })
@@ -160,7 +156,6 @@ export const useInterface = (
     svgCoord,
     dragged,
     toDocumentSpace,
-    //scroll,
     ref
   }
 }

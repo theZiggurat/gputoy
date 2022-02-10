@@ -25,7 +25,7 @@ const Dropdown = (props: DropdownProps) => {
   }
 
   return (
-    <Box position="relative" onClick={onDropdownClick} onBlur={onDropdownBlur}>
+    <Box position="relative" onMouseDown={onDropdownClick} onBlur={onDropdownBlur}>
       <Button
         variant="empty"
         bg={open ? themed('buttonHovered') : 'none'}
