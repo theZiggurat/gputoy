@@ -11,15 +11,6 @@ const useLogger = () => {
   }
 
   const pushToConsole = (header: string, body: string, type: MessageType) => {
-    console.log(header, body, type)
-    // if (isLastMessage(body))
-    //   setConsole(old => {
-    //     const newConsole = [...old]
-    //     // const replace = newConsole[newConsole.length - 1]
-    //     // newConsole[newConsole.length - 1] = { ...replace, occurences: (replace.occurences ?? 0) + 1 }
-    //     return newConsole
-    //   })
-    // else
     setConsole(old => [...old, { header, body, type, time: new Date() }])
   }
 

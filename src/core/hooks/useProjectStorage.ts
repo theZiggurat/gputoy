@@ -59,10 +59,7 @@ const useProjectStorage = (props: ProjectStorageProps) => {
    */
   useEffect(() => {
 
-    console.log(`project_local_${projectID}`)
     const projectFromStorage = localStorage.getItem(`project_local_${projectID}`)
-    console.log(projectFromStorage)
-    console.log('storage', !!projectFromStorage, 'db', !!projectFromDB, projectID)
     if (!projectFromDB && !projectFromStorage) {
       return
     }
@@ -87,7 +84,6 @@ const useProjectStorage = (props: ProjectStorageProps) => {
     const updateDateLocal = new Date().toISOString()
     const projectWithDate = { ...projectState, updatedAt: updateDateLocal }
     setProjectLastSaveLocal(updateDateLocal)
-    console.log
     localStorage.setItem(`project_local_${projectID}`, JSON.stringify(projectWithDate))
   }
 

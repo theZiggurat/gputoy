@@ -128,10 +128,6 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
 export const Vec2InterfaceCartesian = (props: InterfaceProps) => {
 
-  useEffect(() => {
-    console.log('constructed!')
-  }, [])
-
   const size = Math.min(props.width ?? 0, props.height ?? 0)
   const half = size / 2
 
@@ -169,8 +165,6 @@ export const Vec2InterfaceCartesian = (props: InterfaceProps) => {
   const paramVal = toParamSpace(svgCoord)
   const activeParam = fromParamSpace(paramVal)
   const angle = Math.atan2(paramVal[1], paramVal[0])
-
-  console.log(activeParam)
 
   return (
     <>

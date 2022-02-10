@@ -77,7 +77,6 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 	}
 
 	useEffect(() => {
-		//console.log(monacoTheme)
 		monaco?.editor.setTheme(monacoTheme)
 		setTimeout(() => monaco?.editor.setTheme(monacoTheme), 1)
 	}, [monacoTheme, monaco])

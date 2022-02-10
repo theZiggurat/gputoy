@@ -65,7 +65,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         createdAt: dateInfo?.createdAt?.toISOString() ?? ""
       }
   }
-  console.log('RET', ret)
   return {
     props: ret
   }
@@ -89,8 +88,6 @@ const ScopedProjectManager = (props: CreatePageProps) => {
 }
 
 const Create = (props: CreatePageProps) => {
-
-  console.log("PROPS", props)
 
   const panelProps = usePanels({})
   const setProjectId = useSetRecoilState(currentProjectIdAtom)

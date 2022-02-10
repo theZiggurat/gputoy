@@ -11,8 +11,6 @@ type ParamListGridProps = {
 }
 const ParamListGrid = (props: ParamListGridProps) => {
 
-  console.log(props.keys)
-
   const error = false
   return <Flex flexDir="row" height="100%">
     {/* <Flex flexDir="column" flex="1 1 auto" overflow="scroll" height="100%" py="0.5rem">

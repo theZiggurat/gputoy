@@ -40,9 +40,6 @@ const handlePost = async (req: NextApiRequest, res: NextApiResponse<any>) => {
       }
     }) ?? { authorId: null }
 
-    console.log(authorId, session?.user?.id)
-    console.log(body.project.id)
-
     if (authorId != session?.user?.id && authorId != null) {
       res.status(406).send({ error: 'Cannot overwrite project that isn\'t yours' })
       return
@@ -71,8 +68,6 @@ const handlePost = async (req: NextApiRequest, res: NextApiResponse<any>) => {
       }
     }
 
-    // console.log(body.project)
-    // console.log(JSON.stringify(postQuery, undefined, 4))
     const ret = await prisma.project.upsert({
       where: {
         id: body.project.id
