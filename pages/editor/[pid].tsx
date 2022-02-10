@@ -35,7 +35,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   })
   const paths = query.map(q => ({ params: { pid: q.id } }))
 
-  return { paths, fallback: true }
+  return { paths, fallback: 'blocking' }
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
@@ -56,16 +56,18 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
   })
 
+  const ret = {
+    projectId: id,
+    project,
+    dateInfo: dateInfo == null ?
+      null : {
+        updatedAt: dateInfo?.updatedAt?.toISOString() ?? "",
+        createdAt: dateInfo?.createdAt?.toISOString() ?? ""
+      }
+  }
+  console.log('RET', ret)
   return {
-    props: {
-      projectId: id,
-      project,
-      dateInfo: dateInfo == null ?
-        null : {
-          updatedAt: dateInfo?.updatedAt?.toISOString() ?? "",
-          createdAt: dateInfo?.createdAt?.toISOString() ?? ""
-        }
-    }
+    props: ret
   }
 }
 
@@ -87,6 +89,8 @@ const ScopedProjectManager = (props: CreatePageProps) => {
 }
 
 const Create = (props: CreatePageProps) => {
+
+  console.log("PROPS", props)
 
   const panelProps = usePanels({})
   const setProjectId = useSetRecoilState(currentProjectIdAtom)
