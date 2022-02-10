@@ -6,7 +6,7 @@ import { themed } from "theme/theme"
 const Footer = () => {
   return (
     <chakra.footer bg={themed('bg')}>
-      <Flex flexDir="row" justifyContent="center" py="5rem" gridGap="10vw" flexWrap="wrap">
+      <Flex flexDir="row" justifyContent="center" py="5rem" gridGap="10vw" flexWrap="wrap" borderTop="1px" borderColor={themed("borderLight")}>
         <Flex flexDir="column" alignItems="self-start" gridGap="0.3rem">
           <Text fontSize="2rem" fontWeight="extrabold" cursor="pointer" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")} lineHeight="2rem">
             GPUTOY
@@ -52,15 +52,15 @@ const Footer = () => {
         </Flex>
 
       </Flex>
-      <Divider borderColor={useColorModeValue("blackAlpha.300", "whiteAlpha.500")} />
-      <HStack gridGap="10rem" margin="auto" justifyContent="center">
+      {/* Will be implemented in the future when I know how to */}
+      {/* <HStack gridGap="10rem" margin="auto" justifyContent="center">
         <Text fontSize="0.8rem" py="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")}>
           Privacy Policy
         </Text>
         <Text fontSize="0.8rem" py="0.5rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.700")}>
           Terms of Service
         </Text>
-      </HStack>
+      </HStack> */}
     </chakra.footer>
   )
 }
