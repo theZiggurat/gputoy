@@ -1,30 +1,74 @@
-import { CloseIcon } from '@chakra-ui/icons';
+import { ArrowUpIcon, CloseIcon } from '@chakra-ui/icons';
 import {
-	Button, Grid,
-	GridItem, IconButton,
+	Box,
+	Button,
+	Flex,
+	HStack,
 	Input, InputGroup,
 	InputLeftElement,
-	InputRightElement, NumberDecrementStepper, NumberIncrementStepper, NumberInput,
-	NumberInputField,
-	NumberInputStepper, Popover, PopoverArrow, PopoverBody, PopoverContent, PopoverTrigger, Portal, Select
+	InputRightElement,
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+	Portal,
+	Stack,
+	Text
 } from '@chakra-ui/react';
 import ParamListCompact from '@components/create/params/paramListCompact';
-import * as types from 'core/types';
 import useInstance from '@core/hooks/useInstance';
-import { currentProjectIdAtom, projectParamKeys } from 'core/recoil/atoms/project';
-import { debounce } from 'lodash';
+import { projectParamKeys, projectParamsAtom } from 'core/recoil/atoms/project';
 import { nanoid } from 'nanoid';
 import React, { useCallback, useState } from 'react';
-import { HexColorPicker } from "react-colorful";
-import { FaMinus, FaSearch } from 'react-icons/fa';
-import { MdAdd, MdSettings } from 'react-icons/md';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { themed } from '../../../theme/theme';
+import { FaSearch } from 'react-icons/fa';
+import { MdAdd, MdArrowDropUp, MdSettings } from 'react-icons/md';
+import { useRecoilState } from 'recoil';
 import { RowButton } from '../../shared/rowButton';
 import { ParamInstanceState } from '../descriptors';
 import { Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel';
 import { useResizeDetector } from 'react-resize-detector';
 import ParamListExpanded from '@components/create/params/paramListExpanded';
+import { themed } from '@theme/theme';
+import { typeToInterface } from '@components/create/params/paramInterface';
+
+
+const InterfaceTypeSelect = (props: { selectedParam: string }) => {
+
+	const [param, setParam] = useRecoilState(projectParamsAtom(props.selectedParam))
+
+	const interfaces = typeToInterface[param.paramType]
+
+	return (
+		<Popover
+			preventOverflow
+			matchWidth
+			placement="top-start"
+			offset={[5, 0]}
+			gutter={0}
+		>
+			<PopoverTrigger>
+				<HStack bg={themed('button')} pl="0.2rem" pr="0.5rem" borderStartRadius="md" _hover={{ bg: themed('buttonHovered') }} cursor="pointer" pos="relative">
+					<MdArrowDropUp />
+					<Text display="inline" fontSize="xs" color={themed("textMid")}>{interfaces[param.interface ?? 0]}</Text>
+
+				</HStack>
+			</PopoverTrigger>
+			<Portal>
+				<PopoverContent outline="none" border="none" w="100%">
+					<Flex bg={themed('a2')} flexDir="column" border="1px" borderColor={themed("borderLight")}>
+						{
+							interfaces.map((s, idx) => (
+								<Button key={s} size="xs" width="100%" borderRadius="0" fontWeight="normal" onClick={() => setParam(old => ({ ...old, interface: idx }))}>
+									{s}
+								</Button>
+							))
+						}
+
+					</Flex>
+				</PopoverContent>
+			</Portal>
+		</Popover>
+	)
+}
 
 interface ParamPanelProps {
 	paramKeys: string[],
@@ -85,11 +129,15 @@ const ParamPanel = (props: ParamPanelProps) => {
 					</InputGroup>
 				</PanelBarMiddle>
 				<PanelBarEnd>
+					{
+						selectedParam && <InterfaceTypeSelect selectedParam={selectedParam} />
+					}
+
 					<RowButton
 						purpose="Add param"
 						onClick={addParam}
 						icon={<MdAdd />}
-						first
+						first={!selectedParam}
 					/>
 					<RowButton
 						purpose="Options"

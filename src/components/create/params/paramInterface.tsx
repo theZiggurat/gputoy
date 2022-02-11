@@ -4,23 +4,24 @@ import { Box, BoxProps, Select } from '@chakra-ui/react'
 import { themed } from 'theme/theme'
 import { useResizeDetector } from 'react-resize-detector'
 import { projectParamInterfaceProps, projectParamsAtom } from 'core/recoil/atoms/project'
-import { Vec2InterfaceRadial } from './interface/vec2Interface'
+import { Vec2InterfaceCartesian, Vec2InterfaceRadial } from './interface/vec2Interface'
 import { FloatInterfaceKnob } from './interface/floatInterface'
+import Dropdown from '../dropdown'
 
 
 export const typeToInterface = {
   'int': ['Knob'],
   'float': ['Knob'],
   'color': ['RGB', 'HSV'],
-  'vec3f': [],
-  'vec3i': [],
+  'vec3f': ['RGB'],
+  'vec3i': ['RGB'],
   'vec2f': ['Radial', 'Cartesian'],
   'vec2i': ['Cartesian'],
 }
 
 export const interfaces: { [key: string]: ReactNode } = {
-  'Scroll': Vec2InterfaceRadial,
   'Radial': Vec2InterfaceRadial,
+  'Cartesian': Vec2InterfaceCartesian,
   'Knob': FloatInterfaceKnob
 }
 
@@ -59,7 +60,6 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
       overflow="hidden"
       {...rest}
     >
-
 
       {
         paramInterface && props.selectedParam &&
