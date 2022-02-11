@@ -35,8 +35,6 @@ export const projectShadersAtom = atom<types.Shader[]>({
   default: [{ file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true, id: '' }],
 })
 
-var _idx = 0
-const idx = () => _idx++
 export const projectParamsAtom = atomFamily<types.ParamDesc, string>({
   key: 'projectParams',
   default: (key: string) => ({ paramName: undefined, paramType: "int", param: [0], key, interface: 0 }),
@@ -47,7 +45,10 @@ export const projectParamKeys = atom<string[]>({
   default: []
 })
 
-
+export const projectParamInterfaceProps = atomFamily<any, string>({
+  key: 'projectParamsInterfaceProps',
+  default: {}
+})
 
 export const projectForkSource = atom<{ id: string, title: string } | null>({
   key: 'projectForkSource',
@@ -124,7 +125,10 @@ export const withUserParams = selector<types.ParamDesc[]>({
   key: 'userParams',
   get: ({ get }) => {
     const paramKeys = get(projectParamKeys)
-    return paramKeys.map(k => get(projectParamsAtom(k)))
+    return paramKeys.map(k => ({
+      ...get(projectParamsAtom(k)),
+      interfaceProps: get(projectParamInterfaceProps(k))
+    }))
   },
   set: ({ set, reset }, params) => {
     if (params instanceof DefaultValue) {
@@ -132,7 +136,9 @@ export const withUserParams = selector<types.ParamDesc[]>({
     } else {
       set(projectParamKeys, params.map(p => p.key!))
       params.forEach(p => {
-        set(projectParamsAtom(p.key!), p)
+        const { interfaceProps, ...param } = p
+        set(projectParamsAtom(param.key!), param)
+        set(projectParamInterfaceProps(param.key!), interfaceProps)
       })
     }
   }

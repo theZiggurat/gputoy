@@ -3,7 +3,7 @@ import { useRecoilState } from "recoil"
 import { Box, BoxProps, Select } from '@chakra-ui/react'
 import { themed } from 'theme/theme'
 import { useResizeDetector } from 'react-resize-detector'
-import { projectParamsAtom } from 'core/recoil/atoms/project'
+import { projectParamInterfaceProps, projectParamsAtom } from 'core/recoil/atoms/project'
 import { Vec2InterfaceRadial } from './interface/vec2Interface'
 import { FloatInterfaceKnob } from './interface/floatInterface'
 
@@ -25,12 +25,11 @@ export const interfaces: { [key: string]: ReactNode } = {
 }
 
 export type InterfaceProps = {
+  paramKey: string,
   value: number[],
   onChange: (newval: number[]) => void,
   width: number,
   height: number,
-  interfaceProps: any,
-  setInterfaceProps: (props: any, merge?: boolean) => void,
 }
 
 export const ParamInterface = (props: { selectedParam: string | null } & BoxProps) => {
@@ -45,15 +44,6 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
   const onHandleValueChange = (newval: number[]) => {
     setParam(old => ({ ...old, param: newval }))
   }
-
-  const onHandleSetInterfaceProps = (props: any, merge?: boolean) => {
-    setParam(old => ({
-      ...old,
-      interfaceProps: merge ? { ...old.interfaceProps, ...props } : { ...props }
-    }))
-  }
-
-
 
   return (
 
@@ -76,9 +66,8 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
         React.createElement(
           paramInterface,
           {
+            paramKey: param.key,
             value: param.param,
-            interfaceProps: param.interfaceProps ?? {},
-            setInterfaceProps: onHandleSetInterfaceProps,
             onChange: onHandleValueChange,
             width: width ? width : 0,
             height: height ? height : 0,
@@ -87,6 +76,26 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
       }
     </Box>
   )
+}
+
+export const useInterfaceProps = (props: { paramKey: string }): [
+  any,
+  (propName: string, f: any | ((old?: any) => any)) => void,
+  () => void,
+] => {
+  const [interfaceProps, setInterfaceProps] = useRecoilState(projectParamInterfaceProps(props.paramKey))
+
+  const setPropValue = (propName: string, f: any | ((old?: any) => any)) => {
+    setInterfaceProps((old: any) => {
+      const copy = { ...old }
+      copy[propName] = typeof f === 'function' ? f(old[propName]) : f
+      return copy
+    })
+  }
+
+  const clearProps = () => setInterfaceProps({})
+
+  return [interfaceProps, setPropValue, clearProps]
 }
 
 export const useInterface = (

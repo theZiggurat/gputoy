@@ -1,16 +1,17 @@
 import { Box } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { themedRaw } from "theme/theme"
-import { InterfaceProps, useInterface } from "../paramInterface"
+import { InterfaceProps, useInterface, useInterfaceProps } from "../paramInterface"
 import Checkbox from "@components/shared/checkbox"
+import { projectParamInterfaceProps } from "@core/recoil/atoms/project"
+import { useRecoilState } from "recoil"
 
 export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
-  const [isNorm, setIsNorm] = useState(false)
-  const [scroll, setScroll] = useState(props.interfaceProps.scroll as number ?? 0)
+  const [{ scroll, isNorm }, setPropValue, _c] = useInterfaceProps(props)
 
-  const onHandleWheel = (ev) => setScroll(old => old + ev.deltaY)
-  // useEffect(() => { props.setInterfaceProps(scroll) }, [scroll, props])
+  const onHandleWheel = (ev: WheelEvent) => setPropValue("scroll", old => (old ?? 0) + ev.deltaY)
+  const onToggleNormalize = () => setPropValue("isNorm", old => !old ?? false)
 
   const mag = (t: number[]) => Math.sqrt(t[0] * t[0] + t[1] * t[1])
   const normalize = (coord: number[]) => {
@@ -19,7 +20,7 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
     return [len > 0 ? x / len : 0, len > 0 ? y / len : 0]
   }
 
-  const zoom = isNorm ? 1 : Math.pow(10, scroll / 100_00)
+  const zoom = isNorm ? 1 : Math.pow(10, (scroll ?? 0) / 100_00)
   const size = props.width//Math.min(props.width ?? 0, props.height ?? 0)
   const half = size / 2
 
@@ -108,12 +109,12 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
         </g>
         <text fill={text} fontSize="0.55em" fontFamily="JetBrains Mono" opacity="0.65">
           <tspan x={-half} y={half - 10}>x: {paramVal[0].toFixed(2)}</tspan>
-          <tspan x={-half} y={half}>y: {paramVal[1].toFixed(2)}</tspan>
+          <tspan x={-half} y={half}>y: {paramVal[1]?.toFixed(2)}</tspan>
         </text>
       </svg>
 
       <Box position="absolute" top="0px" p="0.25rem">
-        <Checkbox title="Normalize" checked={isNorm} onCheck={val => setIsNorm(val)} />
+        <Checkbox title="Normalize" checked={isNorm} onCheck={onToggleNormalize} />
       </Box>
 
       {/* {
