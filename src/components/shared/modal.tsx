@@ -15,17 +15,15 @@ export const Modal = (props: ModalProps) => {
       {
         props.isOpen &&
         <>
-          {/* <Box
+          <Box
             pos="absolute"
             width="100%"
             height="100%"
             left="0"
             top="2.5rem"
             zIndex={4}
-            bg={'rgba(0, 0, 0, 0.3)'}
-            backdropFilter="blur(3px)"
             onClick={props.onRequestClose}
-          /> */}
+          />
           <Box
             pos="absolute"
             width="fit-content"

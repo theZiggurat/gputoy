@@ -108,13 +108,13 @@ const ViewportPanelBarMiddle = () => {
     return <>
         <RowButton
             purpose="Play"
-            icon={isPlay ? <FaPause /> : <FaPlay />}
+            icon={isPlay ? <FaPause size={10} /> : <FaPlay size={10} />}
             onClick={onHandlePlayPause}
             first
         />
         <RowButton
             purpose="Stop"
-            icon={<FaStop />}
+            icon={<FaStop size={10} />}
             onClick={stop}
         />
         <StatusInfo />
@@ -223,7 +223,7 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
         <Panel {...props}>
             <PanelContent>
                 <Modal isOpen={isOpen} onRequestClose={closeModal}>
-                    <Flex flexDir="column">
+                    <Flex flexDir="column" >
                         <Text>
                             Video
                         </Text>
@@ -253,7 +253,7 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
                 <PanelBarMiddle>
                     <ViewportPanelBarMiddle />
                     <RowButton
-                        color={recording ? 'red.500' : 'white'}
+                        color={recording ? 'red.500' : themed('text')}
                         purpose="Record"
                         icon={<BsRecordFill />}
                         onClick={onHandleRecordToggle}

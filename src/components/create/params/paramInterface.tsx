@@ -98,10 +98,18 @@ export const useInterfaceProps = (props: { paramKey: string }): [
   return [interfaceProps, setPropValue, clearProps]
 }
 
+type SVGParamInterfaceProps = {
+
+}
+export const SVGParamInterface = () => {
+
+}
+
 export const useInterface = (
   props: InterfaceProps,
   toParamSpace: (svgCoord: number[]) => number[],
   fromParamSpace: (paramCoord: number[]) => number[],
+  innerMargin?: number
 ) => {
 
   const ref = useRef<SVGSVGElement | null>(null)
@@ -125,7 +133,7 @@ export const useInterface = (
     setSVGCoord(svgCoord)
     const paramCoord = toParamSpace(svgCoord)
     props.onChange(paramCoord)
-    //console.log('window', windowCoord, 'svg', svgCoord, 'param', paramCoord)
+    console.log('window', windowCoord, 'svg', svgCoord, 'param', paramCoord)
   }, [toParamSpace, setSVGCoord, props])
 
   const end = useCallback((ev: MouseEvent) => {

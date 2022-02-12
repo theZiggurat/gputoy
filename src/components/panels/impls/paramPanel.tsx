@@ -46,7 +46,7 @@ const InterfaceTypeSelect = (props: { selectedParam: string }) => {
 			gutter={0}
 		>
 			<PopoverTrigger>
-				<HStack bg={themed('button')} pl="0.2rem" pr="0.5rem" borderStartRadius="md" _hover={{ bg: themed('buttonHovered') }} cursor="pointer" pos="relative">
+				<HStack bg={themed('input')} pl="0.2rem" pr="0.5rem" borderStartRadius="md" _hover={{ bg: themed('buttonHovered') }} cursor="pointer" pos="relative">
 					<MdArrowDropUp />
 					<Text display="inline" fontSize="xs" color={themed("textMid")}>{interfaces[param.interface ?? 0]}</Text>
 
