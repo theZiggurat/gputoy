@@ -17,6 +17,7 @@ import { currentProjectIdAtom, projectTitleAtom } from 'core/recoil/atoms/projec
 import KeybindManager from '@components/create/keybinds'
 import RecoilDebugPanel from '@components/create/debug'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 
 type CreatePageProps = {
   projectId: string,
@@ -89,12 +90,18 @@ const ScopedProjectManager = (props: CreatePageProps) => {
 
 const Create = (props: CreatePageProps) => {
 
+  const router = useRouter()
+
   const panelProps = usePanels({})
   const setProjectId = useSetRecoilState(currentProjectIdAtom)
 
   useEffect(() => {
     setProjectId(props.projectId)
   }, [props.projectId, setProjectId])
+
+  useEffect(() => {
+    console.log('FALLBACK?: ', router.isFallback)
+  }, [router])
 
   return (
     <>

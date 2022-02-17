@@ -98,9 +98,9 @@ export const useInterfaceProps = (props: { paramKey: string }): [
   return [interfaceProps, setPropValue, clearProps]
 }
 
-type SVGParamInterfaceProps = {
-
-}
+// type SVGParamInterfaceProps = {
+//   onMouseInput
+// }
 export const SVGParamInterface = () => {
 
 }

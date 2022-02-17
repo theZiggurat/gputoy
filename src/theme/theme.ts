@@ -43,7 +43,7 @@ const light = {
   input: 'rgba(255, 255, 255, 0.2)', //'whiteAlpha.600',
   inputHovered: 'rgba(255, 255, 255, 0.4)', //'whiteAlpha.500'
   border: 'rgba(0, 0, 0, 0.2)',
-  borderLight: 'rgba(255, 255, 255, 0.05)',
+  borderLight: 'rgba(0, 0, 0, 0.05)',
   textLight: 'rgba(0, 0, 0, 0.36)',
   textMidLight: 'rgba(0, 0, 0, 0.55)',
   textMid: 'rgba(0, 0, 0, 0.72)',
@@ -115,14 +115,14 @@ const theme = extendTheme({
           }
         },
         heavy: {
-          color: "textMid",
+          color: "rgba(255, 255, 255, 0.85)",
           bg: "red.500",
           _hover: {
             bg: "red.600"
           },
           border: "2px",
-          borderRadius: "4px",
-          borderColor: "red.600"
+          borderRadius: "md",
+          borderColor: "red.500"
         }
       },
       defaultProps: {
@@ -130,6 +130,22 @@ const theme = extendTheme({
         size: 'sm'
       }
     },
+    Badge: {
+      baseStyle: {},
+      variants: {
+        heavy: {
+          color: "rgba(255, 255, 255, 0.85)",
+          bg: "red.500",
+          _hover: {
+            bg: "red.600"
+          },
+          border: "2px",
+          borderRadius: "md",
+          borderColor: "red.500"
+        }
+      }
+    }
+    ,
     Input: {
       baseStyle: {},
       variants: {

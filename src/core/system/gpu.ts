@@ -41,7 +41,7 @@ class _GPU {
 
     async tryEnsureDeviceOnCurrentAdapter(logger?: Logger) {
         if (!this.adapter) {
-            this.adapter = await navigator.gpu.requestAdapter()
+            this.adapter = await navigator.gpu.requestAdapter({ powerPreference: "low-power" })
 
             if (!this.adapter) {
                 logger?.err('GPU', 'Adapter not found')

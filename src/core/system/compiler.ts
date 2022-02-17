@@ -32,26 +32,27 @@ class Compiler {
     let fullsrc = staticdecl.vertex.concat(decls.concat(src.file))
     logger?.debug("NAGA COMPILER", fullsrc)
 
-    device.pushErrorScope('validation')
+    //device.pushErrorScope('validation')
     const module = device.createShaderModule({
       code: fullsrc
     })
-    const err = await device.popErrorScope()
+    //const err = await device.popErrorScope()
 
-    if (err == null) return module
+    //if (err == null) return module
+    return module
 
-    let declLen = decls.split(/\r\n|\r|\n/).length
-    let numStr = err.message.match(/\d+(?=:)/g)[0]
-    let newNumStr = (numStr - declLen + 1).toString()
-    let message: string = err.message.replace(/\d+(?=:)/g, newNumStr)
-    message = message.substr(0, message.indexOf('^') + 1)
-    logger?.err('NAGA COMPILER', message)
-    if (setFileErrors) setFileErrors(old => {
-      let n = { ...old }
-      n[src.filename] = Number(newNumStr)
-      return n
-    })
-    return null
+    //let declLen = decls.split(/\r\n|\r|\n/).length
+    // let numStr = err.message.match(/\d+(?=:)/g)[0]
+    // let newNumStr = (numStr - declLen + 1).toString()
+    // let message: string = err.message.replace(/\d+(?=:)/g, newNumStr)
+    // message = message.substr(0, message.indexOf('^') + 1)
+    // logger?.err('NAGA COMPILER', message)
+    // if (setFileErrors) setFileErrors(old => {
+    //   let n = { ...old }
+    //   n[src.filename] = Number(newNumStr)
+    //   return n
+    // })
+    //return null
   }
 
   compileGLSL = async (device: GPUDevice, src: Shader, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<GPUShaderModule | null> => {

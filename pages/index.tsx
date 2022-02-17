@@ -1,43 +1,87 @@
 import {
-  Button, chakra, Flex, FlexProps, Heading, Image, Text, useColorModeValue
+  Box,
+  Button, chakra, Flex, FlexProps, Heading, HeadingProps, Image, Link, Stack, Text, TextProps, useColorModeValue
 } from '@chakra-ui/react'
 import Footer from '@components/index/footer'
 import { CreatePageProjectQueryWithId, createPageProjectQueryWithId } from 'core/types/queries'
 import prisma from 'core/backend/prisma'
 import "@fontsource/jetbrains-mono"
 import Head from 'next/head'
-import React, { useEffect, useState } from 'react'
+import React, { ReactNode, useEffect, useState } from 'react'
 import { BiPaint } from 'react-icons/bi'
 import { BsClipboardData } from 'react-icons/bs'
 import { themed } from 'theme/theme'
 import Scaffold from '@components/shared/scaffold'
 import { MdCode } from 'react-icons/md'
+import { IoCode, IoWarning } from 'react-icons/io5'
+import { FaGithub } from 'react-icons/fa'
+import { WarningIcon } from '@chakra-ui/icons'
+import useGPU from '@core/hooks/useGPU'
+import { gpuStatusAtom } from '@core/recoil/atoms/gpu'
+import { useRecoilValue } from 'recoil'
 
 const Section = (props: FlexProps) => (
-  <Flex flexDir="column" minH="100vh" p={["2rem", "2.5rem", "3rem", "5rem"]} mt="5rem" {...props}>
+  <Flex flexDir="column" minH="100vh" alignItems="center" {...props}>
     {props.children}
   </Flex>
 )
 
-const MainHeading = (props: { children, redText: string }) => (
-  <Heading fontFamily="'Segoe UI'" fontSize={["1.5rem", "1.8rem", "2rem", "3rem"]} pb="1rem" fontWeight="black">
+const MainHeading = (props: { children: ReactNode, redText: string, fontSize?: string } & HeadingProps) => {
+  const { children, redText, fontSize, ...hProps } = props
+  return <Heading fontFamily="'Segoe UI'" fontSize={fontSize ?? ["2rem", "2.5rem", "2.5rem", "3rem"]} fontWeight="black" {...hProps}>
     {props.children}
-    <chakra.span fontFamily="'JetBrains Mono'" color="red.500" whiteSpace="nowrap">
+    <chakra.span color="red.500" whiteSpace="nowrap" fontWeight="black">
       &nbsp;{props.redText}
     </chakra.span>
   </Heading>
-)
+}
 
-const MainDesc = (props: { children }) => (
-  <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize={["0.8rem", "0.8rem", "1rem", "1.2rem"]}>
+const MainDesc = (props: { children: ReactNode } & TextProps) => {
+  const { children, ...tProps } = props
+  return <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize={["1rem", "1rem", "1.1rem", "1.2rem"]} {...tProps} color={themed("textMid")}>
+    {children}
+  </Text>
+}
+
+const SubDesc = (props: { children: ReactNode }) => (
+  <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
     {props.children}
   </Text>
 )
 
-const SubDesc = (props: { children }) => (
-  <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
+const IncompatibilityError = () => (
+  <a href="https://caniuse.com/webgpu" target="_blank" rel="noreferrer">
+    <Flex mt="2rem" bg="red.500" p="1rem" borderRadius="1rem" justifyContent="space-between" alignItems="center">
+      <IoWarning size="3rem" />
+      <Box flex="1 1 auto">
+        <Text fontSize="1.2rem" fontWeight="bold">
+          Unfortunately, your browser is not compatible with GPUToy.
+        </Text>
+        <Text fontSize="1rem" color={themed('textMid')}>
+          Click here to view compatible browser versions.
+        </Text>
+      </Box>
+    </Flex>
+  </a>
+)
+
+const DetailCard = (props: { children: ReactNode }) => (
+  <Flex
+    w="100%"
+    flexDir="row"
+    justifyContent="space-between"
+    alignItems="center"
+    p={["1rem", "1.3rem", "1.5rem", "2rem"]}
+    boxShadow="sm"
+    transition="box-shadow 0.3s ease"
+    _hover={{
+      boxShadow: "md"
+    }}
+    borderY="1px"
+    borderColor={themed('borderLight')}
+  >
     {props.children}
-  </Text>
+  </Flex>
 )
 
 type HomePageProps = {
@@ -66,6 +110,7 @@ const Home = (props: HomePageProps) => {
 
   const [tran, setTran] = useState(false)
   const [scrollPosition, setScrollPosition] = useState(0)
+  const gpuStatus = useRecoilValue(gpuStatusAtom)
 
   const handleScroll = (ev) => {
     setScrollPosition(ev.target.scrollTop)
@@ -77,6 +122,8 @@ const Home = (props: HomePageProps) => {
 
   useEffect(() => { setTimeout(() => setTran(true), 500) }, [])
 
+  const sectionPad = ["2rem", "2.5rem", "3rem", "5rem"]
+
   return (
     <Scaffold>
       <Head>
@@ -86,93 +133,105 @@ const Home = (props: HomePageProps) => {
         <meta property="og:type" content="website" key="ogtype" />
         <meta property="og:image" content="https://gputoy.io/og-img.jpg" key="ogimg" />
       </Head>
-      <Flex width="100%" height="100%" position="relative" overflowY="scroll" overflowX="hidden" direction="column" flex="1 1 auto" onScroll={handleScroll}>
-        <Flex flex="1" w="100vw" bg={themed('bg')} direction="column" textAlign="center">
-
+      <Box
+        height="100%"
+        overflowY="scroll"
+        overflowX="hidden"
+        bg={themed('bg')}
+      >
+        <Flex
+          width={["100%", "100%", "85%", "65%", "50%"]}
+          position="relative"
+          transform="translate(-50%, 0%)"
+          left="50%"
+          direction="column"
+          flex="1 1 auto"
+          onScroll={handleScroll}
+          bg={themed('bg')}
+          boxShadow="sm"
+          borderX="1px"
+          borderColor={themed("borderLight")}
+        >
           <Section>
-            <MainHeading redText="in code">
-              Convey your imagination
-            </MainHeading>
+            <Box p={sectionPad} textAlign="center">
 
-            <MainDesc>
-              A shader is a visual expression of mathematical beauty.
-            </MainDesc>
-            <SubDesc>
-              Unlike a video, it is handcrafted. One pixel at a time.
-            </SubDesc>
-          </Section>
+              <MainHeading redText='gputoy' pb="1rem">
+                Welcome to
+              </MainHeading>
+              <MainDesc fontSize="md" textAlign="center">
+                An open source project with an aim to make shader creation more interactive and collaborative
+              </MainDesc>
+              <SubDesc>
+                Full editor functionality will be free forever
+              </SubDesc>
+              {
+                gpuStatus == 'incompatible' &&
+                <IncompatibilityError />
+              }
+            </Box>
+            <Flex
+              w="100%"
+              bg="none"
+              alignItems="center"
+              flexDir="column"
+              gridGap="1rem"
+            >
+              <DetailCard>
+                <Stack p="1rem">
+                  <MainHeading fontSize="2rem" fontWeight="bold">
+                    Jump straight in
+                  </MainHeading>
+                  <MainDesc fontSize="normal">
+                    No account required
+                  </MainDesc>
+                </Stack>
 
-          <Section>
-            <MainHeading redText="shading">
-              No headaches, just jump in and start
-            </MainHeading>
-            <MainDesc>
-              The editor provides all the tools needed to create your masterpiece.
-            </MainDesc>
-            <SubDesc>
-              Unlike a video, it is handcrafted. One pixel at a time.
-            </SubDesc>
-          </Section>
+                <Link href="/editor" passHref>
+                  <Button
+                    mx="4rem"
+                    px="1rem"
+                    leftIcon={<IoCode />}
+                    lineHeight="short"
+                    variant="heavy"
+                    p="0.5rem"
+                    size="lg"
+                  >
+                    Editor
+                  </Button>
+                </Link>
+              </DetailCard>
+              <DetailCard>
+                <Stack p="1rem">
+                  <MainHeading fontSize="2rem" fontWeight="bold">
+                    Become a contributor
+                  </MainHeading>
+                  <MainDesc fontSize="normal">
+                    Help make GPUToy the best it possibly can be
+                  </MainDesc>
+                </Stack>
 
-          <Section>
-            <MainHeading redText="instantly">
-              Share Anywhere. Get Feedback
-            </MainHeading>
-            <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1.2rem">
-              With a multitude of export options.
-            </Text>
-            <Text fontFamily="Segoe UI" letterSpacing="3px" fontSize="1rem" mt="1rem" mb="3rem" color={useColorModeValue("blackAlpha.700", "whiteAlpha.600")}>
-              Embed the editor on any website, or use right in your project with our npm package.
-            </Text>
-            {/* <iframe
-              width="700px"
-              height="400px"
-              src="http://localhost:3000/embed?id=ckwis98mk0053awuntswa7rnf?mode=light"
-              style={{
-                borderRadius: "10px",
-                borderColor: themed('border'),
-                borderWidth: '1px',
-                transform: tran ? '' : 'rotateX(90deg) rotateY(20deg)',
-                transition: 'transform 3s ease',
-                zoom: 1.25
-              }}
-            /> */}
-          </Section>
-
-          <Section minH="50vh">
-            <MainHeading redText="web graphics">
-              Build for the next generation of
-            </MainHeading>
-            <MainDesc>
-              Made from the ground up for WebGPU, the new graphics standard for the web.
-            </MainDesc>
-            <SubDesc>
-              Try wgsl, the official shading language of WebGPU, or stick to glsl.
-            </SubDesc>
-
-            <Flex pt="2rem" direction="row" justifyContent="center">
-              <Image src={useColorModeValue("/wgpuLogo.svg", "/wgpuLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)" alt="WebGPU" />
-              <Image src={useColorModeValue("/wgslLogo.svg", "/wgslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)" alt="WGSL" />
-              <Image src={useColorModeValue("/glslLogo.svg", "/glslLogoDark.svg")} width="50px" height="50px" mx="1rem" filter="grayscale(30%)" alt="GLSL" />
+                <a href="https://github.com/theZiggurat/gputoy" target="_blank" rel="noreferrer">
+                  <Button
+                    mx="4rem"
+                    px="1rem"
+                    leftIcon={<FaGithub />}
+                    lineHeight="short"
+                    variant="heavy"
+                    p="0.5rem"
+                    size="lg"
+                  >
+                    GitHub
+                  </Button>
+                </a>
+              </DetailCard>
             </Flex>
-            <Flex alignItems="center" justifyContent="center" p="5rem" gridGap="1rem">
-              <Button variant="heavy" leftIcon={<MdCode size={22} />} fontSize="xl" p="1.2rem" textAlign="center">
-                Start Shading
-              </Button>
-              <Button variant="heavy" leftIcon={<MdCode size={22} />} fontSize="xl" p="1.2rem" textAlign="center">
-                Sign Up for Free
-              </Button>
-            </Flex>
-
           </Section>
-
-
 
         </Flex>
         <Footer />
-      </Flex>
+      </Box >
 
-    </Scaffold>
+    </Scaffold >
 
   )
 }
