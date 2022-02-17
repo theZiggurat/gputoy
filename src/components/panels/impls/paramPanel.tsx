@@ -34,11 +34,17 @@ import { typeToInterface } from '@components/create/params/paramInterface';
 const InterfaceTypeSelect = (props: { selectedParam: string }) => {
 
 	const [param, setParam] = useRecoilState(projectParamsAtom(props.selectedParam))
+	const [isOpen, setOpen] = useState(false)
+	const open = () => setOpen(true)
+	const close = () => setOpen(false)
 
 	const interfaces = typeToInterface[param.paramType]
 
 	return (
 		<Popover
+			isOpen={isOpen}
+			onClose={close}
+			closeOnBlur
 			preventOverflow
 			matchWidth
 			placement="top-start"
@@ -46,10 +52,18 @@ const InterfaceTypeSelect = (props: { selectedParam: string }) => {
 			gutter={0}
 		>
 			<PopoverTrigger>
-				<HStack bg={themed('input')} pl="0.2rem" pr="0.5rem" borderStartRadius="md" _hover={{ bg: themed('buttonHovered') }} cursor="pointer" pos="relative">
+				<HStack
+					bg={themed('input')}
+					pl="0.2rem"
+					pr="0.5rem"
+					borderStartRadius="md"
+					_hover={{ bg: themed('buttonHovered') }}
+					cursor="pointer"
+					pos="relative"
+					onClick={isOpen ? close : open}
+				>
 					<MdArrowDropUp />
 					<Text display="inline" fontSize="xs" color={themed("textMid")}>{interfaces[param.interface ?? 0]}</Text>
-
 				</HStack>
 			</PopoverTrigger>
 			<Portal>
@@ -57,7 +71,17 @@ const InterfaceTypeSelect = (props: { selectedParam: string }) => {
 					<Flex bg={themed('a2')} flexDir="column" border="1px" borderColor={themed("borderLight")}>
 						{
 							interfaces.map((s, idx) => (
-								<Button key={s} size="xs" width="100%" borderRadius="0" fontWeight="normal" onClick={() => setParam(old => ({ ...old, interface: idx }))}>
+								<Button
+									key={s}
+									size="xs"
+									width="100%"
+									borderRadius="0"
+									fontWeight="normal"
+									onClick={() => {
+										setParam(old => ({ ...old, interface: idx }))
+										close()
+									}}
+								>
 									{s}
 								</Button>
 							))

@@ -177,7 +177,7 @@ const Home = (props: HomePageProps) => {
               gridGap="1rem"
             >
               <DetailCard>
-                <Stack p="1rem">
+                <Stack p="1rem" px="4rem">
                   <MainHeading fontSize="2rem" fontWeight="bold">
                     Jump straight in
                   </MainHeading>
@@ -201,9 +201,9 @@ const Home = (props: HomePageProps) => {
                 </Link>
               </DetailCard>
               <DetailCard>
-                <Stack p="1rem">
+                <Stack p="1rem" px="4rem">
                   <MainHeading fontSize="2rem" fontWeight="bold">
-                    Become a contributor
+                    Contribute
                   </MainHeading>
                   <MainDesc fontSize="normal">
                     Help make GPUToy the best it possibly can be

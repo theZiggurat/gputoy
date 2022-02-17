@@ -98,13 +98,6 @@ export const useInterfaceProps = (props: { paramKey: string }): [
   return [interfaceProps, setPropValue, clearProps]
 }
 
-// type SVGParamInterfaceProps = {
-//   onMouseInput
-// }
-export const SVGParamInterface = () => {
-
-}
-
 export const useInterface = (
   props: InterfaceProps,
   toParamSpace: (svgCoord: number[]) => number[],
