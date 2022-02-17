@@ -164,15 +164,22 @@ class Params {
 
     if (!device || this.params.length == 0) return
 
+    console.log('PARAM', this)
+
     let byteBuffer = new ArrayBuffer(this.sizeByte)
     let floatView = new Float32Array(byteBuffer, 0, this.sizeByte / 4)
     let intView = new Int32Array(byteBuffer, 0, this.sizeByte / 4)
 
+
+
+    console.log('fbufsize', this.sizeByte / 4)
     this.params.forEach((p, idx) => {
+
       if (declInfo[p.paramType].writeType == 'int')
         intView.set(p.param, this.byteOffsets[idx] / 4)
       else
         floatView.set(p.param, this.byteOffsets[idx] / 4)
+      console.log('p')
     })
 
     device.queue.writeBuffer(

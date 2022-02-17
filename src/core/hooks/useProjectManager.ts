@@ -15,6 +15,7 @@ import {
   withDefaultParams,
   withUserParams
 } from "@core/recoil/atoms/project"
+import { gpuStatusAtom } from "@core/recoil/atoms/gpu"
 
 
 
@@ -26,6 +27,7 @@ const useProjectManager = () => {
 
   const isCanvasInitialized = useRecoilValue(canvasInitializedAtom)
   const setFileError = useSetRecoilState(projectShaderErrorsAtom)
+  const gpuStatus = useRecoilValue(gpuStatusAtom)
 
   const { controlStatus, play, pause, stop } = useProjectControls()
   const { _smPlay, _smPause, _smStop, _smStep } = useProjectStateMachine()
@@ -79,21 +81,20 @@ const useProjectManager = () => {
     onControlChange()
   }, [controlStatus])
 
-  /**
-   * Update default param states as recoil default params change
-   */
+
+
   useEffect(() => {
-    if (projectRunStatus.frameNum > 0 && !projectRunStatus.running) {
-      Project.instance().renderFrame()
-    }
-  }, [defaultParamState])
+    if (!isCanvasInitialized) return
+    Project.instance().updateDefaultParams(defaultParamState)
+  }, [defaultParamState, isCanvasInitialized])
 
   /**
    * Update project uniforms as recoil uniform value change
    */
   useEffect(() => {
+    if (!isCanvasInitialized) return
     Project.instance().updateParams(paramState, logger)
-    if (projectRunStatus.frameNum > 0 && !projectRunStatus.running && isCanvasInitialized)
+    if (projectRunStatus.frameNum > 0 && !projectRunStatus.running)
       Project.instance().renderFrame()
   }, [paramState, isCanvasInitialized])
 
@@ -151,11 +152,6 @@ const useProjectManager = () => {
 
 const useProjectStateMachine = () => {
   const setProjectRunStatus = useSetRecoilState(projectRunStatusAtom)
-  const defaultParamState = useRecoilValue(withDefaultParams)
-
-  useEffect(() => {
-    Project.instance().updateDefaultParams(defaultParamState)
-  }, [defaultParamState])
 
   const _smPause = useCallback(() => {
     setProjectRunStatus(old => {

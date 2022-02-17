@@ -10,6 +10,16 @@ import { interfaces, typeToInterface } from "./paramInterface"
 import { typeToInputs } from "./paramInput"
 import { VscMenu } from 'react-icons/vsc'
 
+const paramDefaultValues = {
+  "int": [0],
+  "float": [0],
+  "vec2f": [0, 0],
+  "vec2i": [0, 0],
+  "vec3f": [0, 0, 0],
+  "vec3i": [0, 0, 0],
+  "color": [0, 0, 0],
+}
+
 type ParamEntryProps = {
   onSelect: (k: string) => void
   paramKey: string,
@@ -77,7 +87,8 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
       fontSize="xs"
       value={param.paramType}
       onChange={(ev) => {
-        setParam(old => ({ ...old, paramType: ev.target.value as ParamType }))
+        const paramType = ev.target.value as ParamType
+        setParam(old => ({ ...old, paramType, param: paramDefaultValues[paramType] }))
       }}
     >
       <option value="int">int</option>
