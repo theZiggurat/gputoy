@@ -96,10 +96,11 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 					ref={scrollRef as LegacyRef<HTMLDivElement>}
 					overflowX="hidden"
 				>
+					<Box flex="0 0 auto" borderBottom="1px" borderColor={themed('borderLight')} w="2rem" />
 					{
-						files.map((f, idx) => <FileTab key={f.id} file={f} idx={idx} selectedFileIdx={instanceState.currentFileIndex} onSelect={setCurrentFileIndex} onClose={() => { }} />)
+						files.map((f, idx) => <FileTab key={f.id} file={f} idx={idx} selectedFileIdx={instanceState.currentFileIndex} onSelect={setCurrentFileIndex} onClose={() => { }} first={idx == 0} />)
 					}
-					<Box flex="1 1 auto" borderBottom="1px" borderColor={themed('borderLight')} />
+					<Box flex="1 1 auto" borderBottom="1px" borderColor={themed('borderLight')} minW="2rem" />
 				</Flex>
 				<Box width="100%" sx={useColorModeValue(lightEditor, darkEditor)} flex="1 1 auto" overflowX="hidden">
 					{

@@ -9,16 +9,18 @@ type FileTabProps = {
   selectedFileIdx: number,
   onSelect: (idx: number) => void
   onClose: (idx: number) => void
+  first?: boolean
 }
 
 const FileTab = (props: FileTabProps) => {
-  const { file, idx, selectedFileIdx, onSelect, onClose } = props
+  const { file, idx, selectedFileIdx, onSelect, onClose, first } = props
   const selected = idx === selectedFileIdx
 
   return <Button
     h="2.3rem"
     flex="0 0 auto"
     variant="empty"
+    borderLeft={first ? "1px" : "0px"}
     borderRight="1px"
     borderTop="1px"
     borderBottom={selected ? "0" : "1px"}

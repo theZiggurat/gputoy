@@ -1,22 +1,16 @@
 import {
   Box,
-  Button, chakra, Flex, FlexProps, Heading, HeadingProps, Image, Link, Stack, Text, TextProps, useColorModeValue
+  Button, chakra, Flex, FlexProps, Heading, HeadingProps, Link, Stack, Text, TextProps, useColorModeValue
 } from '@chakra-ui/react'
 import Footer from '@components/index/footer'
-import { CreatePageProjectQueryWithId, createPageProjectQueryWithId } from 'core/types/queries'
-import prisma from 'core/backend/prisma'
+import { CreatePageProjectQueryWithId } from 'core/types/queries'
 import "@fontsource/jetbrains-mono"
 import Head from 'next/head'
 import React, { ReactNode, useEffect, useState } from 'react'
-import { BiPaint } from 'react-icons/bi'
-import { BsClipboardData } from 'react-icons/bs'
 import { themed } from 'theme/theme'
 import Scaffold from '@components/shared/scaffold'
-import { MdCode } from 'react-icons/md'
 import { IoCode, IoWarning } from 'react-icons/io5'
 import { FaGithub } from 'react-icons/fa'
-import { WarningIcon } from '@chakra-ui/icons'
-import useGPU from '@core/hooks/useGPU'
 import { gpuStatusAtom } from '@core/recoil/atoms/gpu'
 import { useRecoilValue } from 'recoil'
 
@@ -55,7 +49,7 @@ const IncompatibilityError = () => (
       <IoWarning size="3rem" />
       <Box flex="1 1 auto">
         <Text fontSize="1.2rem" fontWeight="bold">
-          Unfortunately, we don't support your browser yet!
+          Unfortunately, we don&apos;t support your browser yet!
         </Text>
         <Text fontSize="1rem" color="whiteAlpha.700">
           Click to view compatible browser versions.
@@ -84,31 +78,8 @@ const DetailCard = (props: { children: ReactNode }) => (
   </Flex>
 )
 
-type HomePageProps = {
-  projectOfTheDay: CreatePageProjectQueryWithId
-}
+const Home = () => {
 
-export async function getStaticProps() {
-  const projectOfTheDay = await prisma.project.findUnique({
-    ...createPageProjectQueryWithId,
-    where: {
-      id: 'ckynp0plu0857k0unb4njen1a'
-    }
-  })
-
-  return {
-    props: {
-      projectOfTheDay
-    }
-  }
-}
-
-
-const Home = (props: HomePageProps) => {
-
-  const { projectOfTheDay } = props
-
-  const [tran, setTran] = useState(false)
   const [scrollPosition, setScrollPosition] = useState(0)
   const gpuStatus = useRecoilValue(gpuStatusAtom)
 
@@ -118,9 +89,6 @@ const Home = (props: HomePageProps) => {
 
   useEffect(() => {
   }, [scrollPosition])
-
-
-  useEffect(() => { setTimeout(() => setTran(true), 500) }, [])
 
   const sectionPad = ["2rem", "2.5rem", "3rem", "5rem"]
 
@@ -227,11 +195,9 @@ const Home = (props: HomePageProps) => {
               </DetailCard>
             </Flex>
           </Section>
-
         </Flex>
         <Footer />
       </Box >
-
     </Scaffold >
 
   )
