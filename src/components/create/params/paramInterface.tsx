@@ -1,12 +1,11 @@
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState } from "recoil"
-import { Box, BoxProps, Select } from '@chakra-ui/react'
+import { Box, BoxProps } from '@chakra-ui/react'
 import { themed } from 'theme/theme'
 import { useResizeDetector } from 'react-resize-detector'
 import { projectParamInterfaceProps, projectParamsAtom } from 'core/recoil/atoms/project'
 import { Vec2InterfaceCartesian, Vec2InterfaceRadial } from './interface/vec2Interface'
 import { FloatInterfaceKnob } from './interface/floatInterface'
-import Dropdown from '../dropdown'
 
 
 export const typeToInterface = {
@@ -52,7 +51,6 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
       position="relative"
       ref={ref}
       style={{ aspectRatio: '1/1' }}
-      flex="0 0 auto"
       bg={themed('a3')}
       flexDir="column"
       borderLeft="1px solid"
@@ -126,7 +124,7 @@ export const useInterface = (
     setSVGCoord(svgCoord)
     const paramCoord = toParamSpace(svgCoord)
     props.onChange(paramCoord)
-    console.log('window', windowCoord, 'svg', svgCoord, 'param', paramCoord)
+    //console.log('window', windowCoord, 'svg', svgCoord, 'param', paramCoord)
   }, [toParamSpace, setSVGCoord, props])
 
   const end = useCallback((ev: MouseEvent) => {

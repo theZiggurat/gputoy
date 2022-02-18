@@ -61,14 +61,14 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
     my="3px"
     transition="background-color 0.1s ease"
     borderY="1px"
-    borderColor={highlight ? themed("dividerLight") : 'transparent'}
-    alignItems="center"
+    borderColor={highlight ? themed("borderLight") : 'transparent'}
     justifyContent="space-between"
+    alignItems="center"
     gridGap="1rem"
     {...flexProps}
     {...bgProps}
   >
-    <Flex minW="50%" justifyContent="space-between">
+    <Flex minW="50%" justifyContent="space-between" px="0.5rem">
       {
         showMover &&
         <IconButton
@@ -108,7 +108,7 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
         outline="none"
         px="0.25rem"
         borderX="1px"
-        borderColor={themed('borderLight')}
+        borderColor={highlight ? themed('borderLight') : "transparent"}
       >
         <option value="int" >int</option>
         <option value="float" style={optionStyle}>float</option>
@@ -123,14 +123,11 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
     <Flex
       flexDir="row"
       w="100%"
-      h="2rem"
+      h="100%"
       alignItems="center"
       px="1rem"
-      boxShadow="md"
-      bg={highlight ? themed('inputHovered') : themed('buttonHovered')}
-      _hover={{
-        bg: themed('inputHovered')
-      }}
+      bg={themed('input')}
+      boxShadow="-1px 0px 5px 0px rgba(0,0,0,0.1)"
     >
       {
         React.createElement(input,
