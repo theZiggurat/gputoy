@@ -44,8 +44,6 @@
   - I dont ever plan on running ads on gputoy, so expenses should be kept to a minimum. Monetization will only be used as necessary.
   - Database queries should only be used when needed.
 
-***
-
 ## **Currently Supported Browsers**
   - Chrome version > 94 will work automatically thanks to origin trial
     - Chrome version > 80 with `enable-unsafe-webgpu` flag enabled

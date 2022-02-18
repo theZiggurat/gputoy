@@ -10,6 +10,7 @@ import prisma from 'core/backend/prisma'
 import ProjectCard from '@components/shared/projectCard'
 import Scaffold from '@components/shared/scaffold'
 import { themed } from '@theme/theme'
+import Footer from '@components/index/footer'
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 	const projects = await prisma.project.findMany({
@@ -87,9 +88,7 @@ const Browse = (props: { projects: Project[] }) => {
 							})
 						}
 					</Grid>
-					<Flex justifyContent="center" mt="2rem">
-						Test
-					</Flex>
+					<Footer />
 				</Box>
 			</Scaffold>
 		</>

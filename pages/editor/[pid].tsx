@@ -12,9 +12,12 @@ import Nav from '@components/create/navbar'
 import { scrollbarHidden } from 'theme/consts'
 import { CreatePageProjectQuery, createPageProjectQuery, createPageProjectSaveHistory, CreatePageProjectSaveHistorySer } from 'core/types/queries'
 import { useSession } from 'next-auth/client'
-import { useSetRecoilState } from 'recoil'
-import { currentProjectIdAtom } from 'core/recoil/atoms/project'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { currentProjectIdAtom, projectTitleAtom } from 'core/recoil/atoms/project'
 import KeybindManager from '@components/create/keybinds'
+import RecoilDebugPanel from '@components/create/debug'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
 
 type CreatePageProps = {
   projectId: string,
@@ -33,7 +36,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   })
   const paths = query.map(q => ({ params: { pid: q.id } }))
 
-  return { paths, fallback: true }
+  return { paths, fallback: 'blocking' }
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
@@ -54,17 +57,25 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
   })
 
-  return {
-    props: {
-      projectId: id,
-      project,
-      dateInfo: dateInfo == null ?
-        null : {
-          updatedAt: dateInfo?.updatedAt?.toISOString() ?? "",
-          createdAt: dateInfo?.createdAt?.toISOString() ?? ""
-        }
-    }
+  const ret = {
+    projectId: id,
+    project,
+    dateInfo: dateInfo == null ?
+      null : {
+        updatedAt: dateInfo?.updatedAt?.toISOString() ?? "",
+        createdAt: dateInfo?.createdAt?.toISOString() ?? ""
+      }
   }
+  return {
+    props: ret
+  }
+}
+
+const EditorTitle = () => {
+  const title = useRecoilValue(projectTitleAtom)
+  return <Head>
+    <title>{title != null && title.length > 0 ? title : "Editor"}</title>
+  </Head>
 }
 
 const ScopedProjectManager = (props: CreatePageProps) => {
@@ -79,6 +90,8 @@ const ScopedProjectManager = (props: CreatePageProps) => {
 
 const Create = (props: CreatePageProps) => {
 
+  const router = useRouter()
+
   const panelProps = usePanels({})
   const setProjectId = useSetRecoilState(currentProjectIdAtom)
 
@@ -86,8 +99,13 @@ const Create = (props: CreatePageProps) => {
     setProjectId(props.projectId)
   }, [props.projectId, setProjectId])
 
+  useEffect(() => {
+    console.log('FALLBACK?: ', router.isFallback)
+  }, [router])
+
   return (
     <>
+      <EditorTitle />
       <chakra.main
         display="flex"
         flexFlow="column"
@@ -99,7 +117,7 @@ const Create = (props: CreatePageProps) => {
         css={scrollbarHidden}
       >
 
-        {/* <RecoilDebugPanel /> */}
+        <RecoilDebugPanel />
         <ScopedProjectManager {...props} />
         <KeybindManager />
 

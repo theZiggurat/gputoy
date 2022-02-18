@@ -1,10 +1,10 @@
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState } from "recoil"
-import { Box, BoxProps, Select } from '@chakra-ui/react'
+import { Box, BoxProps } from '@chakra-ui/react'
 import { themed } from 'theme/theme'
 import { useResizeDetector } from 'react-resize-detector'
-import { projectParamsAtom } from 'core/recoil/atoms/project'
-import { Vec2InterfaceRadial } from './interface/vec2Interface'
+import { projectParamInterfaceProps, projectParamsAtom } from 'core/recoil/atoms/project'
+import { Vec2InterfaceCartesian, Vec2InterfaceRadial } from './interface/vec2Interface'
 import { FloatInterfaceKnob } from './interface/floatInterface'
 
 
@@ -12,26 +12,24 @@ export const typeToInterface = {
   'int': ['Knob'],
   'float': ['Knob'],
   'color': ['RGB', 'HSV'],
-  'vec3f': [],
-  'vec3i': [],
+  'vec3f': ['RGB'],
+  'vec3i': ['RGB'],
   'vec2f': ['Radial', 'Cartesian'],
   'vec2i': ['Cartesian'],
 }
 
 export const interfaces: { [key: string]: ReactNode } = {
-  'Scroll': Vec2InterfaceRadial,
   'Radial': Vec2InterfaceRadial,
+  'Cartesian': Vec2InterfaceCartesian,
   'Knob': FloatInterfaceKnob
 }
 
 export type InterfaceProps = {
+  paramKey: string,
   value: number[],
   onChange: (newval: number[]) => void,
   width: number,
   height: number,
-  mouseX: number,
-  mouseY: number,
-  scroll: number,
 }
 
 export const ParamInterface = (props: { selectedParam: string | null } & BoxProps) => {
@@ -42,14 +40,10 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
   const interfaceType = typeToInterface[param.paramType][param.interface ?? 0]
   const paramInterface = param ? interfaces[interfaceType] : null
   const { width, height, ref } = useResizeDetector()
-  const [scroll, setScroll] = useState(0)
 
   const onHandleValueChange = (newval: number[]) => {
     setParam(old => ({ ...old, param: newval }))
   }
-
-  const onHandleWheel = (ev) => setScroll(old => old + ev.deltaY)
-
 
   return (
 
@@ -57,27 +51,24 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
       position="relative"
       ref={ref}
       style={{ aspectRatio: '1/1' }}
-      flex="0 0 auto"
       bg={themed('a3')}
       flexDir="column"
       borderLeft="1px solid"
       borderColor={themed('dividerLight')}
       overflow="hidden"
-      onWheel={onHandleWheel}
       {...rest}
     >
-
 
       {
         paramInterface && props.selectedParam &&
         React.createElement(
           paramInterface,
           {
+            paramKey: param.key,
             value: param.param,
             onChange: onHandleValueChange,
             width: width ? width : 0,
             height: height ? height : 0,
-            scroll
           }
         )
       }
@@ -85,10 +76,31 @@ export const ParamInterface = (props: { selectedParam: string | null } & BoxProp
   )
 }
 
+export const useInterfaceProps = (props: { paramKey: string }): [
+  any,
+  (propName: string, f: any | ((old?: any) => any)) => void,
+  () => void,
+] => {
+  const [interfaceProps, setInterfaceProps] = useRecoilState(projectParamInterfaceProps(props.paramKey))
+
+  const setPropValue = (propName: string, f: any | ((old?: any) => any)) => {
+    setInterfaceProps((old: any) => {
+      const copy = { ...old }
+      copy[propName] = typeof f === 'function' ? f(old[propName]) : f
+      return copy
+    })
+  }
+
+  const clearProps = () => setInterfaceProps({})
+
+  return [interfaceProps, setPropValue, clearProps]
+}
+
 export const useInterface = (
   props: InterfaceProps,
   toParamSpace: (svgCoord: number[]) => number[],
   fromParamSpace: (paramCoord: number[]) => number[],
+  innerMargin?: number
 ) => {
 
   const ref = useRef<SVGSVGElement | null>(null)

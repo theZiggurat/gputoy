@@ -20,19 +20,16 @@ export class Project {
     return Project._instance
   }
 
-  // project state
   included: Params = new Params('Included', 'i', true)
   params: Params = new Params('Params', 'p', false, 1)
   shaders: types.Shader[] = []
 
-  // gpu state
   vertexBuffer!: GPUBuffer
   shaderModule!: GPUShaderModule
 
   pipeline!: GPURenderPipeline
   pipelineLayout!: GPUPipelineLayout
 
-  // needs update
   shaderDirty = true
 
   gpuAttach!: AttachResult
@@ -60,7 +57,6 @@ export class Project {
     }
   }
 
-  // starts project
   prepareRun = async (state: types.ProjectStatus, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<boolean> => {
     if (!GPU.isInitialized()) {
       logger?.err('Project', 'GPU not initialized. Cancelling run')
@@ -134,7 +130,6 @@ export class Project {
     return true
   }
 
-  // buffer initialization called on run()
   mapBuffers = () => {
     if (!GPU.isInitialized())
       return

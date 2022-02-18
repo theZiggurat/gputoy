@@ -7,7 +7,8 @@ import Dropdown, { DropdownDivider, DropdownItem, DropdownSubDropdown } from "..
 
 const FileDropdown = () => {
 
-  const { goToOpen, post } = useDropdown()
+  const { goToOpen } = useDropdown()
+  const [post, canPost] = usePost()
 
   return (
     <Dropdown text="File">
@@ -16,11 +17,11 @@ const FileDropdown = () => {
       <DropdownItem text="New" rightText="Ctrl+N" />
       <DropdownItem text="Open" rightText="Ctrl+O" onClick={goToOpen} />
       <DropdownDivider />
-      <DropdownItem text="Save" rightText="Ctrl+S" onClick={() => post('save')} />
+      <DropdownItem text="Save" rightText="Ctrl+S" onClick={() => post('save')} disabled={!canPost} />
       <DropdownItem text="Download" />
       <DropdownItem text="Export" />
       <DropdownDivider />
-      <DropdownItem text="Publish" onClick={() => post('publish')} />
+      <DropdownItem text="Publish" onClick={() => post('publish')} disabled={!canPost} />
       <DropdownItem text="Fork" />
     </Dropdown>
   )
@@ -28,11 +29,10 @@ const FileDropdown = () => {
 
 const useDropdown = () => {
   const router = useRouter()
-  const post = usePost()
 
   const goToOpen = () => router.replace('/editor', undefined, { shallow: true })
 
-  return { goToOpen, post }
+  return { goToOpen }
 }
 
 export default FileDropdown

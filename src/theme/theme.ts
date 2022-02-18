@@ -6,6 +6,8 @@ export const themed = (key: string) => useColorModeValue(`light.${key}`, `dark.$
 // eslint-disable-next-line react-hooks/rules-of-hooks
 export const themedRaw = (key: string) => useColorModeValue(light[key], dark[key])
 
+export const fontMono = '"JetBrains Mono", "Fira code", "Fira Mono", monospace'
+
 const dark = {
   p: '#0D0D0D',
   a1: '#0C0C0C',
@@ -32,9 +34,9 @@ const dark = {
 
 const light = {
   p: '#E2E2E2',
-  a1: '#D0D0D0',
-  a2: '#C5C5C5',
-  a3: '#C0C0C0',
+  a1: '#D3D3D3',
+  a2: '#CACACA',
+  a3: '#C7C7C7',
   bg: '#DADADA',
   button: 'rgba(255, 255, 255, 0.4)', //'whiteAlpha.800',
   buttonHovered: 'rgba(0, 0, 0, 0.05)',//'whiteAlpha.500',
@@ -43,7 +45,7 @@ const light = {
   input: 'rgba(255, 255, 255, 0.2)', //'whiteAlpha.600',
   inputHovered: 'rgba(255, 255, 255, 0.4)', //'whiteAlpha.500'
   border: 'rgba(0, 0, 0, 0.2)',
-  borderLight: 'rgba(255, 255, 255, 0.05)',
+  borderLight: 'rgba(0, 0, 0, 0.07)',
   textLight: 'rgba(0, 0, 0, 0.36)',
   textMidLight: 'rgba(0, 0, 0, 0.55)',
   textMid: 'rgba(0, 0, 0, 0.72)',
@@ -113,6 +115,16 @@ const theme = extendTheme({
           _hover: {
             bg: "none"
           }
+        },
+        heavy: {
+          color: "rgba(255, 255, 255, 0.85)",
+          bg: "red.500",
+          _hover: {
+            bg: "red.600"
+          },
+          border: "2px",
+          borderRadius: "md",
+          borderColor: "red.500"
         }
       },
       defaultProps: {
@@ -120,6 +132,22 @@ const theme = extendTheme({
         size: 'sm'
       }
     },
+    Badge: {
+      baseStyle: {},
+      variants: {
+        heavy: {
+          color: "rgba(255, 255, 255, 0.85)",
+          bg: "red.500",
+          _hover: {
+            bg: "red.600"
+          },
+          border: "2px",
+          borderRadius: "md",
+          borderColor: "red.500"
+        }
+      }
+    }
+    ,
     Input: {
       baseStyle: {},
       variants: {

@@ -5,10 +5,20 @@ import { projectParamsAtom } from "core/recoil/atoms/project"
 import React, { useState } from "react"
 import { useRecoilState } from "recoil"
 import Dropdown from "../dropdown"
-import { themed } from '../../../theme/theme'
+import { fontMono, themed } from '../../../theme/theme'
 import { interfaces, typeToInterface } from "./paramInterface"
 import { typeToInputs } from "./paramInput"
 import { VscMenu } from 'react-icons/vsc'
+
+const paramDefaultValues = {
+  "int": [0],
+  "float": [0],
+  "vec2f": [0, 0],
+  "vec2i": [0, 0],
+  "vec3f": [0, 0, 0],
+  "vec3i": [0, 0, 0],
+  "color": [0, 0, 0],
+}
 
 type ParamEntryProps = {
   onSelect: (k: string) => void
@@ -29,68 +39,95 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
   const elem = interfaces[typeToInterface[param.paramType][0]]
   const input = typeToInputs[param.paramType]
 
+  const bgProps = {
+    bg: highlight ? themed('a3') : themed('a2'),
+    _hover: {
+      bg: themed('a1')
+    }
+  }
+
+  const optionStyle = {
+    backgroundColor: themed('a1'),
+    border: "none"
+  }
+
   const onParamNameChange = (ev) => {
     setParam(old => ({ ...old, paramName: ev.target.value }))
   }
 
   return <Flex
-    height="2.5rem"
-    onFocus={() => onSelect(paramKey)}
-    bg={highlight ? themed('a3') : themed('a2')}
+
+    onClick={() => onSelect(paramKey)}
     my="3px"
     transition="background-color 0.1s ease"
-    _hover={{
-      bg: themed('a1')
-    }}
-    borderY={highlight ? "1px" : "0px"}
-    borderColor={themed("dividerLight")}
-    boxSizing="border-box"
+    borderY="1px"
+    borderColor={highlight ? themed("borderLight") : 'transparent'}
+    justifyContent="space-between"
     alignItems="center"
+    gridGap="1rem"
     {...flexProps}
+    {...bgProps}
   >
-    {
-      showMover &&
-      <IconButton
-        aria-label="Move param"
-        title="Move param"
-        size="sm"
-        variant="empty"
-        color={themed('textLight')}
-        icon={<VscMenu />}
+    <Flex minW="50%" justifyContent="space-between" px="0.5rem">
+      {
+        showMover &&
+        <IconButton
+          aria-label="Move param"
+          title="Move param"
+          size="sm"
+          variant="empty"
+          color={themed('textLight')}
+          icon={<VscMenu />}
+        />
+      }
+
+      <Input
+        value={param.paramName}
+        fontSize="0.75rem"
+        bg="none"
+        _hover={{ bg: 'none' }}
+        placeholder="param name"
+        onChange={onParamNameChange}
+        borderRadius="0px"
+        fontFamily={fontMono}
+        spellCheck={false}
+        color={themed('textMid')}
+        paddingInlineEnd="0"
       />
-    }
+      <chakra.select
+        color={themed('textMidLight')}
+        fontSize="0.75rem"
+        fontWeight="bold"
+        value={param.paramType}
+        onChange={(ev) => {
+          const paramType = ev.target.value as ParamType
+          setParam(old => ({ ...old, paramType, param: paramDefaultValues[paramType] }))
+        }}
+        bg="none"
+        sx={bgProps}
+        outline="none"
+        px="0.25rem"
+        borderX="1px"
+        borderColor={highlight ? themed('borderLight') : "transparent"}
+      >
+        <option value="int" >int</option>
+        <option value="float" style={optionStyle}>float</option>
+        <option value="color" style={optionStyle}>color</option>
+        <option value="vec2f" style={optionStyle}>vec2f</option>
+        <option value="vec3f" style={optionStyle}>vec3f</option>
+        <option value="vec2i" style={optionStyle}>vec2i</option>
+        <option value="vec3i" style={optionStyle}>vec3i</option>
+      </chakra.select>
+    </Flex>
 
-    <Input
-      value={param.paramName}
-      bg="none"
-      width="16rem"
-      _hover={{ bg: 'none' }}
-      placeholder="param name"
-      onChange={onParamNameChange}
-      borderRadius="0px"
-    //border="1px solid"
-    //borderColor="red.500"
-
-    />
-    <chakra.select
-      bg="none"
-      fontSize="xs"
-      value={param.paramType}
-      onChange={(ev) => {
-        setParam(old => ({ ...old, paramType: ev.target.value as ParamType }))
-      }}
-    >
-      <option value="int">int</option>
-      <option value="float">float</option>
-      <option value="color">color</option>
-      <option value="vec2f">vec2f</option>
-      <option value="vec3f">vec3f</option>
-      <option value="vec2i">vec2i</option>
-      <option value="vec3i">vec3i</option>
-    </chakra.select>
     <Flex
       flexDir="row"
-      width="20rem"
+      w="100%"
+      h="100%"
+      alignItems="center"
+      px="1rem"
+      bg={themed('input')}
+      boxShadow="-1px 0px 5px 0px rgba(0,0,0,0.1)"
     >
       {
         React.createElement(input,

@@ -1,19 +1,18 @@
 import {
-	Box, Button, Checkbox, Flex, HStack, Input, Popover, PopoverContent, PopoverTrigger, Portal, useColorModeValue
+	Box, Button, Checkbox, Flex, HStack, IconButton, Input, Popover, PopoverContent, PopoverTrigger, Portal, useColorModeValue
 } from '@chakra-ui/react';
 import * as types from 'core/types';
 import useInstance from '@core/hooks/useInstance';
-import useLogger from 'core/hooks/useLogger';
-import { currentProjectIdAtom, projectShaderErrorsAtom, projectShadersAtom } from 'core/recoil/atoms/project';
+import { projectShadersAtom } from 'core/recoil/atoms/project';
 
-import React, { useCallback, useEffect } from 'react';
+import React, { LegacyRef, useCallback, useEffect } from 'react';
 import { FaRegTrashAlt } from 'react-icons/fa';
 import { MdAdd, MdClose, MdCode, MdSettings } from 'react-icons/md';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 //import Editor from 'react-simple-code-editor';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState } from 'recoil';
 import { darkEditor, lightEditor } from '../../../theme/consts';
-import { themed } from '../../../theme/theme';
+import { fontMono, themed } from '../../../theme/theme';
 import { RowButton } from '@components/shared/rowButton';
 import { EditorInstanceState } from '../descriptors';
 import { DynamicPanelProps, Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel';
@@ -24,6 +23,8 @@ import { monarchLanguage, conf } from '../../../monaco/wgsl'
 import darktheme from 'monaco/darktheme';
 import lighttheme from 'monaco/lighttheme';
 import completions from 'monaco/completions';
+import FileTab from '@components/create/editor.tsx/filetab';
+import useHorizontalScroll from 'utils/scrollHook';
 interface EditorProps {
 	onEditCode: (idx: number, code: string) => void,
 	onEditFileName: (idx: number, code: string) => void,
@@ -77,15 +78,31 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 	}
 
 	useEffect(() => {
-		//console.log(monacoTheme)
 		monaco?.editor.setTheme(monacoTheme)
 		setTimeout(() => monaco?.editor.setTheme(monacoTheme), 1)
 	}, [monacoTheme, monaco])
 
+	const scrollRef = useHorizontalScroll()
+
 	return (
 		<Panel {...props}>
-			<PanelContent>
-				<Box width="100%" height="100%" sx={useColorModeValue(lightEditor, darkEditor)}>
+			<PanelContent display="flex" flexDir="column" overflowY="hidden" overFlowX="hidden">
+				<Flex
+					flex="0 0 auto"
+					height="2.8rem"
+					w="100%"
+					bg={themed('a2')}
+					alignItems="end"
+					ref={scrollRef as LegacyRef<HTMLDivElement>}
+					overflowX="hidden"
+				>
+					<Box flex="0 0 auto" borderBottom="1px" borderColor={themed('borderLight')} w="2rem" />
+					{
+						files.map((f, idx) => <FileTab key={f.id} file={f} idx={idx} selectedFileIdx={instanceState.currentFileIndex} onSelect={setCurrentFileIndex} onClose={() => { }} first={idx == 0} />)
+					}
+					<Box flex="1 1 auto" borderBottom="1px" borderColor={themed('borderLight')} minW="2rem" />
+				</Flex>
+				<Box width="100%" sx={useColorModeValue(lightEditor, darkEditor)} flex="1 1 auto" overflowX="hidden">
 					{
 						currentFile &&
 						<Editor
@@ -94,7 +111,6 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 							defaultLanguage={languageID}
 							beforeMount={onMonacoBeforeMount}
 							onChange={value => { if (value !== undefined) onEditCode(instanceState.currentFileIndex, value) }}
-							theme="dark"
 							options={{
 								fontSize: 13,
 								minimap: {
@@ -104,7 +120,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 									top: 20,
 									bottom: 20
 								},
-								fontFamily: "'JetBrains Mono'",
+								fontFamily: fontMono,
 								overviewRulerLanes: 0,
 								scrollBeyondLastLine: false,
 								scrollbar: {

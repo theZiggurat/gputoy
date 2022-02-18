@@ -1,5 +1,5 @@
 import {
-  Button, chakra, Flex, IconButton, useColorModeValue, Text, Box, useToast
+  Button, chakra, Flex, IconButton, useColorModeValue, Text, Box, useToast, Tag, Badge, HStack, Link as ChakraLink
 } from '@chakra-ui/react'
 import NextLink from 'next/link'
 import React, { useState } from 'react'
@@ -22,6 +22,8 @@ import { projectLastSave, projectLastSaveLocal } from 'core/recoil/atoms/project
 import { fmtTimeSpan } from 'utils/dates'
 import useFork from 'core/hooks/useFork'
 import useProjectSession from '@core/hooks/useProjectSession'
+import useHorizontalScroll from 'utils/scrollHook'
+import { FaGithub } from 'react-icons/fa'
 
 const Logo = (props: { color: string }) => {
   return <svg width="22" height="22" viewBox="0 0 50 50">
@@ -50,7 +52,7 @@ const ProjectInfo = () => {
   }
 
   return (
-    <Box pos="relative">
+    <Box pos="relative" display="inline">
       <Button bg="none" onClick={toggleSummary} borderRadius="0">
         <Text
           minW="min-content"
@@ -72,8 +74,10 @@ const ProjectInfo = () => {
         >
           {author?.name ?? 'Anonymous'}
         </Text>
+
       </Button>
       <IconButton
+        display="inline"
         aria-label="Save status"
         variant="empty"
         size="xs"
@@ -266,10 +270,6 @@ const NavEnd = () => {
       >
         Fork
       </Button>
-
-      {/* <Button bg="red.500" h="1.6rem" size="sm" px="0.5rem" ml="0.2rem" border="0px" borderRadius="3px">
-        Sign in
-      </Button> */}
       <NavUser />
     </Flex>
   )
@@ -278,9 +278,12 @@ const NavEnd = () => {
 
 export default function Nav() {
 
+  const scrollRef = useHorizontalScroll()
+
   return (
     <chakra.nav
       h='2.5rem'
+      minH="2.5rem"
       justifyContent="space-between"
       alignItems='center'
       zIndex="1"
@@ -292,6 +295,17 @@ export default function Nav() {
       <NavLeft />
       <ProjectInfo />
       <NavEnd />
+      <ChakraLink href="https://github.com/theZiggurat/gputoy" target="_blank">
+        <Badge variant="heavy" borderRadius="none" mr="0.5rem" textTransform="none" h="1.5rem" textAlign="center" cursor="pointer" userSelect="none">
+          <HStack>
+            <Text>
+              v0.1 pre-alpha
+
+            </Text>
+            <FaGithub />
+          </HStack>
+        </Badge>
+      </ChakraLink>
     </chakra.nav >
   );
 }

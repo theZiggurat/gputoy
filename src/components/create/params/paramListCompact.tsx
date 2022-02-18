@@ -9,7 +9,7 @@ type ParamListCompactProps = {
 
 const ParamListCompact = (props: ParamListCompactProps) => {
   return <>
-    {props.keys.map(k => <ParamEntry key={k} paramKey={k} onSelect={props.onChangeSelected} />)}
+    {props.keys.map(k => <ParamEntry key={k} paramKey={k} onSelect={props.onChangeSelected} flexDir="column" />)}
   </>
 }
 

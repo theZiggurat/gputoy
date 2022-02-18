@@ -1,12 +1,16 @@
 import { Box } from "@chakra-ui/react"
-import React, { useEffect, useState } from "react"
+import React, { } from "react"
 import { themedRaw } from "theme/theme"
-import { InterfaceProps, useInterface } from "../paramInterface"
+import { InterfaceProps, useInterface, useInterfaceProps } from "../paramInterface"
 import Checkbox from "@components/shared/checkbox"
+import SVGMarginBox from "@components/shared/svgMarginBox"
 
 export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
-  const [isNorm, setIsNorm] = useState(false)
+  const [{ scroll, isNorm }, setPropValue, _c] = useInterfaceProps(props)
+
+  const onHandleWheel = (ev) => setPropValue("scroll", old => (old ?? 0) + ev.deltaY)
+  const onToggleNormalize = () => setPropValue("isNorm", old => !old ?? false)
 
   const mag = (t: number[]) => Math.sqrt(t[0] * t[0] + t[1] * t[1])
   const normalize = (coord: number[]) => {
@@ -15,7 +19,7 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
     return [len > 0 ? x / len : 0, len > 0 ? y / len : 0]
   }
 
-  const zoom = isNorm ? 1 : Math.pow(10, props.scroll / 100_00)
+  const zoom = isNorm ? 1 : Math.pow(10, (scroll ?? 0) / 100_00)
   const size = props.width//Math.min(props.width ?? 0, props.height ?? 0)
   const half = size / 2
 
@@ -59,7 +63,7 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
   return (
     <>
-      <svg width={size} height={size} viewBox={`-${half + 8} -${half + 8} ${size + 16} ${size + 16}`} ref={ref}>
+      <svg width={size} height={size} viewBox={`-${half + 8} -${half + 8} ${size + 16} ${size + 16}`} ref={ref} onWheel={onHandleWheel}>
         <defs>
           <clipPath id="clip">
             <circle cx={0} cy={0} r={half} />
@@ -104,12 +108,12 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
         </g>
         <text fill={text} fontSize="0.55em" fontFamily="JetBrains Mono" opacity="0.65">
           <tspan x={-half} y={half - 10}>x: {paramVal[0].toFixed(2)}</tspan>
-          <tspan x={-half} y={half}>y: {paramVal[1].toFixed(2)}</tspan>
+          <tspan x={-half} y={half}>y: {paramVal[1]?.toFixed(2)}</tspan>
         </text>
       </svg>
 
       <Box position="absolute" top="0px" p="0.25rem">
-        <Checkbox title="Normalize" checked={isNorm} onCheck={val => setIsNorm(val)} />
+        <Checkbox title="Normalize" checked={isNorm} onCheck={onToggleNormalize} />
       </Box>
 
       {/* {
@@ -124,22 +128,24 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
 export const Vec2InterfaceCartesian = (props: InterfaceProps) => {
 
-  useEffect(() => {
-    console.log('constructed!')
-  }, [])
+  const [{ scroll, displacement }, setPropValue, _c] = useInterfaceProps(props)
 
+  const zoom = Math.pow(10, (scroll ?? 0) / 100_00)
   const size = Math.min(props.width ?? 0, props.height ?? 0)
   const half = size / 2
 
+  const onHandleWheel = (ev) => {
+    setPropValue('scroll', old => old + ev.deltaY)
+  }
+
   const toParamSpace = (svgCoord: number[]) => {
-    const x = svgCoord[0] / half - 1
-    const y = svgCoord[1] / half - 1
-    const len = Math.sqrt(x * x + y * y)
-    return [x / len, -y / len]
+    const x = (svgCoord[0] - half) / half * zoom
+    const y = ((half - svgCoord[1])) / half * zoom
+    return [x, y]
   }
 
   const fromParamSpace = (paramCoord: number[]) => {
-    const svgSpace = [(paramCoord[0]) * half, -(paramCoord[1]) * half]
+    const svgSpace = [(paramCoord[0]) * half / zoom, -(paramCoord[1]) * half / zoom]
     return svgSpace
   }
 
@@ -150,8 +156,6 @@ export const Vec2InterfaceCartesian = (props: InterfaceProps) => {
     ref
   } = useInterface(props, toParamSpace, fromParamSpace)
 
-  const documentOrigin = toDocumentSpace([half + 4, half + 4])
-  const windowCoord = toDocumentSpace(svgCoord)
 
   const bg = themedRaw('bgInterface')
   const s1 = themedRaw('s1Interface')
@@ -159,40 +163,41 @@ export const Vec2InterfaceCartesian = (props: InterfaceProps) => {
   const text = themedRaw('textMidLight')
   const red = '#E53E3E'
   const redAlpha = '#E53E3E50'
-  const offsetPos = Math.SQRT2 / 2 * half
-  const offsetNeg = -Math.SQRT2 / 2 * half
 
   const paramVal = toParamSpace(svgCoord)
+  console.log('paramVal', paramVal)
   const activeParam = fromParamSpace(paramVal)
-  const angle = Math.atan2(paramVal[1], paramVal[0])
+  console.log('activeParam', activeParam)
 
-  console.log(activeParam)
+  const lineFreq = 5
 
   return (
     <>
-      <svg width={size} height={size} viewBox={`-${half + 8} -${half + 8} ${size + 16} ${size + 16}`} ref={ref} cursor="crosshair">
-        <circle cx={0} cy={0} r={half} stroke={s2} strokeWidth="1px" fill={bg} />
-        <circle cx={0} cy={0} r={half / 2} stroke={s1} strokeWidth="1px" strokeDasharray="3" fill="none" />
-        <circle cx={activeParam[0]} cy={activeParam[1]} r={5} fill={red} />
-        <line x1={0} x2={0} y1={-half} y2={half} strokeWidth="0.5px" stroke={s1}></line>
-        <line x1={-half} x2={half} y1={0} y2={0} strokeWidth="0.5px" stroke={s1}></line>
-        <line x1={offsetNeg} x2={offsetPos} y1={offsetNeg} y2={offsetPos} strokeWidth="0.5px" stroke={s2}></line>
-        <line x1={offsetNeg} x2={offsetPos} y1={offsetPos} y2={offsetNeg} strokeWidth="0.5px" stroke={s2}></line>
-        {
-          // !dragged &&
-          <line x1={0} x2={activeParam[0]} y1={0} y2={activeParam[1]} strokeWidth="3px" stroke={redAlpha} strokeLinecap="round" />
-        }
+      <SVGMarginBox size={size} innerMargin={0} ref={ref} onWheel={onHandleWheel}>
+        <defs>
+        </defs>
 
-        <text x={half - 40} y={16} fill={text} fontSize="0.7rem" fontFamily="JetBrains Mono">
-          {(angle * (180 / Math.PI)).toFixed(0)}°
-        </text>
-      </svg>
-      {/* {
-        dragged &&
-        <DocumentSVG >
-          <line x2={windowCoord[0] + 4} y2={windowCoord[1] + 4} x1={documentOrigin[0]} y1={documentOrigin[1]} strokeWidth="3px" stroke={redAlpha} strokeLinecap="round" />
-        </DocumentSVG>
-      } */}
+
+        <g clipPath="url(#clip-outer)">
+          <rect x={-half} y={-half} width={size} height={size} fill={bg} />
+          <line x1={-half} y1={0} x2={half} y2={0} stroke={s1} strokeWidth="1px" />
+          <line y1={-half} x1={0} y2={half} x2={0} stroke={s1} strokeWidth="1px" />
+          <circle cx={activeParam[0]} cy={activeParam[1]} r={5} fill={red} />
+        </g>
+        <g clipPath="url(#clip-inner)">
+
+          {
+            Array(lineFreq * 2).fill(0).map((_, idx) => (
+              <line key={idx} x1={-half} y1={half * (idx - lineFreq) / lineFreq} x2={half} y2={half * (idx - lineFreq) / lineFreq} stroke={s2} strokeWidth="1px" />
+            ))
+          }
+          {
+            Array(lineFreq * 2).fill(0).map((_, idx) => (
+              <line key={idx} y1={-half} x1={half * (idx - lineFreq) / lineFreq} y2={half} x2={half * (idx - lineFreq) / lineFreq} stroke={s2} strokeWidth="1px" />
+            ))
+          }
+        </g>
+      </SVGMarginBox>
     </>
   )
 }
