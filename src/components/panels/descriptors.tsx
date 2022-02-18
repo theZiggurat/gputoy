@@ -14,14 +14,16 @@ export type InstanceState = any
 
 export interface ParamInstanceState {
 	keywordFilter: string,
-	nameErrors: boolean[]
+	nameErrors: boolean[],
+	selectedParam: string,
 }
 export interface ConsoleInstanceState {
 	typeFilters: boolean[]
 	keywordFilter: string
 }
 export interface EditorInstanceState {
-	currentFileIndex: number
+	currentFileIndex: number,
+	workspace: number[]
 }
 export interface ViewportInstanceState {
 	showInfo: boolean

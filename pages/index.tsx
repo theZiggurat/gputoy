@@ -51,14 +51,14 @@ const SubDesc = (props: { children: ReactNode }) => (
 
 const IncompatibilityError = () => (
   <a href="https://caniuse.com/webgpu" target="_blank" rel="noreferrer">
-    <Flex mt="2rem" bg="red.500" p="1rem" borderRadius="1rem" justifyContent="space-between" alignItems="center">
+    <Flex mt="2rem" bg="red.500" p="1rem" borderRadius="1rem" justifyContent="space-between" alignItems="center" color="whiteAlpha.800" boxShadow="lg">
       <IoWarning size="3rem" />
       <Box flex="1 1 auto">
         <Text fontSize="1.2rem" fontWeight="bold">
-          Unfortunately, your browser is not compatible with GPUToy.
+          Unfortunately, we don't support your browser yet!
         </Text>
-        <Text fontSize="1rem" color={themed('textMid')}>
-          Click here to view compatible browser versions.
+        <Text fontSize="1rem" color="whiteAlpha.700">
+          Click to view compatible browser versions.
         </Text>
       </Box>
     </Flex>
@@ -138,9 +138,10 @@ const Home = (props: HomePageProps) => {
         overflowY="scroll"
         overflowX="hidden"
         bg={themed('bg')}
+        backgroundImage={`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 4 4'%3E%3Cpath fill='%23${useColorModeValue('000', 'FFF')}' fill-opacity='0.1' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");`}
       >
         <Flex
-          width={["100%", "100%", "85%", "65%", "50%"]}
+          width={["100%", "100%", "85%", "70%", "55%"]}
           position="relative"
           transform="translate(-50%, 0%)"
           left="50%"

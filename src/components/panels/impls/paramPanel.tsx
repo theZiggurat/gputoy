@@ -20,7 +20,7 @@ import { projectParamKeys, projectParamsAtom } from 'core/recoil/atoms/project';
 import { nanoid } from 'nanoid';
 import React, { useCallback, useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
-import { MdAdd, MdArrowDropUp, MdSettings } from 'react-icons/md';
+import { MdAdd, MdArrowDropUp, MdDelete, MdSettings } from 'react-icons/md';
 import { useRecoilState } from 'recoil';
 import { RowButton } from '../../shared/rowButton';
 import { ParamInstanceState } from '../descriptors';
@@ -103,12 +103,15 @@ interface ParamPanelProps {
 const ParamPanel = (props: ParamPanelProps) => {
 
 	const { paramKeys, addParam, removeParam } = useParamsPanel()
-	const [selectedParam, setSelectedParam] = useState<string | null>(null)
 	const { width, height, ref } = useResizeDetector()
 	const { ...panelProps } = props
 	const [instanceState, setInstanceState] = useInstance<ParamInstanceState>(props)
 	const renderCompact = (width ?? 0) < (height ?? 0) * 1.5
+
+
+	const { keywordFilter, selectedParam } = instanceState
 	const setKeywordFilter = (filter: string) => setInstanceState({ ...instanceState, keywordFilter: filter })
+	const setSelectedParam = (pid: string) => setInstanceState({ ...instanceState, selectedParam: pid })
 
 	//useDebounce(() => setNameErrors(params.map(p => !(/^[a-z0-9]+$/i.test(p.paramName)))), 500, [params])
 
@@ -132,37 +135,34 @@ const ParamPanel = (props: ParamPanelProps) => {
 			</PanelContent>
 			<PanelBar>
 				<PanelBarMiddle>
+					<RowButton
+						purpose="Add param"
+						onClick={addParam}
+						icon={<MdAdd />}
+						first
+					/>
 					<InputGroup size="xs" maxWidth="500" minWidth="100" >
 						<InputLeftElement
 						>
-							<FaSearch />
+							<FaSearch size="0.6rem" color={themed("textLight")} />
 						</InputLeftElement>
 						<Input
-							borderRadius="lg"
 							value={instanceState.keywordFilter}
 							onChange={ev => setKeywordFilter(ev.target.value)}
 						/>
-						{
-							instanceState.keywordFilter.length > 0 &&
-							<InputRightElement
-								onClick={() => setKeywordFilter('')}
-							>
-								<CloseIcon size="sm" />
-							</InputRightElement>
-						}
+						<RowButton
+							purpose="Remove param"
+							onClick={() => removeParam(selectedParam ?? "")}
+							disabled={!selectedParam}
+							icon={<MdDelete />}
+							last
+						/>
 					</InputGroup>
 				</PanelBarMiddle>
 				<PanelBarEnd>
 					{
 						selectedParam && <InterfaceTypeSelect selectedParam={selectedParam} />
 					}
-
-					<RowButton
-						purpose="Add param"
-						onClick={addParam}
-						icon={<MdAdd />}
-						first={!selectedParam}
-					/>
 					<RowButton
 						purpose="Options"
 						icon={<MdSettings />}
