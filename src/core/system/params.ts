@@ -69,8 +69,9 @@ class Params {
    * @inparams params list of param descriptors
    * @returns whether the project these parameters belong to should recompile
    */
-  set = (inparams: types.ParamDesc[], device: GPUDevice, logger?: Logger): boolean => {
+  set = (_inparams: types.ParamDesc[], device: GPUDevice, logger?: Logger): boolean => {
 
+    const inparams = _inparams.filter(p => !!p.paramName)
     let needRecompile = inparams.length != this.params.length
     if (!needRecompile && !this.frozen) {
       // determines if param name and type are the same. 
@@ -111,14 +112,16 @@ class Params {
     this.sizeByte = 0
     let align = 0
 
-    if (this.params.length > 0) {
-      this.params.forEach((p, idx) => {
+    const namedParams = this.params.filter(p => !!p.paramName)
+
+    if (namedParams.length > 0) {
+      namedParams.forEach((p, idx) => {
         this.byteOffsets[idx] = idx == 0 ? 0 :
-          roundUp(declInfo[p.paramType].align, this.byteOffsets[idx - 1] + declInfo[this.params[idx - 1].paramType].size)
+          roundUp(declInfo[p.paramType].align, this.byteOffsets[idx - 1] + declInfo[namedParams[idx - 1].paramType].size)
         align = Math.max(align, declInfo[p.paramType].align)
       })
-      let lastMemberType = this.params[this.params.length - 1].paramType
-      this.sizeByte = roundUp(align, this.byteOffsets[this.params.length - 1] + declInfo[lastMemberType].size)
+      let lastMemberType = namedParams[namedParams.length - 1].paramType
+      this.sizeByte = roundUp(align, this.byteOffsets[namedParams.length - 1] + declInfo[lastMemberType].size)
     }
 
     if (this.sizeByte == 0) return
@@ -129,7 +132,7 @@ class Params {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
     logger?.debug(`Params_@${this.name}`, `Buffer created with size of ${this.sizeByte} bytes and config: \n`.concat(
-      this.params.map((p: types.ParamDesc, idx: number) => `${this.byteOffsets[idx]}\t${p.paramName}\t\t${declInfo[p.paramType].size} bytes -- ${declInfo[p.paramType].align} align`).join('\n')
+      namedParams.map((p: types.ParamDesc, idx: number) => `${this.byteOffsets[idx]}\t${p.paramName}\t\t${declInfo[p.paramType].size} bytes -- ${declInfo[p.paramType].align} align`).join('\n')
     ))
 
     this.bindGroupLayout = device.createBindGroupLayout({
@@ -161,25 +164,18 @@ class Params {
    * @param device current active GPU device. will return if not initialized
    */
   uploadToGPU = (device: GPUDevice) => {
-
-    if (!device || this.params.length == 0) return
-
-    console.log('PARAM', this)
+    const namedParams = this.params.filter(p => !!p.paramName)
+    if (!device || namedParams.length == 0) return
 
     let byteBuffer = new ArrayBuffer(this.sizeByte)
     let floatView = new Float32Array(byteBuffer, 0, this.sizeByte / 4)
     let intView = new Int32Array(byteBuffer, 0, this.sizeByte / 4)
 
-
-
-    console.log('fbufsize', this.sizeByte / 4)
-    this.params.forEach((p, idx) => {
-
+    namedParams.forEach((p, idx) => {
       if (declInfo[p.paramType].writeType == 'int')
         intView.set(p.param, this.byteOffsets[idx] / 4)
       else
         floatView.set(p.param, this.byteOffsets[idx] / 4)
-      console.log('p')
     })
 
     device.queue.writeBuffer(
@@ -195,16 +191,17 @@ class Params {
   getBindGroupLayout = (): GPUBindGroupLayout => this.bindGroupLayout
   getBuffer = (): GPUBuffer => this.buffer
   getShaderDecl = (lang: string): string => {
-    if (this.params.length == 0) return ''
+    const namedParams = this.params.filter(p => !!p.paramName)
+    if (namedParams.length == 0) return ''
     let unidecl = []
     if (lang == 'wgsl') {
       //unidecl.push('[[block]]')
       unidecl.push(`struct ${this.name} {`)
-      this.params.forEach(p => unidecl.push(`\t${p.paramName}: ${declInfo[p.paramType].wgsl};`))
+      namedParams.forEach(p => unidecl.push(`\t${p.paramName}: ${declInfo[p.paramType].wgsl};`))
       unidecl.push(`};\n[[group(${this.group}), binding(${this.binding})]]\nvar<uniform> ${this.prefix}: ${this.name};\n`)
     } else {
       unidecl.push(`layout(binding = ${this.binding}, set = ${this.group}) uniform ${this.name} {`)
-      this.params.forEach(p => unidecl.push(`\t${declInfo[p.paramType].glsl} ${p.paramName};`))
+      namedParams.forEach(p => unidecl.push(`\t${declInfo[p.paramType].glsl} ${p.paramName};`))
       unidecl.push(`} ${this.prefix};\n`)
     }
     return unidecl.join('\n')

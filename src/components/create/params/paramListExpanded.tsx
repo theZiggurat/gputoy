@@ -19,6 +19,8 @@ const ParamListExpanded = (props: ParamListExpandedProps) => {
     <Flex flexDir="column" flex="1 1 auto" overflow="scroll" height="100%" py="0.5rem">
       {
         props.keys.map(k => <ParamEntry
+          height="2.5rem"
+          minH="2.5rem"
           key={k}
           paramKey={k}
           onSelect={props.onChangeSelected}

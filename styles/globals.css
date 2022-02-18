@@ -21,9 +21,9 @@ a {
   box-sizing: border-box;
 }
 
-option {
+/* option {
   background-color: black !important;
-}
+} */
 
 /* width */
 /* ::-webkit-scrollbar {
