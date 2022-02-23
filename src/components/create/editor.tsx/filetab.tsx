@@ -12,24 +12,27 @@ type FileTabProps = {
   first?: boolean
 }
 
+/**
+ * TODO: convert to generic tab component
+ */
 const FileTab = (props: FileTabProps) => {
   const { file, idx, selectedFileIdx, onSelect, onClose, first } = props
   const selected = idx === selectedFileIdx
 
   return <Button
-    h="2.3rem"
+    h={selected ? "2.5rem" : "2rem"}
     flex="0 0 auto"
     variant="empty"
-    borderLeft={first ? "1px" : "0px"}
+    borderLeft={first || selected ? "1px" : "0px"}
     borderRight="1px"
     borderTop="1px"
     borderBottom={selected ? "0" : "1px"}
     borderColor={themed('borderLight')}
     borderRadius="0"
     fontWeight="normal"
-    bg={selected ? themed('p') : 'none'}
+    bg={selected ? themed('bg') : 'none'}
     onClick={() => onSelect(idx)}
-    _hover={{ bg: selected ? themed('p') : 'none' }}
+    _hover={{ bg: selected ? themed('p') : '' }}
     transition="backgroundColor 0s"
     color={selected ? themed("text") : themed("textLight")}
   >

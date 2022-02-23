@@ -13,7 +13,7 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import { useRecoilState } from 'recoil';
 import { darkEditor, lightEditor } from '../../../theme/consts';
 import { fontMono, themed } from '../../../theme/theme';
-import { RowButton } from '@components/shared/rowButton';
+import { RowButton, RowToggleButton } from '@components/shared/rowButton';
 import { EditorInstanceState } from '../descriptors';
 import { DynamicPanelProps, Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel';
 import Editor, { Monaco, useMonaco } from '@monaco-editor/react'
@@ -25,9 +25,12 @@ import lighttheme from 'monaco/lighttheme';
 import completions from 'monaco/completions';
 import FileTab from '@components/create/editor.tsx/filetab';
 import useHorizontalScroll from 'utils/scrollHook';
+import Label from '@components/shared/label';
 interface EditorProps {
 	onEditCode: (idx: number, code: string) => void,
 	onEditFileName: (idx: number, code: string) => void,
+	onEditFileLang: (idx: number, lang: types.Lang) => void,
+	onEditFileRender: (idx: number, isRender: boolean) => void,
 	onCreateFile: (lang: types.Lang) => number,
 	onDeleteFile: (idx: number) => void,
 	setRender: (idx: number) => void,
@@ -37,7 +40,7 @@ interface EditorProps {
 const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 
 	const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
-	const { shaders: files, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender } = useEditor()
+	const { shaders: files, onEditCode, onCreateFile, onDeleteFile, onEditFileName, onEditFileRender, onEditFileLang, setRender } = useEditor()
 	const monacoTheme = useColorModeValue('light', 'dark')
 	const monaco = useMonaco()
 
@@ -89,7 +92,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 			<PanelContent display="flex" flexDir="column" overflowY="hidden" overFlowX="hidden">
 				<Flex
 					flex="0 0 auto"
-					height="2.8rem"
+					height="2.4rem"
 					w="100%"
 					bg={themed('a2')}
 					alignItems="end"
@@ -141,18 +144,18 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 			<PanelBar preventScroll={isFileDrawerOpen}>
 				<PanelBarMiddle zIndex="3">
 					<RowButton
-						purpose="Browse files"
+						purpose="File properties"
 						icon={isFileDrawerOpen ? <RiArrowDropDownLine size={17} /> : <RiArrowDropUpLine size={17} />}
 						onClick={toggleDrawer}
 						first
 					/>
 					<Popover
 						placement='top-start'
-						gutter={0}
+						gutter={5}
 						preventOverflow
 						isOpen={isFileDrawerOpen}
 						onClose={closeDrawer}
-						closeOnBlur={false}
+						closeOnBlur
 						modifiers={[
 							{
 								name: 'preventOverflow',
@@ -187,33 +190,21 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 									direction="column"
 									width="200px"
 									backgroundColor={themed('a2')}
-									borderTopRadius="6px"
+									border="1px"
+									borderBottom="0"
+									borderColor={themed('dividerLight')}
 								>
-									{
-										files.map((file, idx) =>
-											<HStack key={file.file}>
-												<Button
-													size="sm"
-													bg={idx == instanceState.currentFileIndex ?
-														themed('inputHovered') :
-														themed('input')
-													}
-													borderBottomRadius="0px"
-													borderBottom="0"
-													borderTopRadius={idx != 0 ? "0px" : "5px"}
-													fontWeight="light"
-													onClick={() => onHandleSelectFile(idx)}
-													justifyContent="start"
-												>
-													{`${file.filename}.${file.lang}`}
-												</Button>
-												<Checkbox
-													isChecked={file.isRender ?? false}
-													onChange={() => setRender(idx)}
-												/>
-											</HStack>
-										)
-									}
+									<Label text="Lang" p="0.5rem">
+										<RowToggleButton text='glsl' onClick={() => onEditFileLang(instanceState.currentFileIndex, 'glsl')} first toggled={currentFile.lang === 'glsl'} />
+										<RowToggleButton text='wgsl' onClick={() => onEditFileLang(instanceState.currentFileIndex, 'wgsl')} last toggled={currentFile.lang === 'wgsl'} />
+									</Label>
+									{/* 
+										TODO: make proper checkbox component
+									*/}
+									<Label text="isRender" p="0.5rem">
+										<RowToggleButton text='  ' onClick={() => onEditFileRender(instanceState.currentFileIndex, false)} first toggled={!currentFile.isRender} />
+										<RowToggleButton text='  ' onClick={() => onEditFileRender(instanceState.currentFileIndex, true)} last toggled={currentFile.isRender} />
+									</Label>
 								</Flex>
 							</PopoverContent>
 						</Portal>
@@ -296,6 +287,22 @@ export const useEditor = (): EditorProps => {
 		})
 	}, [setShaders])
 
+	const onEditFileLang = useCallback((idx: number, lang: types.Lang) => {
+		setShaders(prevCode => {
+			let updated = [...prevCode]
+			updated[idx] = Object.assign({}, prevCode[idx], { lang })
+			return updated
+		})
+	}, [setShaders])
+
+	const onEditFileRender = useCallback((idx: number, isRender: boolean) => {
+		setShaders(prevCode => {
+			let updated = [...prevCode]
+			updated[idx] = Object.assign({}, prevCode[idx], { isRender })
+			return updated
+		})
+	}, [setShaders])
+
 	const setRender = (idx: number) => {
 		setShaders(curr => {
 			return curr.map((f, i) => {
@@ -308,7 +315,7 @@ export const useEditor = (): EditorProps => {
 	}
 
 
-	return { shaders, onEditCode, onCreateFile, onDeleteFile, onEditFileName, setRender }
+	return { shaders, onEditCode, onCreateFile, onDeleteFile, onEditFileName, onEditFileLang, onEditFileRender, setRender }
 }
 
 export default EditorPanel;

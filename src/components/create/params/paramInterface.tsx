@@ -9,8 +9,8 @@ import { FloatInterfaceKnob } from './interface/floatInterface'
 
 
 export const typeToInterface = {
-  'int': ['Knob'],
-  'float': ['Knob'],
+  'int': ['Int Knob'],
+  'float': ['Float Knob'],
   'color': ['RGB', 'HSV'],
   'vec3f': ['RGB'],
   'vec3i': ['RGB'],
@@ -21,7 +21,8 @@ export const typeToInterface = {
 export const interfaces: { [key: string]: ReactNode } = {
   'Radial': Vec2InterfaceRadial,
   'Cartesian': Vec2InterfaceCartesian,
-  'Knob': FloatInterfaceKnob
+  'Float Knob': FloatInterfaceKnob,
+  'Int Knob': FloatInterfaceKnob
 }
 
 export type InterfaceProps = {
