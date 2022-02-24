@@ -112,6 +112,7 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 							height="100%"
 							value={currentFile.file}
 							defaultLanguage={languageID}
+							language={currentFile.lang}
 							beforeMount={onMonacoBeforeMount}
 							onChange={value => { if (value !== undefined) onEditCode(instanceState.currentFileIndex, value) }}
 							options={{
@@ -131,7 +132,6 @@ const EditorPanel = (props: EditorProps & DynamicPanelProps) => {
 								},
 								suggest: {
 									//preview: true,
-									localityBonus: true,
 									snippetsPreventQuickSuggestions: false,
 								},
 								theme: monacoTheme

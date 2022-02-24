@@ -101,7 +101,7 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
         value={param.paramType}
         onChange={(ev) => {
           const paramType = ev.target.value as ParamType
-          setParam(old => ({ ...old, paramType, param: paramDefaultValues[paramType] }))
+          setParam(old => ({ ...old, paramType, param: paramDefaultValues[paramType], interface: 0 }))
         }}
         bg="none"
         sx={bgProps}

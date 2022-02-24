@@ -1,11 +1,20 @@
-import { Input, InputGroup, InputLeftAddon, InputLeftElement } from "@chakra-ui/react"
-import { fontMono, themedRaw } from "@theme/theme"
-import React, { useState } from "react"
+import { Button, Flex } from "@chakra-ui/react"
+import { fontMono, themed, themedRaw } from "@theme/theme"
+import React, { useMemo } from "react"
 import { InterfaceProps, useInterface, useInterfaceProps } from "../paramInterface"
 
 export const InterfaceKnob = (props: { isInt?: boolean } & InterfaceProps) => {
 
-  const [{ scale = 10, isNeg = true }, setPropValue, _c] = useInterfaceProps(props)
+  const fmt = Intl.NumberFormat('en-US', {
+    notation: "compact",
+    maximumFractionDigits: 3,
+  })
+
+  const [{ scale = 1, isNeg = true }, setPropValue, _c] = useInterfaceProps(props)
+
+  const max = Math.pow(10, scale)
+  const min = isNeg ? -max : 0
+
 
   const onToggleNegative = () => setPropValue("isNeg", old => !isNeg)
   const setScale = (scale: number) => setPropValue("scale", scale)
@@ -14,7 +23,10 @@ export const InterfaceKnob = (props: { isInt?: boolean } & InterfaceProps) => {
   const half = size / 2
 
   const toParamSpace = (svgCoord: number[]) => {
-    return [svgCoord[0] - half, svgCoord[1] - half]
+    const atan = Math.atan2(-svgCoord[0] + half, svgCoord[1] - half)
+    const angle = (atan < 0 ? 2 * Math.PI + atan : atan)
+    const norm = Math.min(1, Math.max(0, (angle / (2 * Math.PI) - 0.125) * 4 / 3))
+    return [min + (max - min) * norm]
   }
 
   const fromParamSpace = (paramCoord: number[]) => {
@@ -25,7 +37,9 @@ export const InterfaceKnob = (props: { isInt?: boolean } & InterfaceProps) => {
     ref
   } = useInterface(props, toParamSpace, fromParamSpace)
 
-  const paramVal = props.value
+  const paramVal = props.value[0]
+  const clampedVal = Math.min(Math.max(paramVal, min), max)
+  const paramAngle = (5 * Math.PI / 4) - (((clampedVal - min) / (max - min)) * 3 * Math.PI / 2)
 
   const bg = themedRaw('bgInterface')
   const s1 = themedRaw('s1Interface')
@@ -34,18 +48,27 @@ export const InterfaceKnob = (props: { isInt?: boolean } & InterfaceProps) => {
   const red = '#E53E3E'
   const redAlpha = '#E53E3E50'
 
-  const knobRadius = 3 * half / 5
-  const innerRadius = knobRadius + 5
-  const innerRadiusOffset = Math.SQRT1_2 * innerRadius
-  const outerRadius = half
-  const outerRadiusOffset = Math.SQRT1_2 * outerRadius
-  const shape = `
-  M ${outerRadiusOffset} ${outerRadiusOffset} A ${outerRadius} ${outerRadius} 0 1 0 ${-outerRadiusOffset} ${outerRadiusOffset}
-  L ${-innerRadiusOffset} ${innerRadiusOffset}
-  M ${-innerRadiusOffset} ${innerRadiusOffset} A ${innerRadius} ${innerRadius} 0 1 1 ${innerRadiusOffset} ${innerRadiusOffset}
-  L ${outerRadiusOffset} ${outerRadiusOffset}
-  `
-  //const shape = `M ${outerRadius} 0 A 1 1 0 0 0 ${-outerRadius} 0 L ${-innerRadius} 20 A 1 1 0 0 1 ${innerRadius} 0 L ${outerRadius} 0 `
+  const knobRadius = 3 * half / 6
+  const ringInner = knobRadius + 5
+  const ringInnerDiag = Math.SQRT1_2 * ringInner
+  const ringOuter = half
+  const ringOuterDiag = Math.SQRT1_2 * ringOuter
+  const ringEdgeInner = ringOuter - 5
+  const ringEdgeInnerDiag = Math.SQRT1_2 * ringEdgeInner
+  const paramFactorX = Math.cos(paramAngle)
+  const paramFactorY = Math.sin(paramAngle)
+  const knobRingMain = useMemo(() => `
+  M ${ringOuterDiag} ${ringOuterDiag} A ${ringOuter} ${ringOuter} 0 1 0 ${-ringOuterDiag} ${ringOuterDiag}
+  L ${-ringInnerDiag} ${ringInnerDiag}
+  M ${-ringInnerDiag} ${ringInnerDiag} A ${ringInner} ${ringInner} 0 1 1 ${ringInnerDiag} ${ringInnerDiag}
+  L ${ringOuterDiag} ${ringOuterDiag}
+  `, [ringInner, ringInnerDiag, ringOuter, ringOuterDiag])
+  const knobRingOuter = useMemo(() => `
+  M ${-ringOuterDiag} ${ringOuterDiag} A ${ringOuter} ${ringOuter} 0 ${paramAngle > Math.PI / 4 ? 0 : 1} 1 ${ringOuter * paramFactorX} ${-ringOuter * paramFactorY}
+  L ${ringEdgeInner * paramFactorX} ${-ringEdgeInner * paramFactorY}
+  M ${ringEdgeInner * paramFactorX} ${-ringEdgeInner * paramFactorY} A ${ringEdgeInner} ${ringEdgeInner} 1 ${paramAngle > Math.PI / 4 ? 0 : 1} 0 ${-ringEdgeInnerDiag} ${ringEdgeInnerDiag}
+  L ${-ringOuterDiag} ${ringOuterDiag}
+  `, [ringEdgeInner, ringEdgeInnerDiag, ringOuter, ringOuterDiag, paramAngle, paramFactorX, paramFactorY])
 
 
   return (
@@ -56,35 +79,62 @@ export const InterfaceKnob = (props: { isInt?: boolean } & InterfaceProps) => {
           </clipPath>
         </defs>
         <circle cx={0} cy={0} r={knobRadius} stroke={s1} strokeWidth="1px" fill={bg} />
-        <line x1={0} x2={0} y1={-knobRadius} y2={-knobRadius + 10} stroke={red} />
-        <path d={shape} fill={bg} />
-        <text fill={text} fontSize={size / 15 + 5} fontFamily={fontMono} >
-          <tspan x={0} y={0} textAnchor="middle">{paramVal[0].toFixed(3)}</tspan>
-
+        <line
+          x1={knobRadius * Math.cos(paramAngle)}
+          x2={(knobRadius - 10) * Math.cos(paramAngle)}
+          y1={-knobRadius * Math.sin(paramAngle)}
+          y2={-(knobRadius - 10) * Math.sin(paramAngle)}
+          stroke={red}
+          strokeWidth={2}
+        />
+        <path d={knobRingMain} fill={bg} />
+        <path d={knobRingOuter} fill={redAlpha} />
+        <text fill={text} fontSize={size / 15 + 5} fontFamily={fontMono} pointerEvents="none">
+          <tspan x={0} y={4} textAnchor="middle">{fmt.format(paramVal)}</tspan>
         </text>
+        <text fill={s1} fontSize={8} fontFamily={fontMono} pointerEvents="none">
+          <tspan x={(ringOuterDiag + ringInnerDiag) / 2 + 12} y={(ringOuterDiag + ringInnerDiag) / 2} textAnchor="middle">{fmt.format(max)}</tspan>
+          <tspan x={-(ringOuterDiag + ringInnerDiag) / 2 - 12} y={(ringOuterDiag + ringInnerDiag) / 2} textAnchor="middle">{fmt.format(min)}</tspan>
+        </text>
+
+
+        {
+          Array(21).fill(0).map((_, idx) => {
+            const large = idx % 10 == 0
+            const lineEnd = large ? (ringOuter + ringInner) / 2 : ringInner + (ringOuter - ringInner) / 4
+            const angle = (3 * idx / 40 - 0.25) * Math.PI
+            return <line
+              key={idx}
+              x1={Math.cos(angle) * ringInner}
+              x2={Math.cos(angle) * lineEnd}
+              y1={-Math.sin(angle) * ringInner}
+              y2={-Math.sin(angle) * lineEnd}
+              stroke={large ? s1 : s2}
+            />
+          }
+          )
+        }
         <g clipPath="url(#clip)">
 
         </g>
       </svg>
-      <InputGroup
-        type="number"
+      <Flex
         pos="absolute"
-        transform="translate(-50%, 0)"
-        w={half}
-        h="min-content"
+        bottom="0%"
         left="50%"
-        bottom="10px"
-        fontSize={size / 30 + 5}
-        fontFamily={fontMono}
+        transform="translate(-50%, 0)"
+        color={themed("textLight")}
+        fontWeight="extrabold"
+        borderColor={themed("borderLight")}
+        width="100%"
+        justifyContent="center"
+        alignItems="center"
       >
-        <InputLeftElement minW="min-content">
-          scale
-        </InputLeftElement>
-        <Input
-          textAlign="center"
-          bg="none"
-        />
-      </InputGroup>
+        <Button variant="empty" size="xs" onClick={() => setScale(Math.min(12, Math.max(scale - 1, -5)))} p="0" fontWeight="bold">-</Button>
+        <Button variant="empty" size="xs" p="0" color={themed("textLight")} onClick={onToggleNegative}>[{fmt.format(min)}, {fmt.format(max)}]</Button>
+        <Button variant="empty" size="xs" onClick={() => setScale(Math.min(12, Math.max(scale + 1, -5)))} p="0" fontWeight="bold">+</Button>
+
+      </Flex>
 
     </>
   )
