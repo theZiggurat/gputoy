@@ -26,7 +26,9 @@ export const InterfaceKnob = (props: { isInt?: boolean } & InterfaceProps) => {
     const atan = Math.atan2(-svgCoord[0] + half, svgCoord[1] - half)
     const angle = (atan < 0 ? 2 * Math.PI + atan : atan)
     const norm = Math.min(1, Math.max(0, (angle / (2 * Math.PI) - 0.125) * 4 / 3))
-    return [min + (max - min) * norm]
+    const val = min + (max - min) * norm
+    console.log(val, props)
+    return [props.isInt ? Math.round(val) : val]
   }
 
   const fromParamSpace = (paramCoord: number[]) => {
@@ -130,7 +132,7 @@ export const InterfaceKnob = (props: { isInt?: boolean } & InterfaceProps) => {
         justifyContent="center"
         alignItems="center"
       >
-        <Button variant="empty" size="xs" onClick={() => setScale(Math.min(12, Math.max(scale - 1, -5)))} p="0" fontWeight="bold">-</Button>
+        <Button variant="empty" size="xs" onClick={() => setScale(Math.max(scale - 1, props.isInt ? 0 : -5))} p="0" fontWeight="bold">-</Button>
         <Button variant="empty" size="xs" p="0" color={themed("textLight")} onClick={onToggleNegative}>[{fmt.format(min)}, {fmt.format(max)}]</Button>
         <Button variant="empty" size="xs" onClick={() => setScale(Math.min(12, Math.max(scale + 1, -5)))} p="0" fontWeight="bold">+</Button>
 

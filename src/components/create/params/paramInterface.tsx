@@ -5,7 +5,7 @@ import { themed } from 'theme/theme'
 import { useResizeDetector } from 'react-resize-detector'
 import { projectParamInterfaceProps, projectParamsAtom } from 'core/recoil/atoms/project'
 import { Vec2InterfaceCartesian, Vec2InterfaceRadial } from './interface/vec2Interface'
-import { FloatInterfaceKnob } from './interface/floatInterface'
+import { FloatInterfaceKnob, IntInterfaceKnob } from './interface/floatInterface'
 
 
 export const typeToInterface = {
@@ -22,7 +22,7 @@ export const interfaces: { [key: string]: ReactNode } = {
   'Radial': Vec2InterfaceRadial,
   'Cartesian': Vec2InterfaceCartesian,
   'Float Knob': FloatInterfaceKnob,
-  'Int Knob': FloatInterfaceKnob
+  'Int Knob': IntInterfaceKnob
 }
 
 export type InterfaceProps = {
