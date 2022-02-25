@@ -91,12 +91,12 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
             <line x1={0} x2={activeParam[0]} y1={0} y2={activeParam[1]} strokeWidth="3px" stroke={redAlpha} strokeLinecap="round" />
           }
 
-          <text x={5} y={5} fill={text} fontSize="0.6em" fontFamily="JetBrains Mono">
+          <text x={5} y={5} fill={text} fontSize="0.6em" fontFamily="JetBrains Mono" pointerEvents="none">
             <tspan x={radius + 4} y={-4}>Θ: {(angle * (180 / Math.PI)).toFixed(0)}°</tspan>
             {/* <tspan x={-half + 5} y={20} dominantBaseline="hanging">x: {normalize(paramVal)[0].toFixed(2)}, y: {normalize(paramVal)[1].toFixed(2)}</tspan> */}
           </text>
 
-          <text fill={text} fontSize="0.55em" fontFamily="JetBrains Mono">
+          <text fill={text} fontSize="0.55em" fontFamily="JetBrains Mono" pointerEvents="none">
             <tspan x={2} y={-line1Radius + 4} dominantBaseline="hanging" opacity={Math.sqrt(actRadius / zoom)}>{actRadius}</tspan>
             <tspan x={2} y={-line2Radius + 4} dominantBaseline="hanging" opacity={Math.sqrt(actRadius / 2 / zoom)}>{actRadius / 2}</tspan>
             <tspan x={2} y={-line1Radius * 10 + 4} dominantBaseline="hanging" opacity={Math.sqrt(actRadius * 10 / zoom)}>{actRadius * 10}</tspan>

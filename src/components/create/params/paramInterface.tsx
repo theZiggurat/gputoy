@@ -6,14 +6,15 @@ import { useResizeDetector } from 'react-resize-detector'
 import { projectParamInterfaceProps, projectParamsAtom } from 'core/recoil/atoms/project'
 import { Vec2InterfaceCartesian, Vec2InterfaceRadial } from './interface/vec2Interface'
 import { FloatInterfaceKnob, IntInterfaceKnob } from './interface/floatInterface'
+import { RGBInterface } from './interface/colorinterface'
 
 
 export const typeToInterface = {
   'int': ['Int Knob'],
   'float': ['Float Knob'],
   'color': ['RGB', 'HSV'],
-  'vec3f': ['RGB'],
-  'vec3i': ['RGB'],
+  'vec3f': [],
+  'vec3i': [],
   'vec2f': ['Radial', 'Cartesian'],
   'vec2i': ['Cartesian'],
 }
@@ -22,7 +23,8 @@ export const interfaces: { [key: string]: ReactNode } = {
   'Radial': Vec2InterfaceRadial,
   'Cartesian': Vec2InterfaceCartesian,
   'Float Knob': FloatInterfaceKnob,
-  'Int Knob': IntInterfaceKnob
+  'Int Knob': IntInterfaceKnob,
+  'RGB': RGBInterface
 }
 
 export type InterfaceProps = {

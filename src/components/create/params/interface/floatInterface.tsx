@@ -49,6 +49,7 @@ export const InterfaceKnob = (props: { isInt?: boolean } & InterfaceProps) => {
   const text = themedRaw('textMidLight')
   const red = '#E53E3E'
   const redAlpha = '#E53E3E50'
+  const ticks = 20
 
   const knobRadius = 3 * half / 6
   const ringInner = knobRadius + 5
@@ -101,10 +102,10 @@ export const InterfaceKnob = (props: { isInt?: boolean } & InterfaceProps) => {
 
 
         {
-          Array(21).fill(0).map((_, idx) => {
+          Array(ticks + 1).fill(0).map((_, idx) => {
             const large = idx % 10 == 0
             const lineEnd = large ? (ringOuter + ringInner) / 2 : ringInner + (ringOuter - ringInner) / 4
-            const angle = (3 * idx / 40 - 0.25) * Math.PI
+            const angle = (3 * idx / (ticks * 2) - 0.25) * Math.PI
             return <line
               key={idx}
               x1={Math.cos(angle) * ringInner}

@@ -17,7 +17,7 @@ const paramDefaultValues = {
   "vec2i": [0, 0],
   "vec3f": [0, 0, 0],
   "vec3i": [0, 0, 0],
-  "color": [0, 0, 0],
+  "color": [0, 0, 0, 1],
 }
 
 type ParamEntryProps = {
