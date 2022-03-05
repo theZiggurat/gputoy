@@ -22,19 +22,28 @@ export class Project {
 
   included: Params = new Params('Included', 'i', true)
   params: Params = new Params('Params', 'p', false, 1)
-  shaders: types.Shader[] = []
+
 
   vertexBuffer!: GPUBuffer
   shaderModule!: GPUShaderModule
-
-  pipeline!: GPURenderPipeline
-  pipelineLayout!: GPUPipelineLayout
 
   shaderDirty = true
 
   gpuAttach!: AttachResult
   resizeNeeded: boolean = false
   resizeSize: number[] = [0, 0]
+
+
+  files: Record<string, types.File> = {}
+  resources: Record<string, types.Resource> = {}
+
+  destroy() {
+
+  }
+
+  buildResources = async () => {
+
+  }
 
   // attaches canvas to current GPU device if there is one
   // if there is no device, it will try to init
@@ -56,6 +65,8 @@ export class Project {
       this.resizeSize = newsize
     }
   }
+
+  build = async (): Promise<boolean> => { return false }
 
   prepareRun = async (state: types.ProjectStatus, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<boolean> => {
     if (!GPU.isInitialized()) {
@@ -105,29 +116,39 @@ export class Project {
       this.shaderDirty = this.params.set(paramDesc, GPU.device, logger) || this.shaderDirty
   }
 
-  updateShaders = (files: types.Shader[], logger?: Logger) => {
-    this.shaders = files
+  updateShaders = (files: { [key: string]: types.File }, logger?: Logger) => {
+    this.files = files
     this.shaderDirty = true
   }
 
-  compileShaders = async (logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<boolean> => {
-    let srcFile = this.shaders.find(f => f.isRender)
-    if (srcFile === undefined) {
-      logger?.err('Project', 'Cannot compile. No \'render\' shader in files!')
-      return false
-    }
-    let decls = this.included.getShaderDecl(srcFile.lang)
-      .concat(this.params.getShaderDecl(srcFile.lang))
+  graph = {
 
-    let module = null
-    if (srcFile.lang == 'wgsl')
-      module = await Compiler.instance().compileWGSL(GPU.device, srcFile, decls, logger, setFileErrors)
-    else
-      module = await Compiler.instance().compileGLSL(GPU.device, srcFile, decls, logger, setFileErrors)
-    if (module == null)
-      return false
-    this.shaderModule = module
-    return true
+  }
+
+  compileShaders = async (logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<boolean> => {
+    let [first, second, third] = Object.values(this.files).filter(f => types.isShader(f.extension))
+
+    Compiler.instance().compile(GPU.device, first, "", {}, logger)
+
+    return false
+    // console.log(shaderFile)
+    // const extension = shaderFile.extension
+    // if (shaderFile === undefined) {
+    //   logger?.err('Project', 'Cannot compile. No \'render\' shader in files!')
+    //   return false
+    // }
+    // let decls = this.included.getShaderDecl(extension)
+    //   .concat(this.params.getShaderDecl(extension))
+
+    // let module = null
+    // if (extension == 'wgsl')
+    //   module = await Compiler.instance().compile(GPU.device, shaderFile, logger)
+    // else
+    //   module = await Compiler.instance().compile(GPU.device, shaderFile, decls, logger, setFileErrors)
+    // if (module == null)
+    //   return false
+    // this.shaderModule = module
+    // return true
   }
 
   mapBuffers = () => {
@@ -160,6 +181,7 @@ export class Project {
     let layouts = [this.included.getBindGroupLayout()]
     if (!this.params.isEmpty())
       layouts.push(this.params.getBindGroupLayout())
+
 
     this.pipelineLayout = GPU.device.createPipelineLayout({
       bindGroupLayouts: layouts
@@ -227,10 +249,3 @@ export class Project {
     GPU.device.queue.submit([commandEncoder.finish()])
   }
 }
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-const WorkingProject = new Project()
-export default WorkingProject;

@@ -6,22 +6,58 @@
   <component name="ChangeListManager">
     <list default="true" id="ea527df2-fa52-4273-9ae1-d7403b9fac23" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../next.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../next.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pages/_app.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/_app.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pages/create.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/create.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pages/api/project.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/api/project.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pages/editor/[pid].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/editor/[pid].tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pages/editor/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/editor/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pages/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/index/editorDemo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/index/editorDemo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pkg/naga_compiler.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../pkg/naga_compiler.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pkg/naga_compiler.js" beforeDir="false" afterPath="$PROJECT_DIR$/../pkg/naga_compiler.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pkg/naga_compiler_bg.wasm" beforeDir="false" afterPath="$PROJECT_DIR$/../pkg/naga_compiler_bg.wasm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pkg/naga_compiler_bg.wasm.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../pkg/naga_compiler_bg.wasm.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/../prisma/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/create/editor.tsx/filetab.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/create/params/interface/colorinterface.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/create/params/interface/colorinterface.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/create/params/interface/floatInterface.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/create/params/interface/floatInterface.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/create/params/interface/vec2Interface.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/create/params/interface/vec2Interface.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/create/params/paramEntry.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/create/params/paramEntry.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/create/projectSelecion.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/create/projectSelecion.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/panels/descriptors.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/descriptors.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/components/panels/impls/editorPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/impls/editorPanel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/panels/impls/summaryPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/impls/summaryPanel.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/components/panels/impls/viewPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/impls/viewPanel.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/components/panels/panel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/panel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/shared/misc/typer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/shared/misc/typer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/shared/navbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/shared/navbar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/shared/user.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/shared/user.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/gpu/params.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/gpu/params.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/recoil/project.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/recoil/project.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/theme/theme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/theme/theme.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/shared/checkbox.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/shared/checkbox.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/shared/misc/typer.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/shared/modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/shared/modal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/shared/projectCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/shared/projectCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/shared/svgBox.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/shared/svgBox.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/shared/svgMarginBox.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/hooks/useFork.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/useFork.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/hooks/usePanels.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/usePanels.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/hooks/usePost.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/usePost.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/hooks/useProjectDirect.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/useProjectDirect.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/hooks/useProjectManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/useProjectManager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/hooks/useProjectStorage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/useProjectStorage.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/recoil/atoms/blos.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/recoil/atoms/controls.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/recoil/atoms/controls.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/recoil/atoms/instance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/recoil/atoms/instance.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/recoil/atoms/layout.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/recoil/atoms/layout.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/recoil/atoms/project.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/recoil/atoms/project.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/recoil/localStorageEffect.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/recoil/selectors/queries.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/system/compiler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/compiler.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/system/gpu.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/gpu.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/system/params.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/params.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/system/project.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/project.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/system/projectDirect.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/projectDirect.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/system/staticdecl.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/staticdecl.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/types/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/types/queries.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/monaco/darktheme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/monaco/darktheme.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/monaco/wgsl.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/monaco/wgsl.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/../tsconfig.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,9 +88,9 @@
   </component>
   <component name="RunManager">
     <configuration name="Build" type="WasmPackCommandRunConfiguration" factoryName="wasm-pack" nameIsGenerated="true">
-      <option name="command" value="build --target web" />
+      <option name="command" value="build --target web --out-dir ../pkg" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="command" value="build --target web" />
+      <option name="command" value="build --target web --out-dir ../pkg" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <method v="2">
         <option name="WASM_PACK.BUILD_TASK_PROVIDER" enabled="true" />

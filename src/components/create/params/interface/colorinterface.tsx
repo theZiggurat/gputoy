@@ -1,11 +1,9 @@
-import { Box, chakra, Flex, Text } from "@chakra-ui/react"
+import { Box, Flex, Text } from "@chakra-ui/react"
 import Label from "@components/shared/label"
-import SVGBox from "@components/shared/svgBox"
-import SVGMarginBox from "@components/shared/svgMarginBox"
-import { fontMono, themed, themedRaw } from "@theme/theme"
-import { useState } from "react"
+import { SVGBox } from "@components/shared/svgBox"
+import { themed, themedRaw } from "@theme/theme"
 import { hslToRgb, rgbToHsl, toHex } from "utils/colors"
-import { InterfaceProps, useInterfaceProps, useInterface } from "../paramInterface"
+import { InterfaceProps, useInterfaceProps } from "../paramInterface"
 
 export const RGBInterface = (props: InterfaceProps) => {
 

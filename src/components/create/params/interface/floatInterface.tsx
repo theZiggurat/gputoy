@@ -27,7 +27,6 @@ export const InterfaceKnob = (props: { isInt?: boolean } & InterfaceProps) => {
     const angle = (atan < 0 ? 2 * Math.PI + atan : atan)
     const norm = Math.min(1, Math.max(0, (angle / (2 * Math.PI) - 0.125) * 4 / 3))
     const val = min + (max - min) * norm
-    console.log(val, props)
     return [props.isInt ? Math.round(val) : val]
   }
 

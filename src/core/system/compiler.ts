@@ -3,15 +3,21 @@ import init, {
   compile_glsl,
   get_module_info,
   get_ir,
-  get_errors
+  get_errors,
+  introspect
 } from '../../../pkg/naga_compiler'
 import { Logger } from 'core/recoil/atoms/console'
 import { FileErrors } from 'core/recoil/atoms/project'
-import { Shader } from '../types'
 import staticdecl from './staticdecl'
+import { getStructDecl, File, Model, ExtensionShader, Module, PreProcessResult } from '@core/types'
 
-type ShaderStage = 'vertex' | 'fragment' | 'compute'
-
+const REGEX_SYNCS = /@sync\s+var\s*<?([\w+\s*,\s*]*)>?\s+(\w*)\s*:\s*(\w+)\s*<?([\w+\s*,\s*]*)>?\s*/gm
+const REGEX_ENTRY = /@stage\((\w+)\)[^{]*/gm
+// matches @model declarations and captures struct name
+const REGEX_CAPTURE_MODELS = /@model\s+struct\s+([a-zA-Z]+)\s*{\s*([^}]*)\s*};/gm
+// matches @sync declarations
+const REGEX_REPLACE_SYNC = /@sync\s+/g
+const REGEX_REPLACE_MODEL = /@model\s+/g
 class Compiler {
 
   static _instance: Compiler
@@ -24,64 +30,98 @@ class Compiler {
 
   private ready: boolean = false
 
-  // compileWGSL?: (device: GPUDevice, src: CodeFile, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>) => GPUShaderModule | null
-  // compileGLSL?: (device: GPUDevice, src: string, stage: ShaderStage, logger: Logger) => GPUShaderModule | null
-
-  compileWGSL = async (device: GPUDevice, src: Shader, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<GPUShaderModule | null> => {
-    if (setFileErrors) setFileErrors({})
-    let fullsrc = staticdecl.vertex.concat(decls.concat(src.file))
-    logger?.debug("NAGA COMPILER", fullsrc)
-
-    //device.pushErrorScope('validation')
-    const module = device.createShaderModule({
-      code: fullsrc
-    })
-    //const err = await device.popErrorScope()
-
-    //if (err == null) return module
-    return module
-
-    //let declLen = decls.split(/\r\n|\r|\n/).length
-    // let numStr = err.message.match(/\d+(?=:)/g)[0]
-    // let newNumStr = (numStr - declLen + 1).toString()
-    // let message: string = err.message.replace(/\d+(?=:)/g, newNumStr)
-    // message = message.substr(0, message.indexOf('^') + 1)
-    // logger?.err('NAGA COMPILER', message)
-    // if (setFileErrors) setFileErrors(old => {
-    //   let n = { ...old }
-    //   n[src.filename] = Number(newNumStr)
-    //   return n
-    // })
-    //return null
+  findModels = (device: GPUDevice, file: File, logger?: Logger): Record<string, Model> => {
+    let input = file.data
+    const matches = input.matchAll(REGEX_CAPTURE_MODELS)
+    for (const match of matches) {
+      const { input, index } = match
+      const modelName = match[1]
+      const inner = match[2]
+      console.log(input)
+      // const {
+      //   types,
+      //   constants,
+      //   global_variables,
+      //   functions,
+      //   entry_points
+      // } = JSON.parse(introspect(input, file.extension, "") ?? "{}")
+    }
+    return {}
   }
 
-  compileGLSL = async (device: GPUDevice, src: Shader, decls: string, logger?: Logger, setFileErrors?: SetterOrUpdater<FileErrors>): Promise<GPUShaderModule | null> => {
+  validate = (file: File, models: Record<string, Model>, logger?: Logger): PreProcessResult => {
 
-    if (!this.isReady) {
-      logger?.err('NAGA COMPILER', 'Compiler not ready')
-      return null
+    // regex the shader string to remove gputoy defined declarations
+    let processedShader = file.data
+    // model names need to be fetched before the tag is removed
+    processedShader = processedShader.replaceAll(REGEX_REPLACE_MODEL, '')
+    // invalid group and bindings are not caught by the parser, so this will let us label the 
+    // global variables we should remember
+    processedShader = processedShader.replaceAll(REGEX_REPLACE_SYNC, '@group(999) @binding(999)')
+
+    // add struct definitions back to the shaders that used a definition from another file
+    for (const model of Object.values(models)) {
+      const matches = processedShader.match(model.name)
+      if (matches) {
+        processedShader = [getStructDecl(model, file.extension as ExtensionShader), processedShader].join('\n')
+      }
     }
-    let fullsrc = decls.concat(staticdecl.glslLayout.concat(src.file))
-    logger?.debug('NAGA COMPILER', fullsrc)
-    let fragSrc = compile_glsl(fullsrc, 'fragment')
 
-    // gentle massage
-    fragSrc = fragSrc?.replace('[[location(0)]] pos: vec4<f32>, [[location(1)]] uv: vec2<f32>', 'in: VertexOutput')
-    fragSrc = fragSrc?.replaceAll(/pos(?!_)/gm, 'in.position')
-    fragSrc = fragSrc?.replaceAll(/uv(?!_)/gm, 'in.uv')
+    // run wasm module to parse shader string to naga IR output
+    const {
+      types,
+      constants,
+      global_variables,
+      functions,
+      entry_points
+    } = JSON.parse(introspect(processedShader, file.extension, "") ?? "{}")
 
-    //logger?.log('NAGA COMPILER', vertSrc ?? 'no vertex source')
-    //logger?.log('NAGA COMPILER', fragSrc ? staticdecl.vertex.concat(fragSrc) : 'no fragment source')
+    if (!types) {
+      const errors = get_errors()
+      logger?.err('Compiler::Preprocessor', 'Pre-processing failed due to: \n'.concat(errors))
+      return {
+        fileId: file.id,
+        error: errors,
+      }
+    }
 
-    if (fragSrc === undefined) return null
+    for (const type of types) {
+      console.log(type)
+    }
 
-    device.pushErrorScope('validation')
-    const module = device.createShaderModule({
-      code: staticdecl.vertex.concat(fragSrc)
-    })
-    const err = await device.popErrorScope()
-    if (err == null) return module
-    logger?.err('NAGA COMPILER', err.message)
+    for (const constant of constants) {
+      console.log(constant)
+    }
+
+
+    return {
+      fileId: file.id,
+      processedShader
+    }
+  }
+
+  compile = async (
+    device: GPUDevice,
+    src: File,
+    decls: string,
+    models: Record<string, Model>,
+    logger?: Logger
+  ): Promise<Module | null> => {
+
+    if (!this.isReady) return null
+
+    const preprocessResult = this.validate(src, models, logger)
+    if (!preprocessResult) return null
+
+    const { processedShader } = preprocessResult
+
+    console.log(processedShader)
+    // const module = device.createShaderModule({
+    //   code: fullsrc
+    // })
+
+    // const compilationInfo = await module.compilationInfo()
+    // console.log(compilationInfo.messages)
 
     return null
   }

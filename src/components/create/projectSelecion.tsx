@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { Modal } from '@components/shared/modal'
 import { Box, Flex, Text, Grid, HStack, Avatar, Center, Spinner, useColorModeValue, Input } from '@chakra-ui/react'
 import { themed } from "theme/theme"
-import { CreatePageProjectQueryWithId } from "core/types/queries"
+import { ProjectQuery } from "@core/types"
 import useProjectDirect from "@core/hooks/useProjectDirect"
 import { useSession } from "next-auth/client"
 import { FiHardDrive } from 'react-icons/fi'
@@ -90,7 +90,9 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
     const localProj: ProjectInfo[] = []
     for (let key in localStorage) {
       if (key.startsWith('project')) {
+        console.log(localStorage.getItem(key))
         const project = JSON.parse(localStorage.getItem(key)!)
+
         localProj.push({
           id: key.match(/(?<=project_local_).*/gm)![0],
           title: project.title,
@@ -182,7 +184,7 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
   )
 }
 
-const ProjectTemplates = (props: { templates: CreatePageProjectQueryWithId[] }) => {
+const ProjectTemplates = (props: { templates: ProjectQuery[] }) => {
 
   const fork = useFork()
   const onClickProjectTemplate = (idx: number) => fork(props.templates[idx], { title: generate().dashed })
@@ -219,7 +221,7 @@ const ProjectTemplates = (props: { templates: CreatePageProjectQueryWithId[] }) 
 }
 
 type ProjectTemplateProps = {
-  project: CreatePageProjectQueryWithId,
+  project: ProjectQuery,
   onClickProjectTemplate: (idx: number) => void,
   idx: number
 }
@@ -306,7 +308,7 @@ const ProjectTemplate = (props: ProjectTemplateProps) => {
   )
 }
 
-const ProjectSelection = (props: { templates: CreatePageProjectQueryWithId[] }) => {
+const ProjectSelection = (props: { templates: ProjectQuery[] }) => {
 
   const [session, loading] = useSession()
 

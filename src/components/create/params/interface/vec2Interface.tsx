@@ -3,7 +3,7 @@ import React, { } from "react"
 import { themedRaw } from "theme/theme"
 import { InterfaceProps, useInterface, useInterfaceProps } from "../paramInterface"
 import Checkbox from "@components/shared/checkbox"
-import SVGMarginBox from "@components/shared/svgMarginBox"
+import { SVGBoxManaged } from "@components/shared/svgBox"
 
 export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
@@ -63,7 +63,7 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
   return (
     <>
-      <svg width={size} height={size} viewBox={`-${half + 8} -${half + 8} ${size + 16} ${size + 16}`} ref={ref} onWheel={onHandleWheel}>
+      <SVGBoxManaged size={size} innerMargin={8} ref={ref} onWheel={onHandleWheel}>
         <defs>
           <clipPath id="clip">
             <circle cx={0} cy={0} r={half} />
@@ -110,7 +110,7 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
           <tspan x={-half} y={half - 10}>x: {paramVal[0].toFixed(2)}</tspan>
           <tspan x={-half} y={half}>y: {paramVal[1]?.toFixed(2)}</tspan>
         </text>
-      </svg>
+      </SVGBoxManaged>
 
       <Box position="absolute" top="0px" p="0.25rem">
         <Checkbox title="Normalize" checked={isNorm} onCheck={onToggleNormalize} />
@@ -173,7 +173,7 @@ export const Vec2InterfaceCartesian = (props: InterfaceProps) => {
 
   return (
     <>
-      <SVGMarginBox size={size} innerMargin={0} ref={ref} onWheel={onHandleWheel}>
+      <SVGBoxManaged size={size} innerMargin={0} ref={ref} onWheel={onHandleWheel}>
         <defs>
         </defs>
 
@@ -197,7 +197,7 @@ export const Vec2InterfaceCartesian = (props: InterfaceProps) => {
             ))
           }
         </g>
-      </SVGMarginBox>
+      </SVGBoxManaged>
     </>
   )
 }

@@ -22,8 +22,8 @@ export interface ConsoleInstanceState {
 	keywordFilter: string
 }
 export interface EditorInstanceState {
-	currentFileIndex: number,
-	workspace: number[]
+	currentFileIndex?: number,
+	workspace: string[]
 }
 export interface ViewportInstanceState {
 	showInfo: boolean
@@ -72,7 +72,8 @@ export default [
 		icon: <BsFillFileEarmarkCodeFill />,
 		component: EditorPanel,
 		defaultInstanceProps: {
-			currentFileIndex: 0
+			currentFileIndex: undefined,
+			workspace: []
 		}
 	},
 	{

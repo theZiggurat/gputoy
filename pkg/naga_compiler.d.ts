@@ -2,6 +2,13 @@
 /* eslint-disable */
 /**
 * @param {string} src
+* @param {string} lang
+* @param {string} stage
+* @returns {string | undefined}
+*/
+export function introspect(src: string, lang: string, stage: string): string | undefined;
+/**
+* @param {string} src
 * @param {string} stage
 * @returns {string | undefined}
 */
@@ -23,6 +30,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly introspect: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly compile_glsl: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly get_module_info: (a: number) => void;
   readonly get_ir: (a: number) => void;

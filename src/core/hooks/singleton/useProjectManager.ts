@@ -1,41 +1,42 @@
 import { useCallback, useEffect, useRef } from "react"
 import { useRecoilValue, useSetRecoilState } from "recoil"
 
-import useLogger from "./useLogger"
-import useProjectControls from "./useProjectControls"
-import GPU from "@core/system/gpu"
-import { Project } from "@core/system/project"
+import useLogger from "../useLogger"
+import useProjectControls from "../useProjectControls"
 import { useClearConsole } from "@core/hooks/useConsole"
 import { ProjectControl, projectRunStatusAtom } from "@core/recoil/atoms/controls"
 import {
   canvasInitializedAtom,
   currentProjectIdAtom,
   projectShaderErrorsAtom,
-  projectShadersAtom,
   withDefaultParams,
-  withUserParams
+  withParamsJSON
 } from "@core/recoil/atoms/project"
 import { gpuStatusAtom } from "@core/recoil/atoms/gpu"
+import { withProjectFilesJSON } from "@core/recoil/atoms/files"
+import { debounce } from "lodash"
+import * as types from "@core/types"
+import System from "@core/system"
 
 
 
 
 const useProjectManager = () => {
 
-  const projectID = useRecoilValue(currentProjectIdAtom)
   const projectRunStatus = useRecoilValue(projectRunStatusAtom)
 
   const isCanvasInitialized = useRecoilValue(canvasInitializedAtom)
   const setFileError = useSetRecoilState(projectShaderErrorsAtom)
   const gpuStatus = useRecoilValue(gpuStatusAtom)
+  const defaultParamState = useRecoilValue(withDefaultParams)
+  const paramState = useRecoilValue(withParamsJSON)
+
+  const projectID = useRecoilValue(currentProjectIdAtom)
 
   const { controlStatus, play, pause, stop } = useProjectControls()
   const { _smPlay, _smPause, _smStop, _smStep } = useProjectStateMachine()
 
-  const defaultParamState = useRecoilValue(withDefaultParams)
-
-  const paramState = useRecoilValue(withUserParams)
-  const files = useRecoilValue(projectShadersAtom)
+  const files = useRecoilValue(withProjectFilesJSON)
 
   const setClearConsole = useClearConsole()
 
@@ -43,6 +44,11 @@ const useProjectManager = () => {
 
   const isRunning = useRef(false)
   const intervalHandle = useRef(0)
+
+  useEffect(() => {
+    console.log('PROJECT', 'STARTING')
+    return () => console.log('PROJECT', 'ENDING')
+  }, [])
 
   /**
    * Handle play/pause/stop signals from the viewport panel
@@ -52,7 +58,7 @@ const useProjectManager = () => {
     const renderStep = () => {
       if (isRunning.current) {
         _smStep()
-        Project.instance().renderFrame()
+        //Project.instance().renderFrame()
         intervalHandle.current = window.requestAnimationFrame(renderStep)
       }
     }
@@ -61,7 +67,8 @@ const useProjectManager = () => {
       if (controlStatus == ProjectControl.PLAY) {
         _smPlay()
         isRunning.current = true
-        if (await Project.instance().prepareRun(projectRunStatus, logger, setFileError))
+
+        if (await System.instance().build(logger))
           window.requestAnimationFrame(renderStep)
         else {
           stop()
@@ -81,29 +88,67 @@ const useProjectManager = () => {
     onControlChange()
   }, [controlStatus])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const processFileDelta = useCallback(debounce((files: { [key: string]: types.File; }) => {
 
+    const currentFiles = System.instance().files
+    console.log('PUSHING SYSTEM FILE DELTA', currentFiles, files)
+
+    // skip delta calculations
+    if (Object.keys(currentFiles).length === 0) {
+      System.instance().pushFileDelta(files, [])
+    }
+
+    console.log('SYSTEM FILES ARE NOW', System.instance().files)
+
+  }, 500), [])
 
   useEffect(() => {
-    if (!isCanvasInitialized) return
-    Project.instance().updateDefaultParams(defaultParamState)
-  }, [defaultParamState, isCanvasInitialized])
+    processFileDelta(files)
+  }, [files])
 
-  /**
-   * Update project uniforms as recoil uniform value change
-   */
-  useEffect(() => {
-    if (!isCanvasInitialized) return
-    Project.instance().updateParams(paramState, logger)
-    if (projectRunStatus.frameNum > 0 && !projectRunStatus.running)
-      Project.instance().renderFrame()
-  }, [paramState, isCanvasInitialized])
+  //const [io, setIO] = useRecoilValue(withSystemIO)
+
+  // const processIODelta = useCallback(debounce((io: { [key: string]: types.IO; }) => {
+
+  //   const currentFiles = System.instance().files
+  //   console.log('PUSHING SYSTEM FILE DELTA', currentFiles, files)
+
+  //   // skip delta calculations
+  //   if (currentFiles === {}) {
+  //     System.instance().pushFileDelta(files, [])
+  //   }
+
+  // }, 500), [])
+
+  // useEffect(() => {
+  //   processFileDelta(files)
+  // }, [io])
+
+
+
+  // useEffect(() => {
+  //   if (!isCanvasInitialized) return
+  //   Project.instance().updateDefaultParams(defaultParamState)
+  // }, [defaultParamState, isCanvasInitialized])
+
+  // /**
+  //  * Update project uniforms as recoil uniform value change
+  //  */
+  // useEffect(() => {
+  //   if (!isCanvasInitialized) return
+  //   Project.instance().updateParams(paramState, logger)
+  //   if (projectRunStatus.frameNum > 0 && !projectRunStatus.running)
+  //     Project.instance().renderFrame()
+  // }, [paramState, isCanvasInitialized])
 
   /**
    * Update projcet shaders as recoil shader values change
    */
-  useEffect(() => {
-    Project.instance().updateShaders(files, logger)
-  }, [files])
+  // useEffect(() => {
+  //   Project.instance().updateShaders(files, logger)
+  //   //processFileChanges(files)
+  // }, [files])
 
   /**
    * Anytime the working project changes, reset project running state
@@ -120,34 +165,34 @@ const useProjectManager = () => {
   /**
    * On site load, attach error handler for device
    */
-  useEffect(() => {
+  // useEffect(() => {
 
-    const errorHandler = (ev: GPUUncapturedErrorEvent) => {
-      let error = ev.error
-      if (error instanceof GPUOutOfMemoryError) {
-        logger.fatal('GPU', 'Out of memory')
-        return
-      }
-      let message: string = error.message
-      // shader error
-      if (message.startsWith('Tint WGSL reader failure')) {
+  //   const errorHandler = (ev: GPUUncapturedErrorEvent) => {
+  //     let error = ev.error
+  //     if (error instanceof GPUOutOfMemoryError) {
+  //       logger.fatal('GPU', 'Out of memory')
+  //       return
+  //     }
+  //     let message: string = error.message
+  //     // shader error
+  //     if (message.startsWith('Tint WGSL reader failure')) {
 
-        let start = message.indexOf(':') + 1
-        let body = message.substr(start, message.indexOf('Shader') - start).trim()
-        logger.err("Shader error", body)
-      }
-      else if (message.startsWith('[ShaderModule] is an error.')) {
-        logger.err("Shader module", message)
-      }
-      else {
-        logger.err("Unknown error", message)
-      }
-      stop()
-    }
+  //       let start = message.indexOf(':') + 1
+  //       let body = message.substr(start, message.indexOf('Shader') - start).trim()
+  //       logger.err("Shader error", body)
+  //     }
+  //     else if (message.startsWith('[ShaderModule] is an error.')) {
+  //       logger.err("Shader module", message)
+  //     }
+  //     else {
+  //       logger.err("Unknown error", message)
+  //     }
+  //     stop()
+  //   }
 
-    if (GPU.isInitialized())
-      GPU.device.onuncapturederror = errorHandler
-  }, [logger, stop])
+  //   if (GPU.isInitialized())
+  //     GPU.device.onuncapturederror = errorHandler
+  // }, [logger, stop])
 }
 
 const useProjectStateMachine = () => {

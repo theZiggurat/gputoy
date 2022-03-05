@@ -1,14 +1,14 @@
-import { CreatePageProjectQueryWithId } from "core/types/queries"
+import { ProjectQuery } from '@core/types'
 import Compiler from '@core/system/compiler'
 import GPU, { AttachResult } from './gpu'
-import Params from "./params"
+import Params from './params'
 import * as types from '@core/types'
 
 class ProjectDirect {
 
   included: Params = new Params('Included', 'i', true)
   params: Params = new Params('Params', 'p', false, 1)
-  shaders: types.Shader[] = []
+  shaders: types.File[] = []
 
   // gpu state
   vertexBuffer!: GPUBuffer
@@ -24,7 +24,7 @@ class ProjectDirect {
 
   constructor() { }
 
-  init = async (project: CreatePageProjectQueryWithId, ...canvasIDs: string[]) => {
+  init = async (project: ProjectQuery, ...canvasIDs: string[]) => {
 
     if (typeof window === 'undefined') {
       return
@@ -60,7 +60,7 @@ class ProjectDirect {
       return {
         filename: s.name,
         file: s.source,
-        lang: s.lang as types.Lang,
+        lang: s.lang as types.Extension,
         isRender: s.isRender,
       }
     })
@@ -83,7 +83,7 @@ class ProjectDirect {
       this.shaderDirty = this.params.set(paramDesc, GPU.device) || this.shaderDirty
   }
 
-  updateShaders = (files: types.Shader[]) => {
+  updateShaders = (files: types.File[]) => {
     this.shaders = files
     this.shaderDirty = true
   }

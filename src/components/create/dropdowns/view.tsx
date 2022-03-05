@@ -1,5 +1,5 @@
 import { useColorMode } from "@chakra-ui/color-mode"
-import usePanels from "@core/hooks/usePanels"
+import usePanels from "@core/hooks/singleton/usePanels"
 import React, { useCallback } from "react"
 import Dropdown, { DropdownDivider, DropdownItem, DropdownSubDropdown } from "../dropdown"
 

@@ -16,6 +16,7 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "downlevelIteration": true,
     "jsx": "preserve",
     "typeRoots": [
       "./node_modules/@webgpu/types",
@@ -48,7 +49,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "src/utils/scrollHook.js"
+    "src/utils/scrollHook.js",
+    "src/components/create/editor"
   ],
   "exclude": [
     "node_modules"

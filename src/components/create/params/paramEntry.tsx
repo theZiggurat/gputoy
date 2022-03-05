@@ -1,6 +1,6 @@
 import { Box, BoxProps, Flex, Text } from "@chakra-ui/layout"
 import { Input, Select, IconButton, FlexboxProps, chakra } from "@chakra-ui/react"
-import { ParamDesc, ParamType } from "core/types"
+import { ParamDesc, ConstructableType } from "core/types"
 import { projectParamsAtom } from "core/recoil/atoms/project"
 import React, { useState } from "react"
 import { useRecoilState } from "recoil"
@@ -100,7 +100,7 @@ const ParamEntry = (props: ParamEntryProps & BoxProps) => {
         fontWeight="bold"
         value={param.paramType}
         onChange={(ev) => {
-          const paramType = ev.target.value as ParamType
+          const paramType = ev.target.value as ConstructableType
           setParam(old => ({ ...old, paramType, param: paramDefaultValues[paramType], interface: 0 }))
         }}
         bg="none"

@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export function introspect(a: number, b: number, c: number, d: number, e: number, f: number, g: number): void;
 export function compile_glsl(a: number, b: number, c: number, d: number, e: number): void;
 export function get_module_info(a: number): void;
 export function get_ir(a: number): void;

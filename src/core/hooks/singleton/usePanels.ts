@@ -5,7 +5,7 @@ import { set } from "lodash/fp"
 import { nanoid } from "nanoid"
 
 import { layoutAtom } from "@core/recoil/atoms/layout"
-import { useInstanceCleaner } from "./useInstance"
+import { useInstanceCleaner } from "../useInstance"
 
 
 type Location = 'top' | 'bottom' | 'left' | 'right'
@@ -50,7 +50,7 @@ const usePanels = (options: PanelOptions): PanelProps => {
     return () => window.removeEventListener('resize', handleWindowResize)
   }, [])
 
-  // save layout to local storage on change
+  //save layout to local storage on change
   useEffect(debounce(() => {
     cleaner(instances(layout))
   }, 1000), [layout])

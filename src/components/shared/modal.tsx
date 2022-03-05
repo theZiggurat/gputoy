@@ -1,4 +1,4 @@
-import { Box, Portal } from "@chakra-ui/react";
+import { Box, BoxProps, Portal } from "@chakra-ui/react";
 import React, { ReactElement, useContext, useState } from "react";
 import { themed } from "theme/theme";
 
@@ -6,6 +6,8 @@ type ModalProps = {
   isOpen?: boolean,
   onRequestClose: () => void
   children: ReactElement,
+  bgTouchEvents?: boolean,
+  bgProps?: BoxProps
 }
 
 export const Modal = (props: ModalProps) => {
@@ -23,6 +25,8 @@ export const Modal = (props: ModalProps) => {
             top="2.5rem"
             zIndex={4}
             onClick={props.onRequestClose}
+            pointerEvents={props.bgTouchEvents ? "auto" : "none"}
+            {...props.bgProps}
           />
           <Box
             pos="absolute"

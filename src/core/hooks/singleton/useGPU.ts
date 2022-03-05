@@ -3,7 +3,7 @@ import GPU from "@core/system/gpu"
 import { gpuStatusAtom } from "core/recoil/atoms/gpu"
 import { useEffect } from "react"
 import { useSetRecoilState } from "recoil"
-import useLogger from "./useLogger"
+import useLogger from "../useLogger"
 
 const useGPU = () => {
   const logger = useLogger()

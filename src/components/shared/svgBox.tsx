@@ -10,7 +10,7 @@ type SVGBoxProps = {
   innerMargin?: number
 }
 
-const SVGBox = (props: SVGBoxProps & BoxProps) => {
+export const SVGBox = (props: SVGBoxProps & BoxProps) => {
 
   const { center, onScrub, innerMargin = 0, withSvg, ...boxProps } = props
   const { width = 0, height = 0, ref } = useResizeDetector()
@@ -57,4 +57,22 @@ const SVGBox = (props: SVGBoxProps & BoxProps) => {
   )
 }
 
-export default SVGBox
+type SVGBoxManagedProps = {
+  size: number
+  innerMargin?: number
+  center?: boolean
+  children: ReactNode[]
+}
+
+const _SVGBoxManaged = (props: SVGBoxManagedProps & SVGProps<SVGSVGElement>, ref) => {
+
+  const { size, innerMargin, center, children, ...svgProps } = props
+
+  const half = size / 2
+  const margin = innerMargin ?? 8
+
+  return <svg width={size} height={size} viewBox={`-${half + margin} -${half + margin} ${size + margin * 2} ${size + margin * 2}`} ref={ref} {...svgProps}>
+    {children}
+  </svg>
+}
+export const SVGBoxManaged = React.forwardRef(_SVGBoxManaged)

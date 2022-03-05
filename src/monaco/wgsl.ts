@@ -68,16 +68,16 @@ export const monarchLanguage = <monaco.languages.IMonarchLanguage>{
   // The main tokenizer for our languages
   tokenizer: {
     root: [
+      [/@[a-z]+/g, "attributes"],
       [/[A-Z][\w\$]*/g, 'struct'],
       [/\b(([a-z|_][\w]+)|([a-z][\w]*))(?=\()/, 'function'],
+      [/#[\w]+\b/, 'params'],
       // identifiers and keywords
       [/([a-zA-Z_][0-9a-zA-Z][0-9a-zA-Z_]*)|([a-zA-Z][0-9a-zA-Z_]*)/, {
         cases: {
           '@typeKeywords': 'typeKeyword',
-
           '@keywords': 'keyword',
           '@constants': 'constants',
-
           '@default': 'identifier'
         }
       }],
@@ -99,7 +99,7 @@ export const monarchLanguage = <monaco.languages.IMonarchLanguage>{
       // @ annotations.
       // As an example, we emit a debugging log message on these tokens.
       // Note: message are supressed during the first load -- change some lines to see them.
-      [/@\s*[a-zA-Z_\$][\w\$]*/, { token: 'annotation', log: 'annotation token: $0' }],
+      [/@\s*[a-zA-Z_\$][\w\$]*/, { token: 'annotation' }],
 
       // numbers
       [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],

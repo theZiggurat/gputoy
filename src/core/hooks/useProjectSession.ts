@@ -9,7 +9,7 @@ const useProjectSession = (): [Session | null, boolean, boolean] => {
   const [session, loading] = useSession()
   const [projectAuthor, setProjectAuthor] = useRecoilState(projectAuthorAtom)
 
-  const ownsProject = session ? projectAuthor?.id == session?.user?.id : false || (session == null && projectAuthor?.name == null)
+  const isOwner = session ? projectAuthor?.id == session?.user?.id : false || (session == null && projectAuthor?.name == null)
 
   useEffect(() => {
     if (session == null) return
@@ -26,7 +26,7 @@ const useProjectSession = (): [Session | null, boolean, boolean] => {
 
 
 
-  return [session, loading, ownsProject]
+  return [session, loading, isOwner]
 }
 
 export default useProjectSession

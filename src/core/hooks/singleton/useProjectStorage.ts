@@ -1,17 +1,17 @@
 import { toast, useToast } from '@chakra-ui/toast'
-import { CreatePageProjectQuery, CreatePageProjectSaveHistorySer } from 'core/types/queries'
-import { withCreatePageProject } from 'core/recoil/selectors/queries'
+import { ProjectQuery, ProjectSaveHistorySerialized } from 'core/types/queries'
+import { withProjectJSON } from '@core/recoil/atoms/project'
 import { currentProjectIdAtom, projectLastSave, projectLastSaveLocal } from 'core/recoil/atoms/project'
 import { debounce, update } from 'lodash'
 import { Session } from 'next-auth'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
-import useProjectSession from './useProjectSession'
+import useProjectSession from '../useProjectSession'
 
 type ProjectStorageProps = {
-  projectFromDB: CreatePageProjectQuery | null | undefined,
-  dateInfo: CreatePageProjectSaveHistorySer | null
+  projectFromDB: ProjectQuery | null | undefined,
+  dateInfo: ProjectSaveHistorySerialized | null
   session: Session | null
 }
 
@@ -23,7 +23,7 @@ const useProjectStorage = (props: ProjectStorageProps) => {
     session
   } = props
 
-  const [projectState, setProjectState] = useRecoilState(withCreatePageProject)
+  const [projectState, setProjectState] = useRecoilState(withProjectJSON)
   const [projectID, setProjectID] = useRecoilState(currentProjectIdAtom)
   const setProjectLastSave = useSetRecoilState(projectLastSave)
   const setProjectLastSaveLocal = useSetRecoilState(projectLastSaveLocal)
@@ -46,7 +46,7 @@ const useProjectStorage = (props: ProjectStorageProps) => {
       })
       router.push('/editor')
     }, 1000)
-    return () => clearTimeout(timeoutId)
+    return () => clearTimeout(timeoutId.current)
   }, [])
 
   useEffect(() => {

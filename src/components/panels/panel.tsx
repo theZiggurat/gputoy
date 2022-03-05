@@ -1,11 +1,13 @@
 import {
   Box, Button, Divider, Flex, IconButton, Popover, PopoverContent, PopoverTrigger, Portal, Text
 } from '@chakra-ui/react'
+import { withFocusPriority } from '@core/recoil/atoms/instance'
 import useInstance, { useInstances } from '@core/hooks/useInstance'
-import { PanelProps } from '@core/hooks/usePanels'
+import { PanelProps } from '@core/hooks/singleton/usePanels'
 import React, { forwardRef, LegacyRef, ReactElement, ReactNode, useEffect } from 'react'
 import { VscClose, VscSplitHorizontal, VscSplitVertical } from 'react-icons/vsc'
 import SplitPane from 'react-split-pane'
+import { useSetRecoilState } from 'recoil'
 import { themed } from '../../theme/theme'
 import useHorizontalScroll from '../../utils/scrollHook'
 import { RowButton } from '../shared/rowButton'
@@ -21,14 +23,14 @@ export interface DynamicPanelProps {
 // --------- PANEL --------------
 
 export interface PanelInProps {
-  children: ReactElement[],
-  path?: string,
+  instanceID: string,
   panelIndex?: number,
   panelDesc?: PanelDescriptor[],
+  children: ReactElement[],
+  path?: string,
   onSplitPanel?: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
   onCombinePanel?: (path: string) => void,
   onSwitchPanel?: (path: string, panelIndex: number) => void,
-  instanceID: string,
 }
 
 export const Panel = (props: PanelInProps) => {
@@ -46,6 +48,14 @@ export const Panel = (props: PanelInProps) => {
   const { children, ...paneProps } = props
   const bounds = React.useRef<HTMLDivElement>()
 
+  const setFocusPriority = useSetRecoilState(withFocusPriority)
+  const onHandleClick = () => {
+    setFocusPriority({
+      id: props.instanceID,
+      index: props.panelIndex
+    })
+  }
+
   return (
     <Flex
       height="100%"
@@ -54,6 +64,7 @@ export const Panel = (props: PanelInProps) => {
       flexBasis="fill"
       {...paneProps}
       ref={bounds as LegacyRef<HTMLDivElement>}
+      onClick={onHandleClick}
     >
       {
         React.Children.map(props.children, (elem: ReactElement<any>, idx: number) => {
@@ -131,6 +142,7 @@ export const PanelBar = (props: PanelBarProps) => {
     onCombinePanel,
     panelDesc,
     path,
+    panelIndex,
     preventScroll,
     ...barProps
   } = props
@@ -140,7 +152,6 @@ export const PanelBar = (props: PanelBarProps) => {
   const onHandleSplitHorizontal = (idx: number) => onSplitPanel!(path!, 'vertical', idx)
   const onHandleCombine = () => onCombinePanel!(path!)
   const onHandleSwitch = (index: number) => onSwitchPanel!(path!, index)
-
 
   return (
     <Flex
@@ -175,7 +186,7 @@ export const PanelBar = (props: PanelBarProps) => {
           <PopoverTrigger>
             <IconButton
               size="xs"
-              icon={props.panelDesc![props.panelIndex!].icon}
+              icon={panelDesc ? panelDesc[panelIndex ?? 0].icon : undefined}
               borderRightRadius="0"
               purpose="Choose panel"
             />
@@ -188,7 +199,8 @@ export const PanelBar = (props: PanelBarProps) => {
             >
               <Flex direction="column">
                 {
-                  props.panelDesc!.map((desc, idx) =>
+                  panelDesc &&
+                  panelDesc.map((desc, idx) =>
                     idx !== 0 &&
                     <PanelSelectorButton
                       icon={desc.icon}
