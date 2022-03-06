@@ -319,7 +319,7 @@ const ProjectFiles = (props: { instanceId: string }) => {
     />
   </Box>
 
-  return <AccordionPanel title="Files" last rightSide={rightSide} bg={themed('a3')}>
+  return <AccordionPanel title="Files" rightSide={rightSide} bg={themed('a3')}>
     <Box height="0.5rem"></Box>
     <DirectoryRow dir={directory} onOpen={onHandleOpen} />
     <Box height="0.5rem"></Box>

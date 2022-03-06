@@ -67,7 +67,7 @@ const ScopedProjectManager = (props: CreatePageProps) => {
 
   const [session, loading] = useSession()
 
-  useProjectStorage({ session, projectFromDB: props.project, dateInfo: props.dateInfo })
+  useProjectStorage({ session, projectFromDB: props.project ?? undefined, dateInfo: props.dateInfo })
   useProjectManager()
 
   return <></>

@@ -29,6 +29,7 @@ import { Modal, useModal } from '@components/shared/modal'
 import useProjectControls from '@core/hooks/useProjectControls';
 import TaskReciever from '../taskReciever';
 import * as types from '@core/types'
+import useChannel from '@core/hooks/useIO';
 
 const ViewportInfo = () => {
 
@@ -91,22 +92,6 @@ const ViewportPanelBarMiddle = () => {
 	const isPlay = controlStatus == ProjectControl.PLAY
 	const onHandlePlayPause = isPlay ? pause : play
 
-	const handleKeyDown = (ev: KeyboardEvent) => {
-		if (ev.code == 'Space' && ev.ctrlKey) {
-			onHandlePlayPause()
-			ev.preventDefault()
-		}
-		if (ev.key == 's' && ev.ctrlKey) {
-			ev.preventDefault()
-		}
-
-	}
-
-	useEffect(() => {
-		window.addEventListener('keydown', handleKeyDown)
-		return () => window.removeEventListener('keydown', handleKeyDown)
-	})
-
 	return <>
 		<RowButton
 			purpose="Play"
@@ -125,47 +110,33 @@ const ViewportPanelBarMiddle = () => {
 
 const _ViewportCanvas = (props: { instanceID: number, width: number, height: number }, ref) => {
 
-	const setMousePos = useSetRecoilState(mousePosAtom)
-	const setCanvasInitialized = useSetRecoilState(canvasInitializedAtom)
-	const logger = useLogger()
-	const gpuStatusValue = useRecoilValue(gpuStatusAtom)
-	const id = `canvas_${props.instanceID}`
-
-	useEffect(() => {
-		console.log('the id changed to ', id)
-		return () => console.log('throwing this canvas out')
-	}, [id])
-
+	const vid = 'viewport_' + props.instanceID
+	const mid = 'mouse_' + props.instanceID
 	const { controlStatus } = useProjectControls()
-
-	const onHandleMousePos = throttle((evt) => {
-		if (ref.current) {
-			const rect = ref.current.getBoundingClientRect()
-			setMousePos({
-				x: Math.floor(evt.clientX - rect.left),
-				y: Math.floor(evt.clientY - rect.top)
-			})
+	useChannel(vid, {
+		id: vid,
+		label: 'Viewport',
+		ioType: 'viewport',
+		args: {
+			canvasId: vid
 		}
-	}, 10)
+	})
 
-	useEffect(() => {
-		const isInit = async () => {
-			console.log('setting canvas')
-			setCanvasInitialized(await Project.instance().attachCanvas(id, logger))
+	useChannel(mid, {
+		id: mid,
+		label: 'Mouse',
+		ioType: 'mouse',
+		args: {
+			eventTargetId: vid,
 		}
-		if (gpuStatusValue == 'ok')
-			isInit()
-		return () => {
-			console.log('usetting canvas')
-			setCanvasInitialized(false)
-		}
-	}, [id, gpuStatusValue])
+	})
 
-	return <canvas id={id} ref={ref} onMouseMove={onHandleMousePos} style={{
-		width: props.width,
-		height: props.height,
+	return <canvas id={vid} ref={ref} style={{
+		width: 100,
+		height: 100,
 		visibility: controlStatus == ProjectControl.STOP ? 'hidden' : 'visible',
-		cursor: 'crosshair'
+		cursor: 'crosshair',
+		background: 'red'
 	}} />
 }
 const ViewportCanvas = forwardRef(_ViewportCanvas)

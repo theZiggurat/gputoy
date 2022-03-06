@@ -1,8 +1,8 @@
 import {
-  Button, chakra, Flex, IconButton, useColorModeValue, Text, Box, useToast, Tag, Badge, HStack, Link as ChakraLink
+  Button, chakra, Flex, IconButton, useColorModeValue, Text, Box, useToast, Tag, Badge, HStack, Link as ChakraLink, Spinner
 } from '@chakra-ui/react'
 import NextLink from 'next/link'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BiGitRepoForked, BiShare } from 'react-icons/bi'
 import { themed } from '../../theme/theme'
 import EditDropdown from './dropdowns/edit'
@@ -38,6 +38,36 @@ const Logo = (props: { color: string }) => {
       </g>
     </g>
   </svg>
+}
+
+const SaveIndicator = () => {
+  const projectLastSave = useRecoilValue(projectLastSaveLocal)
+  const [show, setShow] = useState(false)
+
+
+
+  useEffect(() => {
+    if (projectLastSave) {
+      setShow(true)
+      setTimeout(() => { setShow(false) }, 1000)
+    }
+  }, [projectLastSave])
+
+  return <Flex
+    position="absolute"
+    left="100%"
+    top="0%"
+    height="100%"
+    alignItems="center"
+    color={themed('textLight')}
+    opacity={show ? 1 : 0}
+    transition="opacity 0.4s ease-out"
+  >
+    <Spinner size="xs" mx="0.5rem" speed='0.5s' thickness="1px" />
+    <Text fontSize="xs" fontWeight="bold">
+      Saving
+    </Text>
+  </Flex>
 }
 
 const ProjectInfo = () => {
@@ -90,6 +120,7 @@ const ProjectInfo = () => {
         onClick={() => setOpen(o => !o)}
       />
       <SaveBox opened={open} />
+      <SaveIndicator />
     </Box>
   )
 }

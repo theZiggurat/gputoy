@@ -1,4 +1,5 @@
 import React from "react"
+import * as types from '@core/types'
 import { BsFillFileEarmarkCodeFill, BsFillFileSpreadsheetFill, BsTerminalFill } from "react-icons/bs"
 import { FaBorderNone } from "react-icons/fa"
 import { IoTvSharp } from 'react-icons/io5'
@@ -10,7 +11,7 @@ import ParamPanel from "./impls/paramPanel"
 import SummaryPanel from "./impls/summaryPanel"
 import ViewportPanel from "./impls/viewPanel"
 
-export type InstanceState = any
+
 
 export interface ParamInstanceState {
 	keywordFilter: string,
@@ -35,7 +36,7 @@ export interface PanelDescriptor {
 	icon: React.ReactElement<any>,
 	component: React.FC<any>,
 	single?: boolean,
-	defaultInstanceProps: InstanceState
+	defaultInstanceProps: types.InstanceState
 }
 
 export default [

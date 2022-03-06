@@ -108,8 +108,8 @@ export const useDirectory = (): DirectoryProps => {
     let ret = { c: {} }
     Object.entries(files).forEach(([fileId, { filename, path }]) => {
       const pathParts = objectPath(path).concat('c', filename)
-      console.log(ret)
-      console.log('adding ', fileId, ' to ', pathParts)
+      // console.log(ret)
+      // console.log('adding ', fileId, ' to ', pathParts)
       _.set(ret, pathParts, { fileId })
     })
     return ret

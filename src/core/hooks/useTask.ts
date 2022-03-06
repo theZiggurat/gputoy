@@ -1,5 +1,5 @@
 import { Logger } from '@core/recoil/atoms/console'
-import { instanceFocusFILOAtom, withFocusPriority } from '@core/recoil/atoms/instance'
+import { instanceFocusPriorityAtom, panelInstanceListAtom, withFocusPriority } from '@core/recoil/atoms/instance'
 import { layoutAtom, masterTaskAtom, taskAtom, withTaskPusher } from '@core/recoil/atoms/layout'
 import * as types from '@core/types'
 import { useCallback, useEffect } from 'react'
@@ -30,11 +30,12 @@ export const useTaskCoordinator = (
 ) => {
   const task = useRecoilValue(masterTaskAtom)
   const push = useSetRecoilState(withTaskPusher)
-  const focusFIFO: types.InstanceSelector[] = useRecoilValue(instanceFocusFILOAtom)
+  const focusFIFO: types.InstanceSelector[] = useRecoilValue(instanceFocusPriorityAtom)
+  const instances: types.InstanceSelector[] = useRecoilValue(panelInstanceListAtom)
+
 
   const locateTaskTarget = useCallback((task: types.Task) => {
     const { targetId, targetPanelIndex } = task
-    logger?.debug('TASK', JSON.stringify(task, undefined, 2))
     if (targetId) {
       push({ instanceId: targetId, task })
     }
@@ -43,11 +44,17 @@ export const useTaskCoordinator = (
       if (sel) {
         push({ instanceId: sel.id, task })
       } else {
-        logger?.debug('TASK', `No avail recievers for index ${targetPanelIndex}`)
+        //logger?.debug('TASK', `No avail recievers for index ${targetPanelIndex}`)
+        let firstSelAvail = instances.find(sel => sel.index === targetPanelIndex)
+        if (!firstSelAvail) {
+          logger?.debug('TASK', `No avail recievers for index ${targetPanelIndex}`)
+          return
+        }
+        push({ instanceId: firstSelAvail.id, task })
       }
     }
     else {
-
+      logger?.debug('TASK', `Global tasks not yet supported`)
     }
   }, [push, focusFIFO, logger])
 

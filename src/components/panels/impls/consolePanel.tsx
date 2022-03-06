@@ -11,7 +11,7 @@ import useInstance from '@core/hooks/useInstance';
 import React, { useEffect } from 'react';
 import { FaRegClipboard, FaRegTrashAlt, FaSearch } from 'react-icons/fa';
 import { MdSettings } from 'react-icons/md';
-import { themed } from '../../../theme/theme';
+import { fontMono, themed } from '../../../theme/theme';
 import { RowButton, RowToggleButton } from '../../shared/rowButton';
 import { ConsoleInstanceState } from '../descriptors';
 import { DynamicPanelProps, Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent } from '../panel';
@@ -25,11 +25,11 @@ const colors = [
 ]
 
 const prehead = [
-  "[--Trace--] ",
-  "[---Log---] ",
-  "[--Error--] ",
-  "[--Fatal--] ",
-  "[--Debug--] ",
+  "[-Trace-] ",
+  "[--Log--] ",
+  "[-Error-] ",
+  "[-Fatal-] ",
+  "[-Debug-] ",
 ]
 
 const f = (n: number) => ('0' + n).slice(-2)
@@ -88,7 +88,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
   return (
     <Panel {...props}>
       <PanelContent
-        fontFamily='"JetBrains Mono", "Fira code", "Fira Mono", monospace'
+        fontFamily={fontMono}
         fontSize="sm"
         p="0.3rem"
       >

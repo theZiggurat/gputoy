@@ -4,7 +4,7 @@ import generate from 'project-name-generator'
 import { atom, atomFamily, DefaultValue, selector } from 'recoil'
 import { projectRunStatusAtom } from './controls'
 import { withProjectFilesJSON } from './files'
-import { withInstanceStateJSON } from './instance'
+import { withEditorLayout } from './instance'
 import { layoutAtom } from './layout'
 
 
@@ -156,13 +156,10 @@ export const withProjectJSON = selector<types.ProjectQuery>({
     const params = get(withParamsJSON)
     const files = get(withProjectFilesJSON)
     const tags = get(projectTagsAtom)
-    const layout = {
-      layout: get(layoutAtom),
-      instanceState: get(withInstanceStateJSON)
-    }
+    const layout = get(withEditorLayout)
     const config = {}
     const graph = {}
-
+    //console.log('GETTING', layout)
 
     return {
       id: id,
@@ -200,8 +197,11 @@ export const withProjectJSON = selector<types.ProjectQuery>({
       set(projectIsPublished, proj.published)
       set(projectForkSource, proj.forkedFrom)
 
-      set(layoutAtom, proj.layout?.layout ?? new DefaultValue())
-      set(withInstanceStateJSON, proj.layout?.instanceState ?? new DefaultValue())
+      const layout: types.EditorLayout = {
+        layout: proj.layout?.layout ?? new DefaultValue(),
+        instances: proj.layout?.instances ?? new DefaultValue(),
+      }
+      set(withEditorLayout, layout)
 
       set(withProjectFilesJSON, (proj.files as { [key: string]: types.File }) ?? new DefaultValue())
       set(withParamsJSON, (proj.params as types.ParamDesc[]) ?? [])

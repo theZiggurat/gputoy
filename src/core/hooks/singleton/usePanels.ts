@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRecoilState, useResetRecoilState } from "recoil"
 import { debounce, get } from "lodash"
 import { set } from "lodash/fp"
@@ -39,6 +39,9 @@ const usePanels = (options: PanelOptions): PanelProps => {
   const [windowGen, setWindowGen] = useState(0)
 
   const cleaner = useInstanceCleaner()
+  const clean = useCallback(debounce((layout: any) => {
+    cleaner(instances(layout))
+  }, 1000), [cleaner])
 
   const handleWindowResize = debounce(() => {
     setLayoutSize([window.innerWidth, window.innerHeight - 45])
@@ -50,10 +53,9 @@ const usePanels = (options: PanelOptions): PanelProps => {
     return () => window.removeEventListener('resize', handleWindowResize)
   }, [])
 
-  //save layout to local storage on change
-  useEffect(debounce(() => {
-    cleaner(instances(layout))
-  }, 1000), [layout])
+  useEffect(() => {
+    clean(layout)
+  }, [layout])
 
   const trySetLayout = (layout: any | undefined) => { if (layout !== undefined) setLayout(layout) }
   const onSplit = (path: string, direction: 'horizontal' | 'vertical', panelIndex: number) => {
@@ -150,7 +152,7 @@ const replaceAtPath = (obj: any, path: string, f: (obj: any) => any): any | unde
 const instances = (obj: any, path: string = ''): any[] => {
   const selfID = get(obj, arrpath(path).concat('instanceID'))
   const selfIndex = get(obj, arrpath(path).concat('index'))
-  return selfID === undefined ? [] : [{ id: selfID, index: selfIndex }]
+  return selfID === undefined ? [] : [{ id: selfID, index: selfIndex < 0 ? undefined : selfIndex }]
     .concat(instances(obj, path.concat('l'))).concat(instances(obj, path.concat('r')))
 }
 

@@ -1,23 +1,22 @@
-import { SetterOrUpdater } from 'recoil'
 import init, {
-  compile_glsl,
-  get_module_info,
-  get_ir,
   get_errors,
   introspect
 } from '../../../pkg/naga_compiler'
 import { Logger } from 'core/recoil/atoms/console'
-import { FileErrors } from 'core/recoil/atoms/project'
-import staticdecl from './staticdecl'
-import { getStructDecl, File, Model, ExtensionShader, Module, PreProcessResult } from '@core/types'
+import { getStructDecl, File, Model, ExtensionShader, Module, PreProcessResult, NagaType, Namespace, Dependency, getTypeDecl, getStructFromModel } from '@core/types'
 
 const REGEX_SYNCS = /@sync\s+var\s*<?([\w+\s*,\s*]*)>?\s+(\w*)\s*:\s*(\w+)\s*<?([\w+\s*,\s*]*)>?\s*/gm
 const REGEX_ENTRY = /@stage\((\w+)\)[^{]*/gm
-// matches @model declarations and captures struct name
-const REGEX_CAPTURE_MODELS = /@model\s+struct\s+([a-zA-Z]+)\s*{\s*([^}]*)\s*};/gm
+// matches @model declarations and captures struct raw src
+const REGEX_CAPTURE_MODELS = /(?<=@model\s*)[^}]*/gm
 // matches @sync declarations
 const REGEX_REPLACE_SYNC = /@sync\s+/g
 const REGEX_REPLACE_MODEL = /@model\s+/g
+const REGEX_REPLACE_BRING_STATEMENT = /@bring\s+([a-zA-Z_][_a-zA-Z0-9]*)\s*;/gm
+const REGEX_REPLACE_BRING_INLINE = /@bring\s+([a-zA-Z_][_a-zA-Z0-9]*)\s*/gm
+
+const REGEX_CAPTURE_BRING = /(@bring\s+([a-zA-Z_][a-zA-Z0-9]*)\s*;)|(:\s*@bring\s+([a-zA-Z_][a-zA-Z0-9]*)\s*;)/gm
+
 class Compiler {
 
   static _instance: Compiler
@@ -30,68 +29,161 @@ class Compiler {
 
   private ready: boolean = false
 
-  findModels = (device: GPUDevice, file: File, logger?: Logger): Record<string, Model> => {
+  /**
+   * 
+   * @param file 
+   * @param logger 
+   * @returns 
+   */
+  findModel = (file: File, logger?: Logger): Model | undefined => {
     let input = file.data
-    const matches = input.matchAll(REGEX_CAPTURE_MODELS)
-    for (const match of matches) {
-      const { input, index } = match
-      const modelName = match[1]
-      const inner = match[2]
-      console.log(input)
-      // const {
-      //   types,
-      //   constants,
-      //   global_variables,
-      //   functions,
-      //   entry_points
-      // } = JSON.parse(introspect(input, file.extension, "") ?? "{}")
+    let matches = [...input.matchAll(REGEX_CAPTURE_MODELS)].map(m => m[0].concat('};')).filter(m => !!m).join('\n')
+
+    // just a quirk that the naga parser needs an entry point to parse while a wgsl does not
+    if (file.extension === 'glsl') {
+      matches = matches.concat('\nvoid main(){}')
     }
-    return {}
+
+    const { types } = JSON.parse(introspect(matches, file.extension, "fragment") ?? "{}")
+    if (!types) {
+      logger?.err(`Compiler::find_models[${file.filename}]`, `Validation of model failed due to: \n`.concat(get_errors()))
+      return undefined
+    }
+    let namedTypes: Record<string, number> = {}
+    let indexedTypes = []
+
+    // the json exported from naga uses 1-based indexing
+    // for the types within the indexedTypes array
+    let idx = 1
+    for (const type of types) {
+      if (type.name)
+        namedTypes[type.name] = idx
+      indexedTypes.push(type)
+      idx++
+    }
+
+    return {
+      name: file.filename,
+      definingFileId: file.id,
+      dependentFileIds: [],
+      namedTypes,
+      indexedTypes
+    }
   }
 
-  validate = (file: File, models: Record<string, Model>, logger?: Logger): PreProcessResult => {
+  /**
+   * 
+   * @param file 
+   * @param logger 
+   * @returns 
+   */
+  findDeps = (file: File, logger?: Logger): Dependency[] => {
+
+    let input = file.data
+    let matches = input.matchAll(REGEX_CAPTURE_BRING)
+    let ret = []
+
+    for (const match of [...matches]) {
+      if (!!match[2]) {
+        ret.push({
+          identifier: match[2],
+          inline: false
+        })
+      } else if (!!match[4]) {
+        ret.push({
+          identifier: match[4],
+          inline: true
+        })
+      }
+    }
+    return ret
+  }
+
+  /**
+   * 
+   * @param file 
+   * @param globalNamespace 
+   * @param logger 
+   * @returns 
+   */
+  validate = (file: File, globalNamespace: Record<string, Namespace>, logger?: Logger): PreProcessResult => {
+
 
     // regex the shader string to remove gputoy defined declarations
     let processedShader = file.data
     // model names need to be fetched before the tag is removed
     processedShader = processedShader.replaceAll(REGEX_REPLACE_MODEL, '')
     // invalid group and bindings are not caught by the parser, so this will let us label the 
-    // global variables we should remember
-    processedShader = processedShader.replaceAll(REGEX_REPLACE_SYNC, '@group(999) @binding(999)')
+    // global variables that need group and binding assignments
+    processedShader = processedShader.replaceAll(REGEX_REPLACE_SYNC, '@group(999) @binding(999) ')
 
-    // add struct definitions back to the shaders that used a definition from another file
-    for (const model of Object.values(models)) {
-      const matches = processedShader.match(model.name)
-      if (matches) {
-        processedShader = [getStructDecl(model, file.extension as ExtensionShader), processedShader].join('\n')
+    // replace bring declarations with their corresponding declarations in other files
+    // fails validate if declaration not found in namespace
+    const localNamespace = globalNamespace[file.id]
+    for (const dep of localNamespace.imported) {
+      let fileModel!: Model
+      let foundModel = false
+      for (const fileId of Object.keys(globalNamespace)) {
+        if (fileId === file.id) continue
+
+        fileModel = globalNamespace[fileId].exported
+        if (!!fileModel.namedTypes[dep.identifier]) {
+          foundModel = true
+          break
+        }
+      }
+      if (!foundModel) {
+        const error = `Type does not exist in global namespace: ${dep.identifier}`
+        logger?.err(`Compiler::Preprocessor[${file.filename}]`, error)
+        return {
+          fileId: file.id,
+          error: error,
+        }
+      }
+      let fullStruct = getStructFromModel(fileModel, dep.identifier)
+      if (!fullStruct) {
+        const error = `Issue combining types to full struct: ${dep.identifier}`
+        logger?.err(`Compiler::Preprocessor[${file.filename}]`, error)
+        return {
+          fileId: file.id,
+          error: error,
+        }
+      }
+      let typeSrc = getStructDecl(fullStruct, file.extension as ExtensionShader)
+      if (dep.inline) {
+        processedShader = [typeSrc, processedShader.replaceAll(new RegExp(`@bring\\s+${dep.identifier}`, 'g'), dep.identifier)].join('\n')
+      } else {
+        processedShader = processedShader.replaceAll(new RegExp(`@bring\\s+${dep.identifier}\\s*;`, 'g'), typeSrc)
       }
     }
 
-    // run wasm module to parse shader string to naga IR output
-    const {
-      types,
-      constants,
-      global_variables,
-      functions,
-      entry_points
-    } = JSON.parse(introspect(processedShader, file.extension, "") ?? "{}")
 
-    if (!types) {
+    // now processedShader has all dependent types baked in
+    // ready for naga validation
+    const moduleInfo = JSON.parse(introspect(processedShader, file.extension, "") ?? "{}")
+
+    console.log(moduleInfo)
+
+    if (!moduleInfo.types) {
       const errors = get_errors()
-      logger?.err('Compiler::Preprocessor', 'Pre-processing failed due to: \n'.concat(errors))
+      logger?.err(`Compiler::Preprocessor[${file.filename}]`, 'Pre-processing failed due to: \n'.concat(errors))
       return {
         fileId: file.id,
         error: errors,
       }
     }
 
-    for (const type of types) {
-      console.log(type)
-    }
 
-    for (const constant of constants) {
-      console.log(constant)
-    }
+
+
+
+    // for (const type of types) {
+    //   //console.log(type)
+    // }
+
+    // for (const constant of constants) {
+    //   //console.log(constant)
+    // }
 
 
     return {
@@ -109,19 +201,6 @@ class Compiler {
   ): Promise<Module | null> => {
 
     if (!this.isReady) return null
-
-    const preprocessResult = this.validate(src, models, logger)
-    if (!preprocessResult) return null
-
-    const { processedShader } = preprocessResult
-
-    console.log(processedShader)
-    // const module = device.createShaderModule({
-    //   code: fullsrc
-    // })
-
-    // const compilationInfo = await module.compilationInfo()
-    // console.log(compilationInfo.messages)
 
     return null
   }

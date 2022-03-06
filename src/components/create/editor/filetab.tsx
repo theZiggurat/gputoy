@@ -37,7 +37,7 @@ const FileTab = (props: FileTabProps) => {
     fontWeight="normal"
     bg={selected ? themed('bg') : 'none'}
     onClick={() => onSelect(idx)}
-    _hover={{ bg: selected ? themed('a2') : themed('input') }}
+    _hover={{ bg: selected ? themed('bg') : themed('input') }}
     transition="backgroundColor 0s"
     color={selected ? themed("text") : themed("textLight")}
     px="4px"
@@ -61,9 +61,9 @@ const FileTab = (props: FileTabProps) => {
         bg: 'none',
         color: themed('textHigh')
       }}
-      opacity={selected ? 1 : 0}
+      opacity={selected ? 0.5 : 0}
       _groupHover={{
-        opacity: 0.5
+        opacity: 1.0
       }}
     />
 

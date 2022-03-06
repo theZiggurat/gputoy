@@ -6,7 +6,7 @@ export const themed = (key: string) => useColorModeValue(`light.${key}`, `dark.$
 // eslint-disable-next-line react-hooks/rules-of-hooks
 export const themedRaw = (key: string) => useColorModeValue(light[key], dark[key])
 
-export const fontMono = '"JetBrains Mono", "Fira code", "Fira Mono", monospace'
+export const fontMono = '"Fira code", "Fira Mono", monospace'
 
 const dark = {
   p: '#0D0D0D',

@@ -1,5 +1,5 @@
 import { panelInstanceAtom, panelInstanceListAtom, withInstanceCleaner } from "core/recoil/atoms/instance"
-import { SetterOrUpdater, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import { DefaultValue, SetterOrUpdater, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 
 /**
  * Setter for current panel instances
@@ -26,7 +26,10 @@ export const useInstances = () => {
  * @returns instance state for panel
  */
 const useInstance = <T>(props: any): [T, SetterOrUpdater<T>] => {
-  return useRecoilState<T>(panelInstanceAtom({ id: props.instanceID, index: props.panelIndex }))
+
+  const [state, setState] = useRecoilState<T>(panelInstanceAtom({ id: props.instanceID, index: props.panelIndex }))
+  //console.log('USING', props.instanceID, props.panelIndex, state)
+  return [state, setState]
 }
 
 export default useInstance

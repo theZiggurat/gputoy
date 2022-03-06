@@ -39,7 +39,7 @@ export const Panel = (props: PanelInProps) => {
   const [instanceState, setInstance] = useInstance(props)
 
   // on mount, set the instance to pre-existing values or default
-  useEffect(() => setInstance(instanceState), [])
+  //useEffect(() => setInstance(instanceState), [])
 
   const onChangeLocation = () => {
     setBarLocation(barLocation == 'top' ? 'bottom' : 'top')

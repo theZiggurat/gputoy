@@ -22,11 +22,11 @@
     "lodash": "^4.17.21",
     "monaco-editor": "^0.31.1",
     "monaco-editor-core": "^0.31.1",
-    "nanoid": "^3.1.30",
-    "next": "^12.0.7",
+    "nanoid": "^3.3.1",
+    "next": "^12.1.0",
     "next-auth": "^3.29.0",
     "next-svgr": "0.0.2",
-    "prismjs": "^1.25.0",
+    "prismjs": "^1.27.0",
     "project-name-generator": "^2.1.9",
     "react": "17.0.2",
     "react-colorful": "^5.5.0",
@@ -41,6 +41,7 @@
     "rgb-hsv": "^1.0.0"
   },
   "devDependencies": {
+    "@types/node": "^17.0.21",
     "@types/project-name-generator": "^2.1.1",
     "@types/react": "17.0.30",
     "@webgpu/types": "^0.1.6",

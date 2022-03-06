@@ -14,9 +14,11 @@ import {
 } from "@core/recoil/atoms/project"
 import { gpuStatusAtom } from "@core/recoil/atoms/gpu"
 import { withProjectFilesJSON } from "@core/recoil/atoms/files"
-import { debounce } from "lodash"
+import { debounce, isEqual, union, without } from "lodash"
 import * as types from "@core/types"
 import System from "@core/system"
+import { withProjectIO } from "@core/recoil/atoms/io"
+import { intersection } from "lodash"
 
 
 
@@ -44,6 +46,10 @@ const useProjectManager = () => {
 
   const isRunning = useRef(false)
   const intervalHandle = useRef(0)
+
+  const ioChannels = useRecoilValue(withProjectIO)
+
+  const type = types.NAGA_BUILTIN_VARIANTS[12]
 
   useEffect(() => {
     console.log('PROJECT', 'STARTING')
@@ -88,6 +94,10 @@ const useProjectManager = () => {
     onControlChange()
   }, [controlStatus])
 
+
+
+  // TODO find better solution than brute forcing diff
+  // very unoptimized, but heavily debounced so this is low priority for now
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const processFileDelta = useCallback(debounce((files: { [key: string]: types.File; }) => {
 
@@ -107,48 +117,51 @@ const useProjectManager = () => {
     processFileDelta(files)
   }, [files])
 
-  //const [io, setIO] = useRecoilValue(withSystemIO)
 
-  // const processIODelta = useCallback(debounce((io: { [key: string]: types.IO; }) => {
+  // TODO find better solution than brute forcing diff
+  // very unoptimized, but it shouldn't run much at all. basically only on
+  // a component mount/unmount should this be called
+  const processIODelta = useCallback((currentChannels: Record<string, types.IOChannel>) => {
+    const prevChannels = System.instance().availChannels
+    console.log('PUSHING SYSTEM IO DELTA', currentChannels)
 
-  //   const currentFiles = System.instance().files
-  //   console.log('PUSHING SYSTEM FILE DELTA', currentFiles, files)
+    let prevKeys = Object.keys(prevChannels)
 
-  //   // skip delta calculations
-  //   if (currentFiles === {}) {
-  //     System.instance().pushFileDelta(files, [])
-  //   }
+    // skip delta calculations
+    if (prevKeys.length === 0) {
+      System.instance().pushIoDelta(currentChannels, [])
+      return
+    }
 
-  // }, 500), [])
+    // feed availible io by diff for more advanced rebuild strategies down the line
+    let currentKeys = Object.keys(currentChannels)
+    let diff: Record<string, types.IOChannel> = {}
+    let removed: string[] = []
+    for (const channelKey of union(prevKeys, currentKeys)) {
+      const prevIOChannel = prevChannels[channelKey]
+      const currentIOChannel = currentChannels[channelKey]
 
-  // useEffect(() => {
-  //   processFileDelta(files)
-  // }, [io])
+      if (prevIOChannel && currentIOChannel) {
+        if (!isEqual(prevIOChannel, currentIOChannel)) {
+          diff[channelKey] = currentIOChannel
+        }
+      } else if (prevIOChannel && !currentIOChannel) {
+        removed.push(channelKey)
+      } else if (!prevIOChannel && currentIOChannel) {
+        diff[channelKey] = currentIOChannel
+      }
+    }
+
+    System.instance().pushIoDelta(diff, removed)
+
+    console.log('SYSTEM IO IS NOW', System.instance().availChannels)
+  }, [])
+
+  useEffect(() => {
+    processIODelta(ioChannels)
+  }, [ioChannels])
 
 
-
-  // useEffect(() => {
-  //   if (!isCanvasInitialized) return
-  //   Project.instance().updateDefaultParams(defaultParamState)
-  // }, [defaultParamState, isCanvasInitialized])
-
-  // /**
-  //  * Update project uniforms as recoil uniform value change
-  //  */
-  // useEffect(() => {
-  //   if (!isCanvasInitialized) return
-  //   Project.instance().updateParams(paramState, logger)
-  //   if (projectRunStatus.frameNum > 0 && !projectRunStatus.running)
-  //     Project.instance().renderFrame()
-  // }, [paramState, isCanvasInitialized])
-
-  /**
-   * Update projcet shaders as recoil shader values change
-   */
-  // useEffect(() => {
-  //   Project.instance().updateShaders(files, logger)
-  //   //processFileChanges(files)
-  // }, [files])
 
   /**
    * Anytime the working project changes, reset project running state

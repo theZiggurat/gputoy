@@ -1,10 +1,12 @@
 import { Logger } from '@core/recoil/atoms/console'
 import * as types from '@core/types'
+import { NagaType } from '@core/types'
 
 
 type BufferInit = {
   label: string,
   model: types.Model
+  type: string
 
   // uniform, storage, read-only storage
   bufferBindingType: GPUBufferBindingType
@@ -24,6 +26,8 @@ export default class BufferResource implements types.Resource {
   bufferBindingType: GPUBufferBindingType
   bufferUsageFlags: GPUBufferUsageFlags
   bufferMemLayout: types.ModelMemLayout
+
+
 
   constructor(
     label: string,
@@ -51,10 +55,8 @@ export default class BufferResource implements types.Resource {
     logger?: Logger
   ): Promise<types.Resource | undefined> => {
 
-    const { label, model, initialValue, size, bufferUsageFlags, bufferBindingType } = bufferInit
+    const { label, model, type, initialValue, size, bufferUsageFlags, bufferBindingType } = bufferInit
 
-    let bufferMemLayout = types.getModelMemLayout(model)
-    let { byteSize, byteOffsets, writeSizes, writeTypes } = bufferMemLayout
 
     const shouldMap = !!initialValue
 
@@ -122,10 +124,12 @@ export default class BufferResource implements types.Resource {
 
     const { byteSize, byteOffsets, writeTypes } = this.bufferMemLayout
 
-    await this.buffer.mapAsync(GPUMapMode.WRITE,)
+    await this.buffer.mapAsync(GPUMapMode.WRITE)
     const byteBuf = this.buffer.getMappedRange()
     let floatView = new Float32Array(byteBuf, 0, byteSize / 4)
     let intView = new Int32Array(byteBuf, 0, byteSize / 4)
+    let uintView = new Uint32Array(byteBuf, 0, byteSize / 4)
+    let byteView = new Int8Array(byteBuf, 0, byteSize)
 
     for (let i = 0; i < byteOffsets.length; i++) {
       if (writeTypes[i] === 'int')
@@ -133,6 +137,7 @@ export default class BufferResource implements types.Resource {
       else
         floatView.set(buf[i], byteOffsets[i] / 4)
     }
+    this.buffer.unmap()
   }
 
 }
