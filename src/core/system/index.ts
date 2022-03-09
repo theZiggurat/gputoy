@@ -1,6 +1,6 @@
 import { Logger } from '@core/recoil/atoms/console'
 import * as types from '@core/types'
-import { IOChannel } from '@core/types'
+import { IOChannel, ValidationResult } from '@core/types'
 import { intersection, isEqual, union } from 'lodash'
 import { uniq } from 'lodash/fp'
 import Compiler from './compiler'
@@ -77,7 +77,7 @@ class System {
   // file id => boolean
   fileNeedPreprocess: Record<types.FileId, boolean> = {}
   // file id => process result
-  processedFiles: Record<types.FileId, types.PreProcessResult> = {}
+  processedFiles: Record<types.FileId, types.ValidationResult> = {}
 
   // file id => namespace
   namespace: Record<types.FileId, types.Namespace> = {}
@@ -87,9 +87,9 @@ class System {
 
   resources: Record<string, types.Resource> = {}
 
-
-
-
+  currentRunnerFileId: string = ""
+  runner: any
+  runnerNeedValidation: boolean = false
 
 
 
@@ -103,9 +103,9 @@ class System {
         -   unset by successful buildIO() calls if the given IO is needed within the project configuration.
             i.e. within the channel lock or found as a candidate
    */
-  ioNeedRebuild: Record<types.ChannelId, boolean> = {}
+  ioNeedBuild: Record<types.ChannelId, boolean> = {}
 
-  ioNeedRebuildNamespace: Record<types.ChannelId, boolean> = {}
+  ioNeedBuildNamespace: Record<types.ChannelId, boolean> = {}
 
   // channelId => io
   // instances of IO class
@@ -134,6 +134,12 @@ class System {
       logger?.err('System::build', 'No render graph. Aborting.')
       return false
     }
+
+    logger?.debug('System::build', 'CHECK_RUN')
+    if (!this.checkRunner(logger)) {
+      return false
+    }
+    logger?.debug('System::build', 'CHECK_RUN -- COMPLETE')
 
     logger?.debug('System::build', 'BUILD_IO')
     if (!(await this.buildIo(logger))) {
@@ -168,6 +174,31 @@ class System {
     return false
   }
 
+  checkRunner = (logger?: Logger): boolean => {
+    if (this.runner && !this.runnerNeedValidation) {
+      return true
+    }
+    let jsonFile = this.currentRunnerFileId ? this.files[this.currentRunnerFileId] : undefined
+    if (!jsonFile) {
+      jsonFile = Object.values(this.files).find(f => f.extension === 'json' && f.metadata['valid'])
+      if (!jsonFile) {
+        logger?.err("System::check_runner", 'No valid json files to create runner from.')
+        return false
+      }
+      logger?.log("System::check_runner", `Runner not set, defaulting to ${jsonFile?.filename}.json`)
+      this.currentRunnerFileId = jsonFile.id
+    }
+
+    try {
+      this.runner = JSON.parse(jsonFile.data)
+    } catch (err) {
+      logger?.err('System::check_runner', 'Exception thrown when parsing json: '.concat(err.toString()))
+      return false
+    }
+    console.log('RUNNER IS NOW SET', this.runner)
+    return true
+  }
+
 
   /**
    * 
@@ -175,31 +206,34 @@ class System {
    * @returns 
    */
   buildIo = async (logger?: Logger): Promise<boolean> => {
-    const { ioNodes } = this.graph
 
-    for (const ioKey of Object.keys(ioNodes)) {
+    const bus = this.runner.bus
 
-      const { args, type } = ioNodes[ioKey]
-      let channelId = this.channelLock[ioKey]
+    for (const [ioName, io] of Object.entries(bus)) {
+
+      let channelId = this.channelLock[ioName]
       let foundChannel!: IOChannel
       if (channelId) {
-        if (this.ioNeedRebuild[channelId] === false) {
-          logger?.trace(`System::build_io[${ioKey}]`, `Skipping rebuild io at channel: ${channelId}`)
+        if (this.ioNeedBuild[channelId] === false) {
+          logger?.trace(`System::build_io[${ioName}]`, `Skipping rebuild io at channel: ${channelId}`)
           continue
         }
-        logger?.trace(`System::build_io[${ioKey}]`, `Rebuilding io at channel: ${channelId}`)
+        logger?.trace(`System::build_io[${ioName}]`, `Rebuilding io at channel: ${channelId}`)
         foundChannel = this.availChannels[channelId]
       }
 
       if (!foundChannel) {
         let candidates = Object.values(this.availChannels)
-          .filter(ch => ch.ioType === type)
+          .filter(ch => ch.ioType === io.type)
           .filter(ch => !this.activeChannels[ch.id])
 
         if (candidates.length === 0) {
-          logger?.err(`System::build_io[${ioKey}]`, 'No IO channel availible for building')
+          logger?.err(`System::build_io[${ioName}]`, 'No IO channel availible for building')
           return false
         }
+
+        // TODO: make args
+        const args = {}
 
         // find one with the same arguments, or default to the first one availible
         foundChannel = candidates.find(ch => isEqual(ch.args, args)) ?? candidates[0]
@@ -230,9 +264,9 @@ class System {
       }
       if (newIO) {
         this.activeChannels[foundChannel.id] = newIO
-        this.channelLock[ioKey] = foundChannel.id
-        this.ioNeedRebuild[foundChannel.id] = false
-        this.ioNeedRebuildNamespace[foundChannel.id] = true
+        this.channelLock[ioName] = foundChannel.id
+        this.ioNeedBuild[foundChannel.id] = false
+        this.ioNeedBuildNamespace[foundChannel.id] = true
       }
     }
     return true
@@ -247,28 +281,35 @@ class System {
 
     let namespaces: Record<string, types.Namespace> = {}
 
-    Object.keys(this.activeChannels).filter(ch => this.ioNeedRebuildNamespace[ch]).forEach(ch => {
+    const ioToBuildNamespace = Object.keys(this.activeChannels)
+      .filter(ch => this.namespaceNeedsRebuild[ch] ?? true)
+
+    for (const ch of ioToBuildNamespace) {
       const io = this.activeChannels[ch]
       const label = io.label
       let localNamespace = io.getNamespace()
       namespaces[ch] = localNamespace
-      this.ioNeedRebuildNamespace[ch] = false
+      this.ioNeedBuildNamespace[ch] = false
       logger?.debug('System::build_namespaces', `Namespace rebuilt for io: ${label}`)
-    })
+    }
 
-    Object.keys(this.files).filter(fileId => this.namespaceNeedsRebuild[fileId] ?? true).forEach(fileId => {
+    const filesToRebuildNamespace = Object.values(this.files)
+      .filter(f => types.isShader(f.extension) && (this.namespaceNeedsRebuild[f.id] ?? true))
+      .map(f => f.id)
+
+    for (const fileId of filesToRebuildNamespace) {
 
       const file = this.files[fileId]
       const model = Compiler.instance().findModel(file, logger)
       if (!model) {
         logger?.err('System::build_namespaces', `Failed to make model in ${file.filename}.${file.extension}.`)
-        return
+        continue
       }
 
       const deps = Compiler.instance().findDeps(file, logger)
       if (!deps) {
         logger?.err('System::build_namespaces', `Failed to find dependencies in ${file.filename}.${file.extension}.`)
-        return
+        continue
       }
 
       namespaces[fileId] = {
@@ -279,7 +320,7 @@ class System {
       this.namespaceNeedsRebuild[fileId] = false
       this.fileNeedPreprocess[fileId] = true
       logger?.debug('System::build_namespaces', `Namespace rebuilt for file: ${file.filename}.${file.extension}`)
-    })
+    }
 
     this.namespace = { ...this.namespace, ...namespaces }
     return true
@@ -294,27 +335,21 @@ class System {
    */
   validate = async (logger?: Logger, stopOnError?: boolean): Promise<boolean> => {
 
-    const { passNodes, ioNodes } = this.graph
-
-    if (!this.buildNamespaces(logger)) {
-      return false
-    }
-
-    const filesToPreprocess = Object.values(passNodes)
-      .map(p => p.fileId)
-      .filter(id => this.fileNeedPreprocess[id] ?? true)
+    const filesToPreprocess = Object.values(this.files)
+      .filter(f => types.isShader(f.extension) && (this.fileNeedPreprocess[f.id] ?? true))
+      .map(f => f.id)
 
     let passedValidation = true
     for (const fileId of filesToPreprocess) {
       const file = this.files[fileId]
       logger?.trace(`System::validate[${fileId}]`, `Validation started for ${file.filename}.${file.extension}`)
 
-      const preprocessResult = Compiler.instance().validate(file, this.namespace, logger)
-      this.processedFiles[fileId] = preprocessResult
+      const validationResult = Compiler.instance().validate(file, this.namespace, logger)
+      this.processedFiles[fileId] = validationResult
 
       // keep mark on file as dirty
       // fail validation for entire run
-      if (preprocessResult.error) {
+      if ('error' in validationResult) {
         logger?.err(`System::validate[${fileId}]`, `Validation failed for ${file.filename}.${file.extension} due to above error`)
 
         if (!stopOnError) return false
@@ -328,33 +363,25 @@ class System {
       logger?.trace(`System::validate[${fileId}]`, `Validation complete for ${file.filename}.${file.extension}`)
     }
 
+    console.log(this.namespace)
+    console.log(this.processedFiles)
+
     return passedValidation
   }
 
+  /**
+   * 
+   * @param logger 
+   * @returns 
+   */
   buildModules = async (logger?: Logger): Promise<boolean> => {
-    const { passNodes } = this.graph
-    // 
-    let modules: Record<string, types.Module> = {}
-    //let moduleCache: Record<string, types.Module> = {}
-    for (const key of Object.keys(passNodes)) {
-      const node = passNodes[key]
-      const file = this.files[node.fileId]
-      //let cachedModule = moduleCache[node.fileId]
-      //const hasCurrentModule = !!this.modules[]
-      if (this.fileNeedCompile[node.fileId] ?? true) {
-        const module = await Compiler.instance().compile(GPU.device, file, "", this.models, logger)
 
-        // errors have been ommited during compilation
-        if (!module) return false
+    this.runner.run
 
-        modules[key] = module
-        this.fileNeedCompile[node.fileId] = false
-      } else {
-        modules[key] = this.modules[key]
-      }
-    }
-    this.modules = modules
-    return true
+    const { bus, run } = this.runner
+
+
+    return false
   }
 
   buildPasses = async (logger?: Logger): Promise<boolean> => {
@@ -366,8 +393,12 @@ class System {
     // overwrite/append file deltas, and set the delta'd files as dirty
     this.files = { ...this.files, ...delta }
     Object.keys(delta).forEach(fileId => {
-      this.fileNeedPreprocess[fileId] = true
-      this.fileNeedCompile[fileId] = true
+      const file = this.files[fileId]
+      if (types.isShader(file.extension))
+        this.namespaceNeedsRebuild[fileId] = true
+      else if (file.extension === 'json' && fileId === this.currentRunnerFileId) {
+        this.runnerNeedValidation = true
+      }
     })
 
     let namespaceEntriesToRemove = []
@@ -412,7 +443,7 @@ class System {
   pushIoDelta = (delta: Record<string, types.IOChannel>, removed: string[], logger?: Logger) => {
     // update the dictionary of availible io channels
     this.availChannels = { ...this.availChannels, ...delta }
-    for (const key of Object.keys(delta)) this.ioNeedRebuild[key] = true
+    for (const key of Object.keys(delta)) this.ioNeedBuild[key] = true
 
     for (const removedKey of removed) {
       let io = this.activeChannels[removedKey]
@@ -421,7 +452,7 @@ class System {
         delete this.activeChannels[removedKey]
       }
       delete this.availChannels[removedKey]
-      delete this.ioNeedRebuild[removedKey]
+      delete this.ioNeedBuild[removedKey]
       for (const ioKey of Object.keys(this.graph.ioNodes)) {
         if (this.channelLock[ioKey] === removedKey) {
           delete this.channelLock[ioKey]

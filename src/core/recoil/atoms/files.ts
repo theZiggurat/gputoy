@@ -1,4 +1,5 @@
 import * as types from '@core/types'
+import { uniq } from 'lodash'
 import { TypeScriptConfig } from 'next/dist/server/config-shared'
 import { atom, atomFamily, DefaultValue, selector } from "recoil"
 
@@ -11,13 +12,13 @@ export const projectFileDataAtom = atomFamily<string, string>({
 
 export const projectFileMetadataAtom = atomFamily<Omit<types.File, 'data'>, string>({
   key: 'projectFileMetadata',
-  default: {
-    filename: 'default',
+  default: fileId => ({
+    filename: '',
     path: '/',
-    extension: 'wgsl',
-    id: '',
+    extension: '_ROOT',
+    id: fileId,
     metadata: {}
-  },
+  }),
 })
 
 export const projectFilesListAtom = atom<string[]>({
@@ -67,14 +68,53 @@ export const withProjectFilesMetadata = selector<{ [key: string]: Omit<types.Fil
   }
 })
 
-export const withFileSetter = selector<types.File>({
+/**
+ * Allows components to set files directly without having to subscribe to an induvidual
+ * file atom
+ */
+export const withFileSetter = selector<{ id: string, file?: Partial<types.File> }>({
   key: 'withFileSetter',
-  get: ({ get }) => ({} as types.File),
-  set: ({ set, reset }, file) => {
-    if (!(file instanceof DefaultValue)) {
+  // useless
+  get: ({ get }) => ({} as { id: string, file: types.File }),
+  // setter will be used for push and delete file in UI
+  set: ({ set, reset }, arg) => {
+    if (!(arg instanceof DefaultValue)) {
+      const { id, file } = arg
+
+      // delete file data, metadata, and list entry
+      if (!file) {
+        console.log('here in resetting file', id)
+        reset(projectFileDataAtom(id))
+        set(projectFileMetadataAtom(id), {
+          extension: '_DELETED',
+          filename: '',
+          id: id,
+          path: '',
+          metadata: {}
+        })
+        set(projectFilesListAtom, prev => {
+          let newids = [...prev]
+          const remove = prev.indexOf(id)
+          if (remove === -1) return prev
+          newids.splice(remove, 1)
+          return newids
+        })
+        return
+      }
+
+      // set file at id and add to file list if not there
       const { data, ...rest } = file
-      set(projectFileDataAtom(file.id), data)
-      set(projectFileMetadataAtom(file.id), rest)
+      if (data) {
+        set(projectFileDataAtom(id), data)
+      }
+      if (rest) {
+        set(projectFileMetadataAtom(id), prev => ({ ...prev, ...rest }))
+      }
+
+      set(projectFilesListAtom, prev => {
+        if (prev.includes(id)) return prev
+        return [...prev, id]
+      })
     }
   }
 })

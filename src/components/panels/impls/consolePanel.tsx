@@ -101,6 +101,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
             bg={themed('a3')}
             borderBottom="4px"
             borderColor={themed('p')}
+            fontSize="xs"
           >
             <Text ml={1}>
               <Text display="inline" color={themed('textMid')} fontFamily="mono">

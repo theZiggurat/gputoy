@@ -3,7 +3,7 @@ import init, {
   introspect
 } from '../../../pkg/naga_compiler'
 import { Logger } from 'core/recoil/atoms/console'
-import { getStructDecl, File, Model, ExtensionShader, Module, PreProcessResult, NagaType, Namespace, Dependency, getTypeDecl, getStructFromModel } from '@core/types'
+import { getStructDecl, File, Model, ExtensionShader, Module, PreProcessResult, NagaType, Namespace, Dependency, getTypeDecl, getStructFromModel, ValidationResult } from '@core/types'
 
 const REGEX_SYNCS = /@sync\s+var\s*<?([\w+\s*,\s*]*)>?\s+(\w*)\s*:\s*(\w+)\s*<?([\w+\s*,\s*]*)>?\s*/gm
 const REGEX_ENTRY = /@stage\((\w+)\)[^{]*/gm
@@ -28,6 +28,9 @@ class Compiler {
   }
 
   private ready: boolean = false
+
+
+
 
   /**
    * 
@@ -71,6 +74,9 @@ class Compiler {
     }
   }
 
+
+
+
   /**
    * 
    * @param file 
@@ -99,6 +105,9 @@ class Compiler {
     return ret
   }
 
+
+
+
   /**
    * 
    * @param file 
@@ -106,8 +115,11 @@ class Compiler {
    * @param logger 
    * @returns 
    */
-  validate = (file: File, globalNamespace: Record<string, Namespace>, logger?: Logger): PreProcessResult => {
-
+  validate = (
+    file: File,
+    globalNamespace: Record<string, Namespace>,
+    logger?: Logger
+  ): ValidationResult => {
 
     // regex the shader string to remove gputoy defined declarations
     let processedShader = file.data
@@ -137,7 +149,7 @@ class Compiler {
         logger?.err(`Compiler::Preprocessor[${file.filename}]`, error)
         return {
           fileId: file.id,
-          error: error,
+          errors: error,
         }
       }
       let fullStruct = getStructFromModel(fileModel, dep.identifier)
@@ -146,7 +158,7 @@ class Compiler {
         logger?.err(`Compiler::Preprocessor[${file.filename}]`, error)
         return {
           fileId: file.id,
-          error: error,
+          errors: error,
         }
       }
       let typeSrc = getStructDecl(fullStruct, file.extension as ExtensionShader)
@@ -160,47 +172,40 @@ class Compiler {
 
     // now processedShader has all dependent types baked in
     // ready for naga validation
-    const moduleInfo = JSON.parse(introspect(processedShader, file.extension, "") ?? "{}")
+    const nagaModule = JSON.parse(introspect(processedShader, file.extension, "") ?? "{}")
 
-    console.log(moduleInfo)
-
-    if (!moduleInfo.types) {
+    if (!nagaModule.types) {
       const errors = get_errors()
       logger?.err(`Compiler::Preprocessor[${file.filename}]`, 'Pre-processing failed due to: \n'.concat(errors))
       return {
         fileId: file.id,
-        error: errors,
+        errors: errors,
       }
     }
 
-
-
-
-
-    // for (const type of types) {
-    //   //console.log(type)
-    // }
-
-    // for (const constant of constants) {
-    //   //console.log(constant)
-    // }
-
-
     return {
       fileId: file.id,
-      processedShader
+      processedShader,
+      nagaModule
     }
   }
 
   compile = async (
     device: GPUDevice,
-    src: File,
-    decls: string,
-    models: Record<string, Model>,
-    logger?: Logger
+    file: File,
+    validationInfo: ValidationResult
   ): Promise<Module | null> => {
 
-    if (!this.isReady) return null
+    if ('errors' in validationInfo || !validationInfo.processedShader) {
+      return null
+    }
+
+    device.createShaderModule({
+      code: validationInfo.processedShader,
+      label: file.filename,
+
+    })
+
 
     return null
   }

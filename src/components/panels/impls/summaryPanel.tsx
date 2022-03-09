@@ -15,7 +15,7 @@ import { BiGitRepoForked } from 'react-icons/bi'
 import { IoIosEye } from 'react-icons/io'
 import { MdArrowRight, MdDelete } from 'react-icons/md'
 import { useRecoilValue } from 'recoil'
-import { themed, themedRaw } from "@theme/theme"
+import { fontMono, themed, themedRaw } from "@theme/theme"
 import { Divider } from "@components/shared/misc/micro"
 import { Panel, PanelBar, PanelContent } from "../panel"
 import OutwardLink from '@components/shared/outwardLink'
@@ -25,6 +25,7 @@ import { Directory } from '@core/types'
 import { useDirectory, useFileMetadata } from '@core/hooks/useFiles'
 import { RiFile3Fill, RiFolderFill } from 'react-icons/ri'
 import FileIcon from '@components/shared/misc/fileIcon'
+import DirectoryList from '@components/shared/files/directoryList'
 
 const ProjectInfo = () => {
 
@@ -204,93 +205,19 @@ const AccordionPanel = (props: AccordionPanelProps) => {
 
 }
 
-const DirectoryRow = (props: {
-  name?: string,
-  dir: Directory,
-  onOpen: (fileId: string) => void,
-}) => {
-  const { dir, name, onOpen } = props
-  const { fileId, c } = dir
-  const { fileMetadata } = useFileMetadata(fileId)
-  const [showChildren, setShowChildren] = useState(true)
-
-  const toggleShowChildren = () => setShowChildren(o => !o)
-
-  const hiddenProps = {
-    visibility: "hidden",
-    _groupHover: { visibility: "visible" }
-  }
-
-  if (fileId) {
-    return <Flex w="100%" h="1.5rem" alignItems="center" pl="1rem" role="group" cursor="pointer" justifyContent="space-between" onClick={() => onOpen(fileId)} _hover={{ bg: themed('a1') }} >
-      <Flex alignItems="center" gridGap="0.5rem" >
-        <FileIcon extension={fileMetadata.extension} size={16} />
-        <Text fontSize="14px" color={themed('textMidLight')} userSelect="none"
-          _groupHover={{
-            color: themed('textHigh')
-          }}
-        >
-          {fileMetadata.filename}.
-          <Box as="span" fontSize="13px">{fileMetadata.extension}</Box>
-        </Text>
-      </Flex>
-
-      <Box>
-        <IconButton
-          aria-label="Delete File"
-          title="Delete File"
-          variant="empty"
-          icon={<MdDelete />}
-          {...hiddenProps}
-        />
-      </Box>
-    </Flex>
-  } else if (name) {
-    return <Box >
-      <Flex w="100%" h="1.5rem" alignItems="center" role="group" cursor="pointer" justifyContent="space-between" onClick={toggleShowChildren} _hover={{ bg: themed('input') }}>
-
-        <Flex alignItems="center" gridGap="8px" px="1rem">
-          <Icon as={showChildren ? AiFillFolderOpen : AiFillFolder} size={10} transform="translate(1px, 0)" />
-          <Text fontSize="14px" color={themed('textMidLight')} display="inline" userSelect="none"
-            _groupHover={{
-              color: themed('textHigh')
-            }}
-          >
-            {name}
-          </Text>
-        </Flex>
-
-        <Box>
-          <IconButton
-            aria-label="Delete File"
-            title="Delete File"
-            variant="empty"
-            icon={<MdDelete />}
-            {...hiddenProps}
-          />
-        </Box>
-      </Flex>
-      <Flex flexDir="column" w="100%" pl="1rem">
-        {
-          showChildren &&
-          Object.entries(c).map(([name, dir]) => <DirectoryRow key={dir.fileId ?? name} dir={dir} name={name} onOpen={onOpen} />)
-        }
-      </Flex>
-    </Box>
-  }
-  return <>
-    {
-      Object.entries(c).map(([name, dir]) => <DirectoryRow key={dir.fileId ?? name} dir={dir} name={name} onOpen={onOpen} />)
-
-    }
-  </>
-}
-
 
 const ProjectFiles = (props: { instanceId: string }) => {
 
   const pushTask = useTaskPusher(props.instanceId)
-  const { directory, addDirectory, deleteDirectory, moveDirectory } = useDirectory()
+  const { directory, addFile, addDirectory, deleteDirectory, moveDirectory } = useDirectory()
+
+  console.log(directory)
+
+  const buttonProps = {
+    size: "xs",
+    variant: "empty",
+    height: "1rem",
+  }
 
   const onHandleOpen = (fileId: string) => {
     pushTask({
@@ -300,10 +227,27 @@ const ProjectFiles = (props: { instanceId: string }) => {
     })
   }
 
-  const buttonProps = {
-    size: "xs",
-    variant: "empty",
-    height: "1rem",
+  const onHandleAddFile = (ev) => {
+    ev.stopPropagation()
+    addFile('/', {
+      data: "{}",
+      extension: '_UNCREATED',
+      filename: '',
+      metadata: {},
+    })
+  }
+
+  const onHandleAddDirectory = (ev) => {
+    ev.stopPropagation()
+    addDirectory('/', 'newdirectory')
+  }
+
+  const onHandleDelete = (fileId: string, force?: boolean) => {
+    deleteDirectory(fileId, force)
+  }
+
+  const onHandleMove = (olddir: string, newdir: string) => {
+    moveDirectory(olddir, newdir)
   }
 
   const rightSide = <Box >
@@ -311,18 +255,20 @@ const ProjectFiles = (props: { instanceId: string }) => {
       {...buttonProps}
       title="Add file"
       icon={<RiFile3Fill size={12} />}
+      onClick={onHandleAddFile}
     />
     <IconButton
       {...buttonProps}
       title="Add directory"
       icon={<RiFolderFill size={13} />}
+      onClick={onHandleAddDirectory}
     />
   </Box>
 
-  return <AccordionPanel title="Files" rightSide={rightSide} bg={themed('a3')}>
-    <Box height="0.5rem"></Box>
-    <DirectoryRow dir={directory} onOpen={onHandleOpen} />
-    <Box height="0.5rem"></Box>
+  return <AccordionPanel title="Files" rightSide={rightSide} bg={themed('a3')} w="100%">
+
+    <DirectoryList dir={directory} onOpen={onHandleOpen} onDelete={onHandleDelete} onMove={onHandleMove} />
+
   </AccordionPanel>
 
 }

@@ -10,7 +10,7 @@ type FileTabProps = {
   idx: number
   selectedFileIdx: number,
   onSelect: (idx: number) => void
-  onClose: (idx: number) => void
+  onClose: (fileId: string) => void
   first?: boolean
 }
 
@@ -56,7 +56,10 @@ const FileTab = (props: FileTabProps) => {
       size="xs"
       px="0.4rem"
       icon={<MdClose size={13} />}
-      onClick={() => onClose(idx)}
+      onClick={(ev) => {
+        ev.preventDefault()
+        onClose(fileId)
+      }}
       _hover={{
         bg: 'none',
         color: themed('textHigh')

@@ -90,7 +90,6 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
     const localProj: ProjectInfo[] = []
     for (let key in localStorage) {
       if (key.startsWith('project')) {
-        console.log(localStorage.getItem(key))
         const project = JSON.parse(localStorage.getItem(key)!)
 
         localProj.push({

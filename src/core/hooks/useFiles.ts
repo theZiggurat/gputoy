@@ -5,6 +5,7 @@ import * as types from '@core/types'
 import { nanoid } from "nanoid"
 import * as _fp from "lodash/fp"
 import * as _ from "lodash"
+import useLogger from "./useLogger"
 
 export const DEFAULT_FILE: types.File = {
   id: '',
@@ -24,6 +25,7 @@ export type FileProps = {
   setMetadata: (key: string, metadata: any) => void
 }
 export const useFile = (fileId: string): FileProps => {
+
 
   const [fileMetadata, setFileMetadata] = useRecoilState(projectFileMetadataAtom(fileId))
   const [fileData, setFileData] = useRecoilState(projectFileDataAtom(fileId))
@@ -61,7 +63,7 @@ export type FileMetadataProps = {
 }
 export const useFileMetadata = (fileId?: string): FileMetadataProps => {
 
-  const [fileMetadata, setFileMetadata] = useRecoilState(projectFileMetadataAtom(fileId ?? 'default'))
+  const [fileMetadata, setFileMetadata] = useRecoilState(projectFileMetadataAtom(fileId ?? 'root'))
 
   const setFilename = useCallback((filename: string) => {
     setFileMetadata(old => ({ ...old, filename }))
@@ -85,9 +87,11 @@ export const useFileMetadata = (fileId?: string): FileMetadataProps => {
 
 export type DirectoryProps = {
   directory: types.Directory
-  addDirectory: (path?: string, infile?: Omit<types.File, 'id' | 'path'>) => string | undefined
-  deleteDirectory: (fileId: string) => boolean
+  addFile: (path: string, infile: Omit<types.File, 'id' | 'path'>) => string | undefined
+  addDirectory: (path: string, title: string) => string | undefined
+  deleteDirectory: (fileId: string, force?: boolean) => boolean
   moveDirectory: (fileId: string, path: string) => boolean
+  fileExists: (fileId?: string, filename?: string) => boolean
 }
 
 /**
@@ -95,8 +99,8 @@ export type DirectoryProps = {
  */
 export const useDirectory = (): DirectoryProps => {
 
-  const setFileIds = useSetRecoilState(projectFilesListAtom)
-  const [files, setFiles] = useRecoilState(withProjectFilesMetadata)
+  const logger = useLogger()
+  const files = useRecoilValue(withProjectFilesMetadata)
   const pushFile = useSetRecoilState(withFileSetter)
 
   const objectPath = (path: string) => path
@@ -104,67 +108,148 @@ export const useDirectory = (): DirectoryProps => {
     .filter(s => s.length > 0)
     .flatMap(s => ['c', s])
 
+
+  /**
+   * 
+   * @param fileId 
+   * @param filename 
+   * @returns 
+   */
+  const fileExists = (fileId?: string, filename?: string): boolean => {
+    if (fileId) {
+      return Object.keys(files)
+        .filter(id => types.isSupportedFileType(files[id].extension))
+        .includes(fileId)
+    }
+    return false
+  }
+
+
+  /**
+   * 
+   */
   const directory: types.Directory = useMemo(() => {
     let ret = { c: {} }
     Object.entries(files).forEach(([fileId, { filename, path }]) => {
-      const pathParts = objectPath(path).concat('c', filename)
-      // console.log(ret)
-      // console.log('adding ', fileId, ' to ', pathParts)
-      _.set(ret, pathParts, { fileId })
+
+
+      if (files[fileId].extension !== '_DELETED') {
+        console.log(files[fileId].filename, files[fileId].path)
+        const pathParts = objectPath(path).concat('c', filename)
+        ret = _.merge(ret, _fp.set(pathParts, { fileId }, {}))
+      }
+
     })
     return ret
   }, [files])
 
-  const setDirectory = useCallback((directory: types.Directory) => {
-    const _collect = (path: string, directory: types.Directory): { [key: string]: string } => {
-      const { fileId, c } = directory
-      if (fileId)
-        return { [fileId]: path }
-      let ret = {}
-      Object.entries(c).forEach(([name, dir]) => {
-        ret = { ...ret, ..._collect(path.concat('/', name), dir) }
-      })
-      return ret
+
+  /**
+   * 
+   */
+  const addFile = useCallback((path: string, infile: Omit<types.File, 'id' | 'path'>): string | undefined => {
+    // add file
+    const id = nanoid(8)
+    const newfile: types.File = { ...infile, id, path: path ?? '/' }
+    if (infile.extension !== '_UNCREATED') {
+      for (const file of Object.values(files)) {
+        if (file.filename === newfile.filename) {
+          logger.err('directory::addFile', `File already exists: ${file.filename}.${file.extension}`)
+          return
+        }
+      }
     }
-    const paths = _collect('/', directory)
+    pushFile({ id: id, file: newfile })
+    return id
+  }, [pushFile, files, logger])
 
-    setFiles(prev => {
-      let newFiles: { [key: string]: Omit<types.File, 'data'> } = {}
-      Object.entries(paths).forEach(([fileId, path]) => {
-        newFiles[fileId] = { ...prev[fileId], path }
-      })
-      return newFiles
-    })
-  }, [setFiles])
 
-  const addDirectory = useCallback((path?: string, infile?: Omit<types.File, 'id' | 'path'>, title?: string): string | undefined => {
-    if (infile) {
-      const id = nanoid(8)
-      const { filename } = infile
-      pushFile({ ...infile, id, path })
-    } else if (title) {
 
+  /**
+   * 
+   */
+  const addDirectory = useCallback((path: string, title: string): string | undefined => {
+    // add file
+    const id = nanoid(8)
+    const newfile: types.File = { filename: title, id, path: path, data: '', extension: '_DIR', metadata: { children: 0 } }
+    for (const file of Object.values(files)) {
+      if (file.filename === newfile.filename) {
+        logger.err('directory::addDirectory', `Name taken: ${file.filename}.${file.extension}`)
+        return
+      }
     }
-    return
-  }, [pushFile])
+    pushFile({ id: id, file: newfile })
+    return id
+  }, [pushFile, files, logger])
 
+
+  /**
+   * 
+   * @param oldpath 
+   * @param newpath 
+   * @returns 
+   */
   const moveDirectory = (oldpath: string, newpath: string): boolean => {
+
     const objPath = objectPath(oldpath)
     const chunk = _.get(directory, objPath)
-    let newdir = _fp.unset(objPath, directory)
-    newdir = _fp.set(objectPath(newpath), chunk)
-    setDirectory(newdir)
+    const idsInChunk = findAllByKey(chunk, 'fileId')
+
+    const rootDepth = oldpath.split('/').filter(s => s.length > 0).length
+    const newPathParts = newpath.split('/').filter(s => s.length > 0 && s !== 'ERROR_IF_SEEN')
+
+    for (const id of idsInChunk) {
+      const file = files[id]
+      const newPathPartsRelative = file.path.split('/').filter(s => s.length > 0).slice(rootDepth)
+
+      const newPathFull = '/' + newPathParts.concat(newPathPartsRelative).join('/')
+      console.log(oldpath, newpath, newPathPartsRelative, newPathParts, newPathFull)
+      pushFile({ id: id, file: { path: newpath } })
+    }
+    return true
   }
 
-  const deleteDirectory = (fileId: string, r?: boolean): boolean => {
-    setFileIds()
-    return false
+
+  /**
+   * 
+   * @param fileId 
+   * @param force 
+   * @returns 
+   */
+  const deleteDirectory = (fileId: string, force?: boolean): boolean => {
+
+    let targetdir = files[fileId]
+    if (!targetdir) return false
+    if (force) {
+      pushFile({ id: fileId })
+      return true
+    }
+    const filename = targetdir.filename.length == 0 ? '""' : targetdir.filename
+    let objpath = objectPath(targetdir.path.concat('/' + filename))
+    const chunk = _.get(directory, objpath)
+    console.log('CHUNK', chunk, objpath, directory, targetdir)
+    const idsInChunk = findAllByKey(chunk, 'fileId')
+    console.log('ids in chunk', idsInChunk)
+    for (const id of idsInChunk) {
+      pushFile({ id })
+    }
+    return true
   }
 
-  return { directory, addDirectory, deleteDirectory, moveDirectory }
+  return { directory, addFile, addDirectory, deleteDirectory, moveDirectory, fileExists }
+}
+
+// quick and clean. 
+// thanks to https://stackoverflow.com/questions/54857222/find-all-values-by-specific-key-in-a-deep-nested-object
+function findAllByKey(obj, keyToFind) {
+  if (!obj) return []
+  return Object.entries(obj)
+    .reduce((acc, [key, value]) => (key === keyToFind)
+      ? acc.concat(value)
+      : (typeof value === 'object')
+        ? acc.concat(findAllByKey(value, keyToFind))
+        : acc
+      , [])
 }
 
 
-export const useWorkspace = (instanceId: string) => {
-
-}

@@ -1,4 +1,3 @@
-import { m } from "framer-motion"
 import { ExtensionShader } from "."
 
 /**
@@ -21,6 +20,14 @@ export type Model = {
   dependentFileIds: string[],
   namedTypes: Record<string, number>
   indexedTypes: NagaType[]
+}
+
+export type ValidationResult = {
+  fileId: string
+  errors?: string
+  // wgsl that is ready for device.createModule()
+  processedShader?: string
+  nagaModule?: NagaModule
 }
 
 export const getStructFromModel = (model: Model, structName: string): NagaTypeStructFull | null => {
@@ -339,5 +346,93 @@ export enum NagaStorageAccessFlagEnum {
   LOAD = 1,
   STORE = 2,
   ALL = 3
+}
+
+export type NagaResourceBinding = {
+  group: number
+  binding: number
+}
+
+export type NagaConstantInner = {
+  'Composite': {
+    width: number
+    value: {
+      'Float': number
+    } | {
+      'Uint': number
+    } | {
+      'Sint': number
+    } | {
+      'Bool': boolean
+    }
+  }
+} | {
+  'Composite': {
+    // Handle<Type>
+    ty: number
+    // Handle<Constant>[]
+    components: number[]
+  }
+}
+
+export type NagaConstant = {
+  name?: string
+  specialization?: number
+  inner: NagaConstantInner
+}
+
+export type NagaModule = {
+  types: NagaType[]
+  constants: NagaConstant[]
+  global_variables: NagaGlobalVariable[]
+  functions: NagaFunction[]
+  entry_points: NagaEntryPoint
+}
+
+export type NagaGlobalVariable = {
+  name?: string
+  class: NagaStorageClass
+  binding: NagaResourceBinding
+  // Handle<Type>
+  ty: number
+  // Handle<Constant>
+  init?: number
+}
+
+export type NagaFunction = {
+  name?: string
+  arguments: NagaFunctionArgument[]
+  result?: NagaFunctionResult
+
+  // maybe down the line these can be maken use of
+  // but its a bit overkill for now
+  local_variables: any
+  expressions: any
+  named_expressions: any
+  body: any
+}
+
+export type NagaFunctionArgument = {
+  name?: string
+  // Handle<Type>
+  ty: number
+  binding?: NagaBinding
+}
+
+export type NagaFunctionResult = {
+  // Handle<Type>
+  ty: number
+  binding?: NagaBinding
+}
+
+export type NagaShaderStage = 'Vertex' | 'Fragment' | 'Compute'
+
+export type NagaEntryPoint = {
+  name: string
+  stage: NagaShaderStage
+  // TODO: find how this serializes
+  early_depth_test?: any
+  workgroup_size: number[]
+  function: NagaFunction
 }
 

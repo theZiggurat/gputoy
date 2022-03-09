@@ -5,17 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ea527df2-fa52-4273-9ae1-d7403b9fac23" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../next.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../next.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/create/params/interface/vec2Interface.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/create/params/interface/vec2Interface.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/create/projectSelecion.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/create/projectSelecion.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/panels/impls/consolePanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/impls/consolePanel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/panels/impls/editorPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/impls/editorPanel.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/components/panels/impls/summaryPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/impls/summaryPanel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/panels/impls/viewPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/impls/viewPanel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/panels/panel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/panel.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/core/hooks/singleton/useProjectManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/singleton/useProjectManager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/hooks/singleton/useProjectStorage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/singleton/useProjectStorage.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/core/hooks/useFiles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/useFiles.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/recoil/atoms/files.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/recoil/atoms/files.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/recoil/atoms/instance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/recoil/atoms/instance.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/core/system/compiler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/compiler.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/core/system/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/core/system/io.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/io.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/core/system/resource/bufferResource.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/resource/bufferResource.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/types/fileTypes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/types/fileTypes.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/core/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/types/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/types/shaderTypes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/types/shaderTypes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../styles/actionbar.css" beforeDir="false" afterPath="$PROJECT_DIR$/../styles/actionbar.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -102,14 +102,14 @@ const useProjectManager = () => {
   const processFileDelta = useCallback(debounce((files: { [key: string]: types.File; }) => {
 
     const currentFiles = System.instance().files
-    console.log('PUSHING SYSTEM FILE DELTA', currentFiles, files)
+    //console.log('PUSHING SYSTEM FILE DELTA', currentFiles, files)
 
     // skip delta calculations
     if (Object.keys(currentFiles).length === 0) {
       System.instance().pushFileDelta(files, [])
     }
 
-    console.log('SYSTEM FILES ARE NOW', System.instance().files)
+    //console.log('SYSTEM FILES ARE NOW', System.instance().files)
 
   }, 500), [])
 
@@ -123,7 +123,7 @@ const useProjectManager = () => {
   // a component mount/unmount should this be called
   const processIODelta = useCallback((currentChannels: Record<string, types.IOChannel>) => {
     const prevChannels = System.instance().availChannels
-    console.log('PUSHING SYSTEM IO DELTA', currentChannels)
+    //console.log('PUSHING SYSTEM IO DELTA', currentChannels)
 
     let prevKeys = Object.keys(prevChannels)
 
@@ -154,7 +154,7 @@ const useProjectManager = () => {
 
     System.instance().pushIoDelta(diff, removed)
 
-    console.log('SYSTEM IO IS NOW', System.instance().availChannels)
+    //console.log('SYSTEM IO IS NOW', System.instance().availChannels)
   }, [])
 
   useEffect(() => {

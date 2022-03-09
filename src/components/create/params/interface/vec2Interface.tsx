@@ -165,9 +165,9 @@ export const Vec2InterfaceCartesian = (props: InterfaceProps) => {
   const redAlpha = '#E53E3E50'
 
   const paramVal = toParamSpace(svgCoord)
-  console.log('paramVal', paramVal)
+  //console.log('paramVal', paramVal)
   const activeParam = fromParamSpace(paramVal)
-  console.log('activeParam', activeParam)
+  //console.log('activeParam', activeParam)
 
   const lineFreq = 5
 

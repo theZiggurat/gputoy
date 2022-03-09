@@ -19,19 +19,35 @@ import completions from 'monaco/completions';
 import FileTab from '@components/create/editor/filetab';
 import useHorizontalScroll from 'utils/scrollHook';
 import { useTaskReciever } from '@core/hooks/useTask';
-import { useFile } from '@core/hooks/useFiles';
+import { useDirectory, useFile } from '@core/hooks/useFiles';
 import { isData, isText } from '@core/types';
 import EditorPanelBar from '@components/create/editor/editorPanelBar';
+import setJSONSchema from 'monaco/jsonSchema';
+import { debounce } from 'lodash';
 
-const EditorContent = (props: { fileId: string }) => {
 
-	const { file, setData } = useFile(props.fileId)
+
+const EditorContent = (props: {
+	fileId: string
+	onClose: (fileId: string) => void
+}) => {
+
+	const { file, setData, setMetadata } = useFile(props.fileId)
 	const { filename, path, extension, data, metadata, fetch } = file
 
 	const monacoTheme = useColorModeValue('light', 'dark')
 	const monaco = useMonaco()
 
+	useEffect(() => {
+		if (extension === '_DELETED') {
+			props.onClose(props.fileId)
+		}
+	}, [extension])
+
+	const colorMode = useColorModeValue('light', 'dark')
+
 	const onMonacoBeforeMount = (monaco: Monaco) => {
+		console.log('RUNNING MONACO BEFORE MOUNT')
 		monaco.languages.register(languageExtensionPoint)
 		monaco.languages.onLanguage(languageID, () => {
 			monaco.languages.setMonarchTokensProvider(languageID, monarchLanguage)
@@ -40,6 +56,15 @@ const EditorContent = (props: { fileId: string }) => {
 		})
 		monaco.editor.defineTheme('dark', darktheme)
 		monaco.editor.defineTheme('light', lighttheme)
+		setJSONSchema(monaco)
+	}
+
+	const onMonacoValidate = (markers: any[]) => {
+		if (markers.length > 0) {
+			setMetadata("valid", false)
+		} else {
+			setMetadata("valid", true)
+		}
 	}
 
 	useEffect(() => {
@@ -48,7 +73,7 @@ const EditorContent = (props: { fileId: string }) => {
 		setTimeout(() => monaco?.editor.setTheme(monacoTheme), 1)
 	}, [monacoTheme, monaco])
 
-	return <Box width="100%" sx={useColorModeValue(lightEditor, darkEditor)} flex="1 1 auto" overflowX="hidden">
+	return <Box width="100%" flex="1 1 auto" overflowX="hidden">
 		{
 			isText(extension) &&
 			<Editor
@@ -58,7 +83,9 @@ const EditorContent = (props: { fileId: string }) => {
 				defaultValue={data}
 				saveViewState
 				beforeMount={onMonacoBeforeMount}
+				onValidate={extension === 'json' ? onMonacoValidate : undefined}
 				onChange={value => setData(value ?? "undefined")}
+				theme={colorMode}
 				options={{
 					fontSize: 13,
 					minimap: {
@@ -75,10 +102,16 @@ const EditorContent = (props: { fileId: string }) => {
 						verticalScrollbarSize: 10,
 					},
 					suggest: {
-						//preview: true,
+						preview: true,
 						snippetsPreventQuickSuggestions: false,
 					},
-					theme: monacoTheme
+					theme: monacoTheme,
+					"semanticHighlighting.enabled": true,
+					find: {
+						cursorMoveOnType: true
+					},
+					//wordBasedSuggestions: false,
+					mouseWheelZoom: true,
 				}}
 			/>
 		}
@@ -91,15 +124,28 @@ const EditorContent = (props: { fileId: string }) => {
 
 const EditorPanel = (props: PanelInProps) => {
 
+	console.log(props.instanceID)
 	const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
 	const { workspace, currentFileIndex } = instanceState
 	const currentFileId = (currentFileIndex !== undefined) ? workspace[currentFileIndex] : undefined
 
+	// useEffect(debounce(() => {
+	// 	if (!fileExists(currentFileId)) {
+	// 		const newlist = workspace.filter(fileId => fileExists(fileId))
+	// 		setInstanceState(prev => ({
+	// 			workspace: newlist,
+	// 			currentFileIndex: currentFileIndex ? Math.min(newlist.length - 1, currentFileIndex) : undefined
+	// 		}))
+	// 	}
+	// }, 1000), [currentFileId])
+
 	const setCurrentFileIndex = (index: number) => {
-		setInstanceState({ ...instanceState, currentFileIndex: index })
+		console.log('RUNNING SET INDEX', index)
+		setInstanceState(prev => ({ ...prev, currentFileIndex: index }))
 	}
 
 	const addFileToWorkspace = (localId: string, move?: boolean) => {
+		console.log('RUNNING ADD', localId)
 		const index = workspace.indexOf(localId)
 		const len = workspace.length
 		if (index < 0) {
@@ -112,15 +158,17 @@ const EditorPanel = (props: PanelInProps) => {
 		}
 	}
 
-	const onHandleTabClose = (idx: number) => {
-		setInstanceState(prev => {
-			let newWorkspace = [...prev.workspace]
-			newWorkspace.splice(idx, 1)
-			let newidx = Math.min(prev.currentFileIndex ?? 0, newWorkspace.length - 1)
-			return {
-				currentFileIndex: newidx < 0 ? undefined : newidx,
-				workspace: newWorkspace
-			}
+	console.log(instanceState)
+	const removeFileFromWorkspace = (fileId: string) => {
+		console.log('RUNNING REMOVE', fileId, workspace)
+		const newWorkspace = workspace.filter(f => f !== fileId)
+		console.log({
+			workspace: newWorkspace,
+			currentFileIndex: Math.min(workspace.length - 1, currentFileIndex ?? 0)
+		})
+		setInstanceState({
+			workspace: newWorkspace,
+			currentFileIndex: Math.min(workspace.length - 1, currentFileIndex ?? 0)
 		})
 	}
 
@@ -140,7 +188,7 @@ const EditorPanel = (props: PanelInProps) => {
 		<Panel {...props}>
 			<PanelContent display="flex" flexDir="column" overflowY="hidden" overFlowX="hidden">
 				{
-					workspace.length > 1 &&
+					workspace.length > 0 &&
 					<Flex
 						flex="0 0 auto"
 						height="2.3rem"
@@ -159,7 +207,7 @@ const EditorPanel = (props: PanelInProps) => {
 									idx={idx}
 									selectedFileIdx={currentFileIndex ?? -1}
 									onSelect={setCurrentFileIndex}
-									onClose={onHandleTabClose}
+									onClose={removeFileFromWorkspace}
 									first={idx == 0}
 								/>
 							))
@@ -170,7 +218,7 @@ const EditorPanel = (props: PanelInProps) => {
 				}
 				{
 					currentFileId &&
-					<EditorContent fileId={currentFileId} />
+					<EditorContent fileId={currentFileId} onClose={removeFileFromWorkspace} />
 				}
 			</PanelContent>
 			<PanelBar>

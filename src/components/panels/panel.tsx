@@ -61,6 +61,7 @@ export const Panel = (props: PanelInProps) => {
       height="100%"
       width="100%"
       flexDir={barLocation == 'top' ? 'column-reverse' : 'column'}
+      pos="relative"
       flexBasis="fill"
       {...paneProps}
       ref={bounds as LegacyRef<HTMLDivElement>}
@@ -162,8 +163,6 @@ export const PanelBar = (props: PanelBarProps) => {
       flex="0 0 auto"
       justify="space-between"
       overflowX="hidden"
-      borderTop="1px"
-      borderColor={themed('dividerLight')}
       p={1}
       ref={scrollRef as LegacyRef<HTMLDivElement>}
       {...barProps}

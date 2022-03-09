@@ -45,14 +45,6 @@ export interface Resource {
   destroy: () => void
 }
 
-export type PreProcessResult = {
-  fileId: string
-  // wgsl that is ready for device.createModule()
-  processedShader?: string
-  // errors returned from pre-processing
-  error?: string
-}
-
 /**
  * Misc project types
  */
@@ -110,13 +102,5 @@ export type RenderPass = Pass & {
 }
 
 export type ComputePass = Pass & {
-
-}
-
-export type ValidationResult = {
-
-}
-
-export type ValidationError = {
 
 }

@@ -21,16 +21,16 @@ export const panelInstanceAtom = atomFamily<types.InstanceState, types.InstanceS
       : { split: 50 }
   },
   effects_UNSTABLE: sel => [
-    ({ trigger, onSet, getLoadable, getPromise }) => {
-      onSet((newVal, oldVal) => {
-        console.log('SET INSTANCE STATE', sel, newVal, oldVal)
-      })
-    },
-    ({ trigger, onSet, getLoadable, getPromise }) => {
-      onSet((newVal, oldVal) => {
-        console.log('SET INSTANCE STATE', sel, newVal, oldVal)
-      })
-    }
+    // ({ trigger, onSet, getLoadable, getPromise }) => {
+    //   onSet((newVal, oldVal) => {
+    //     console.log('SET INSTANCE STATE', sel, newVal, oldVal)
+    //   })
+    // },
+    // ({ trigger, onSet, getLoadable, getPromise }) => {
+    //   onSet((newVal, oldVal) => {
+    //     console.log('SET INSTANCE STATE', sel, newVal, oldVal)
+    //   })
+    // }
   ]
 })
 
@@ -70,10 +70,8 @@ export const withInstanceCleaner = selector<types.InstanceSelector[]>({
   get: ({ get }) => get(panelInstanceListAtom),
   set: ({ set, reset }, instances) => {
     set(panelInstanceListAtom, prev => {
-      //console.log('PANEL INSTANCES', prev, instances)
       const idArr = (instances as types.InstanceSelector[]).map(sel => sel.id)
       prev.filter(sel => !idArr.includes(sel.id)).forEach(sel =>
-        //console.log('WOULD HAVE REMOVED', sel)
         reset(panelInstanceAtom(sel))
       )
       return instances
