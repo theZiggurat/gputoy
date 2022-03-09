@@ -101,15 +101,34 @@ const useProjectManager = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const processFileDelta = useCallback(debounce((files: { [key: string]: types.File; }) => {
 
-    const currentFiles = System.instance().files
-    //console.log('PUSHING SYSTEM FILE DELTA', currentFiles, files)
+    const prev = System.instance().files
+    const prevFiles = Object.keys(prev)
 
     // skip delta calculations
-    if (Object.keys(currentFiles).length === 0) {
+    if (Object.keys(prevFiles).length === 0) {
       System.instance().pushFileDelta(files, [])
     }
 
-    //console.log('SYSTEM FILES ARE NOW', System.instance().files)
+    // feed availible io by diff for more advanced rebuild strategies down the line
+    let currentFiles = Object.keys(files)
+    let diff: Record<string, types.File> = {}
+    let removed: string[] = []
+    for (const fileId of union(prevFiles, currentFiles)) {
+      const prevFile = prev[fileId]
+      const currentFile = files[fileId]
+
+      if (prevFile && currentFile) {
+        if (!isEqual(prevFile, currentFile)) {
+          diff[fileId] = currentFile
+        }
+      } else if (prevFile && !currentFile) {
+        removed.push(fileId)
+      } else if (!prevFile && currentFile) {
+        diff[fileId] = currentFile
+      }
+    }
+
+    System.instance().pushFileDelta(diff, removed, logger)
 
   }, 500), [])
 
@@ -152,9 +171,8 @@ const useProjectManager = () => {
       }
     }
 
-    System.instance().pushIoDelta(diff, removed)
+    System.instance().pushIoDelta(diff, removed, logger)
 
-    //console.log('SYSTEM IO IS NOW', System.instance().availChannels)
   }, [])
 
   useEffect(() => {

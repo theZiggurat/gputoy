@@ -5,7 +5,6 @@ import useInstance from '@core/hooks/useInstance';
 
 import React, { LegacyRef, useEffect } from 'react';
 //import Editor from 'react-simple-code-editor';
-import { darkEditor, lightEditor } from '../../../theme/consts';
 import { fontMono, themed } from '../../../theme/theme';
 import { EditorInstanceState } from '../descriptors';
 import { Panel, PanelBar, PanelContent, PanelInProps } from '../panel';
@@ -19,11 +18,10 @@ import completions from 'monaco/completions';
 import FileTab from '@components/create/editor/filetab';
 import useHorizontalScroll from 'utils/scrollHook';
 import { useTaskReciever } from '@core/hooks/useTask';
-import { useDirectory, useFile } from '@core/hooks/useFiles';
+import { useFile } from '@core/hooks/useFiles';
 import { isData, isText } from '@core/types';
 import EditorPanelBar from '@components/create/editor/editorPanelBar';
 import setJSONSchema from 'monaco/jsonSchema';
-import { debounce } from 'lodash';
 
 
 
@@ -33,16 +31,10 @@ const EditorContent = (props: {
 }) => {
 
 	const { file, setData, setMetadata } = useFile(props.fileId)
-	const { filename, path, extension, data, metadata, fetch } = file
+	const { extension, data } = file
 
 	const monacoTheme = useColorModeValue('light', 'dark')
 	const monaco = useMonaco()
-
-	useEffect(() => {
-		if (extension === '_DELETED') {
-			props.onClose(props.fileId)
-		}
-	}, [extension])
 
 	const colorMode = useColorModeValue('light', 'dark')
 
@@ -110,7 +102,6 @@ const EditorContent = (props: {
 					find: {
 						cursorMoveOnType: true
 					},
-					//wordBasedSuggestions: false,
 					mouseWheelZoom: true,
 				}}
 			/>
@@ -129,28 +120,15 @@ const EditorPanel = (props: PanelInProps) => {
 	const { workspace, currentFileIndex } = instanceState
 	const currentFileId = (currentFileIndex !== undefined) ? workspace[currentFileIndex] : undefined
 
-	// useEffect(debounce(() => {
-	// 	if (!fileExists(currentFileId)) {
-	// 		const newlist = workspace.filter(fileId => fileExists(fileId))
-	// 		setInstanceState(prev => ({
-	// 			workspace: newlist,
-	// 			currentFileIndex: currentFileIndex ? Math.min(newlist.length - 1, currentFileIndex) : undefined
-	// 		}))
-	// 	}
-	// }, 1000), [currentFileId])
-
 	const setCurrentFileIndex = (index: number) => {
-		console.log('RUNNING SET INDEX', index)
 		setInstanceState(prev => ({ ...prev, currentFileIndex: index }))
 	}
 
 	const addFileToWorkspace = (localId: string, move?: boolean) => {
-		console.log('RUNNING ADD', localId)
 		const index = workspace.indexOf(localId)
 		const len = workspace.length
 		if (index < 0) {
 			setInstanceState(old => {
-				//console.log('setting', { ...old, workspace: [...old.workspace, localId] })
 				return { currentFileIndex: move ? len : old.currentFileIndex, workspace: old.workspace.concat(localId) }
 			})
 		} else if (index != currentFileIndex && move) {
@@ -160,7 +138,6 @@ const EditorPanel = (props: PanelInProps) => {
 
 	console.log(instanceState)
 	const removeFileFromWorkspace = (fileId: string) => {
-		console.log('RUNNING REMOVE', fileId, workspace)
 		const newWorkspace = workspace.filter(f => f !== fileId)
 		console.log({
 			workspace: newWorkspace,

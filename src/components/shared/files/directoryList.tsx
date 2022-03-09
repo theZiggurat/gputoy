@@ -146,11 +146,13 @@ const DirectoryList = (props: {
 
   const onHandleDragDrop = (ev) => {
     ev.preventDefault()
-    let path = fileMetadata.path
-    console.log('PATH', path)
-    path = path.endsWith('/') ? path : path.concat('/')
     let data = ev.dataTransfer.getData(INTERNAL_DND_TYPE)
+    let path = fileMetadata.path
+    console.log('aweaweaweae', data, path)
+    path = path.endsWith('/') ? path : path.concat('/')
+    if (data === path.concat(fileMetadata.filename)) return
     onMove(data, path.concat(fileMetadata.filename))
+    setIsDraggedOver(false)
   }
 
 
@@ -174,7 +176,7 @@ const DirectoryList = (props: {
         />)
 
       }
-      <Box height="0.5rem"></Box>
+      <Box height="0.5rem" />
     </>
   }
   if (fileMetadata.extension === '_DIR') {
@@ -182,7 +184,6 @@ const DirectoryList = (props: {
       <Flex
         h="1.5rem"
         pl="1rem"
-        alignItems="center"
         cursor="pointer"
         justifyContent="space-between"
         onClick={toggleShowChildren}
@@ -255,13 +256,14 @@ const DirectoryList = (props: {
       cursor="pointer"
       justifyContent="space-between"
       _hover={{ bg: themed('a1') }}
+      onClick={() => onOpen(fileId)}
+      draggable
+      onDragStart={onHandleDragStart}
     >
       <Flex
         alignItems="center"
         gridGap="0.5rem"
-        onClick={() => onOpen(fileId)}
-        draggable
-        onDragStart={onHandleDragStart}
+
       >
         <FileIcon extension={fileMetadata.extension} size={16} />
         <Text fontSize="13px" color={themed('textMidLight')} fontWeight="light" userSelect="none"
