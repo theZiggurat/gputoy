@@ -83,7 +83,6 @@ export const withFileSetter = selector<{ id: string, file?: Partial<types.File> 
 
       // delete file data, metadata, and list entry
       if (!file) {
-        console.log('here in resetting file', id)
         reset(projectFileDataAtom(id))
         set(projectFileMetadataAtom(id), {
           extension: '_DELETED',

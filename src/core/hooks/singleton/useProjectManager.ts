@@ -64,7 +64,7 @@ const useProjectManager = () => {
     const renderStep = () => {
       if (isRunning.current) {
         _smStep()
-        //Project.instance().renderFrame()
+        System.instance().dispatch(logger)
         intervalHandle.current = window.requestAnimationFrame(renderStep)
       }
     }

@@ -211,8 +211,6 @@ const ProjectFiles = (props: { instanceId: string }) => {
   const pushTask = useTaskPusher(props.instanceId)
   const { directory, addFile, addDirectory, deleteDirectory, moveDirectory } = useDirectory()
 
-  console.log(directory)
-
   const buttonProps = {
     size: "xs",
     variant: "empty",

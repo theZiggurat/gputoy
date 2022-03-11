@@ -118,25 +118,17 @@ const _ViewportCanvas = (props: { instanceID: number, width: number, height: num
 		label: 'Viewport',
 		ioType: 'viewport',
 		args: {
-			canvasId: vid
-		}
-	})
-
-	useChannel(mid, {
-		id: mid,
-		label: 'Mouse',
-		ioType: 'mouse',
-		args: {
-			eventTargetId: vid,
+			canvasId: vid,
+			mouseId: mid,
 		}
 	})
 
 	return <canvas id={vid} ref={ref} style={{
-		width: 100,
-		height: 100,
-		visibility: controlStatus == ProjectControl.STOP ? 'hidden' : 'visible',
-		cursor: 'crosshair',
-		background: 'red'
+		width: props.width,
+		height: props.height,
+		//visibility: controlStatus == ProjectControl.STOP ? 'hidden' : 'visible',
+		//cursor: 'crosshair',
+		//	pointerEvents: "auto",
 	}} />
 }
 const ViewportCanvas = forwardRef(_ViewportCanvas)
@@ -204,7 +196,6 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
 
 	useEffect(() => {
 		if (width && height) {
-			Project.instance().handleResize([width, height])
 			setResolution({ width: width > 0 ? width : 1, height: height > 0 ? height : 1 })
 		}
 	}, [width, height])
@@ -223,6 +214,7 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
 				</Modal>
 				<Box p="2px" width="100%" height="100%" bg={themed('a2')} overflow="hidden">
 					<Box
+						id={'mouse_' + props.instanceID}
 						bg='black'
 						width="100%"
 						height="100%"

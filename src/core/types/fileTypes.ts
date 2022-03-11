@@ -1,5 +1,14 @@
 import { FileId } from "."
-import { uniq } from "lodash"
+
+export type File = {
+  id: FileId
+  filename: string
+  path: string
+  data: string
+  extension: Extension
+  fetch?: FetchLocation,
+  metadata: { [key: string]: any }
+}
 
 /**
  * File types
@@ -30,16 +39,11 @@ export type FetchLocation = {
   url?: string,
 }
 
-export type File = {
-  id: FileId
-  filename: string
-  path: string
-  data: string
-  extension: Extension
-  fetch?: FetchLocation,
-  metadata: { [key: string]: any }
-}
-
+/**
+ * Recoil data is split between data and everything else (metadata).
+ * This is so components that need to watch little things like file name without updating
+ * every time the user types a key.
+ */
 export type FileMetadata = Omit<File, "data">
 
 // filename => Directory tree

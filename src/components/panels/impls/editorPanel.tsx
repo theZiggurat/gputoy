@@ -39,7 +39,6 @@ const EditorContent = (props: {
 	const colorMode = useColorModeValue('light', 'dark')
 
 	const onMonacoBeforeMount = (monaco: Monaco) => {
-		console.log('RUNNING MONACO BEFORE MOUNT')
 		monaco.languages.register(languageExtensionPoint)
 		monaco.languages.onLanguage(languageID, () => {
 			monaco.languages.setMonarchTokensProvider(languageID, monarchLanguage)
@@ -60,7 +59,6 @@ const EditorContent = (props: {
 	}
 
 	useEffect(() => {
-		console.log('setting theme', monacoTheme)
 		monaco?.editor.setTheme(monacoTheme)
 		setTimeout(() => monaco?.editor.setTheme(monacoTheme), 1)
 	}, [monacoTheme, monaco])
@@ -115,7 +113,6 @@ const EditorContent = (props: {
 
 const EditorPanel = (props: PanelInProps) => {
 
-	console.log(props.instanceID)
 	const [instanceState, setInstanceState] = useInstance<EditorInstanceState>(props)
 	const { workspace, currentFileIndex } = instanceState
 	const currentFileId = (currentFileIndex !== undefined) ? workspace[currentFileIndex] : undefined
@@ -136,13 +133,8 @@ const EditorPanel = (props: PanelInProps) => {
 		}
 	}
 
-	console.log(instanceState)
 	const removeFileFromWorkspace = (fileId: string) => {
 		const newWorkspace = workspace.filter(f => f !== fileId)
-		console.log({
-			workspace: newWorkspace,
-			currentFileIndex: Math.min(workspace.length - 1, currentFileIndex ?? 0)
-		})
 		setInstanceState({
 			workspace: newWorkspace,
 			currentFileIndex: Math.min(workspace.length - 1, currentFileIndex ?? 0)

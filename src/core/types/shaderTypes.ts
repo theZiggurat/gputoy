@@ -47,15 +47,17 @@ export const getStructDecl = (struct: NagaTypeStructFull, ext: ExtensionShader):
   if (ext === 'wgsl') {
     decl.push(struct.members.map(e => {
       const { name, binding, offset, ty } = e
+
+      const parsedBinding = bindingToString(binding)
       const innerType = getTypeDecl(ty, ext)
-      return `\t${name}: ${innerType};`
-    }))
+      return `\t${parsedBinding} ${name}: ${innerType};`
+    }).join('\n'))
   } else {
     decl.push(struct.members.map(e => {
       const { name, binding, offset, ty } = e
       const innerType = getTypeDecl(ty, ext)
       return `\t${innerType}: ${name};`
-    }))
+    }).join('\n'))
   }
   decl.push('};')
   return decl.join('\n')
@@ -75,6 +77,41 @@ export const getTypeDecl = (type: NagaType, ext: ExtensionShader, inline?: boole
       `${glslVectorPrefixMap[kind]}vec${num}`
   }
   return ""
+}
+
+export const bindingToString = (binding: NagaBinding | null): string => {
+  if (!binding) return ''
+  if ('BuiltIn' in binding) {
+    const builtin = WGSL_BUILTIN_VARIANTS[NAGA_BUILTIN_VARIANTS.indexOf(binding.BuiltIn)]
+    return `@builtin(${builtin})`
+  } else if ('Location' in binding) {
+    const location = binding.Location
+    const interpolation = location.interpolation?.toLowerCase() ?? 'perspective'
+    const sampling = location.sampling?.toLowerCase() ?? 'center'
+    return `@location(${location.location}) @interpolate(${interpolation}, ${sampling})`
+  }
+  return ''
+}
+
+export type NagaStructMemoryLayout = {
+  scalarTypes: number[]
+  byteOffsets: number[]
+}
+export const getMemoryLayout = (type: NagaTypeStructFull): NagaStructMemoryLayout => {
+  const { members } = type
+  let scalarTypes: number[] = []
+  let byteOffsets: number[] = []
+  members.forEach((member, idx) => {
+    const inner = member.ty.inner
+    if ('Scalar' in inner) {
+      scalarTypes[idx] = NAGA_SCALAR_KIND_VARIANTS.indexOf(inner.Scalar.kind)
+    }
+    else if ('Vector' in inner) {
+      scalarTypes[idx] = NAGA_SCALAR_KIND_VARIANTS.indexOf(inner.Vector.kind)
+    }
+    byteOffsets[idx] = member.offset as number
+  })
+  return { scalarTypes, byteOffsets }
 }
 
 export type Dependency = {
@@ -240,6 +277,28 @@ export const NAGA_BUILTIN_VARIANTS = [
   'WorkGroupSize',
   'NumWorkGroups'
 ] as const
+export const WGSL_BUILTIN_VARIANTS = [
+  'position',
+  '',
+  '',
+  '',
+  '',
+  '',
+  'instance_index',
+  '',
+  'vertex_index',
+  'frag_depth',
+  'front_facing',
+  '',
+  'sample_index',
+  'sample_mask',
+  'global_invocation_id',
+  'local_invocation_id',
+  'local_invocation_index',
+  'workgroup_id',
+  '',
+  'num_workgroups'
+] as const
 export const NAGA_STORAGE_CLASS_VARIANTS = [
   'Function',
   'Private',
@@ -386,7 +445,7 @@ export type NagaModule = {
   constants: NagaConstant[]
   global_variables: NagaGlobalVariable[]
   functions: NagaFunction[]
-  entry_points: NagaEntryPoint
+  entry_points: NagaEntryPoint[]
 }
 
 export type NagaGlobalVariable = {

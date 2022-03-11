@@ -5,8 +5,7 @@ import { NagaType } from '@core/types'
 
 type BufferInit = {
   label: string,
-  model: types.Model
-  type: string
+  layout: types.NagaTypeStructFull
 
   // uniform, storage, read-only storage
   bufferBindingType: GPUBufferBindingType
@@ -23,10 +22,10 @@ export default class BufferResource implements types.Resource {
 
   label: string
   buffer: GPUBuffer
+  layout: types.NagaTypeStructFull
+  optimizedMemLayout: types.NagaStructMemoryLayout
   bufferBindingType: GPUBufferBindingType
   bufferUsageFlags: GPUBufferUsageFlags
-  bufferMemLayout: types.ModelMemLayout
-
 
 
   constructor(
@@ -34,14 +33,17 @@ export default class BufferResource implements types.Resource {
     buffer: GPUBuffer,
     bufferBindingType: GPUBufferBindingType,
     bufferUsageFlags: GPUBufferUsageFlags,
-    bufferMemLayout: types.ModelMemLayout
+    layout: types.NagaTypeStructFull,
+    optimizedMemLayout: types.NagaStructMemoryLayout
   ) {
     this.label = label
     this.buffer = buffer
     this.bufferBindingType = bufferBindingType
     this.bufferUsageFlags = bufferUsageFlags
-    this.bufferMemLayout = bufferMemLayout
+    this.layout = layout
+    this.optimizedMemLayout = optimizedMemLayout
   }
+
 
 
   destroy = (logger?: Logger) => {
@@ -55,15 +57,16 @@ export default class BufferResource implements types.Resource {
     logger?: Logger
   ): Promise<types.Resource | undefined> => {
 
-    const { label, model, type, initialValue, size, bufferUsageFlags, bufferBindingType } = bufferInit
-
+    const { label, layout, initialValue, size, bufferUsageFlags, bufferBindingType } = bufferInit
+    const { span } = layout
+    const optimizedMemLayout = types.getMemoryLayout(layout)
 
     const shouldMap = !!initialValue
 
     device.pushErrorScope('validation')
     let buffer = device.createBuffer({
       label,
-      size: byteSize,
+      size: span,
       usage: bufferUsageFlags,
       mappedAtCreation: shouldMap
     })
@@ -74,21 +77,11 @@ export default class BufferResource implements types.Resource {
       return undefined
     }
 
+    let ret = new BufferResource(label, buffer, bufferBindingType, bufferUsageFlags, layout, optimizedMemLayout)
     if (shouldMap) {
       device.pushErrorScope('validation')
       const byteBuf = buffer.getMappedRange()
-      let floatView = new Float32Array(byteBuf, 0, byteSize / 4)
-      let intView = new Int32Array(byteBuf, 0, byteSize / 4)
-
-      for (let i = 0; i < byteOffsets.length; i++) {
-        if (writeTypes[i] === 'int')
-          intView.set(initialValue[i], byteOffsets[i] / 4)
-        else
-          floatView.set(initialValue[i], byteOffsets[i] / 4)
-
-
-      }
-
+      ret._writeByteBuf(initialValue, byteBuf)
       buffer.unmap()
       let bufferMapError = await device.popErrorScope()
       if (bufferMapError) {
@@ -97,7 +90,6 @@ export default class BufferResource implements types.Resource {
       }
     }
 
-    let ret = new BufferResource(label, buffer, bufferBindingType, bufferUsageFlags, bufferMemLayout)
     return ret
   }
 
@@ -120,24 +112,45 @@ export default class BufferResource implements types.Resource {
     }
   }
 
-  write = async (buf: ArrayLike<number[]>) => {
+  write = async (buf: ArrayLike<number[]>, queue: GPUQueue) => {
 
-    const { byteSize, byteOffsets, writeTypes } = this.bufferMemLayout
+    const { span } = this.layout
+    const byteBuf = new ArrayBuffer(span)
+    this._writeByteBuf(buf, byteBuf)
+    queue.writeBuffer(
+      this.buffer,
+      0,
+      byteBuf,
+      0,
+      span
+    )
+  }
 
-    await this.buffer.mapAsync(GPUMapMode.WRITE)
-    const byteBuf = this.buffer.getMappedRange()
-    let floatView = new Float32Array(byteBuf, 0, byteSize / 4)
-    let intView = new Int32Array(byteBuf, 0, byteSize / 4)
-    let uintView = new Uint32Array(byteBuf, 0, byteSize / 4)
-    let byteView = new Int8Array(byteBuf, 0, byteSize)
 
-    for (let i = 0; i < byteOffsets.length; i++) {
-      if (writeTypes[i] === 'int')
-        intView.set(buf[i], byteOffsets[i] / 4)
-      else
-        floatView.set(buf[i], byteOffsets[i] / 4)
+  _writeByteBuf = (buf: ArrayLike<number[]>, byteBuffer: ArrayBuffer, logger?: Logger) => {
+    const { span } = this.layout
+    const { byteOffsets, scalarTypes } = this.optimizedMemLayout
+    const entryLen = byteOffsets.length
+    let floatView = new Float32Array(byteBuffer, 0, span / 4)
+    let intView = new Int32Array(byteBuffer, 0, span / 4)
+    let uintView = new Uint32Array(byteBuffer, 0, span / 4)
+    let byteView = new Uint8Array(byteBuffer, 0, span)
+
+    for (let i = 0; i < buf.length; i++) {
+      const entryIndex = i % entryLen
+      switch (scalarTypes[entryIndex]) {
+        case 0: intView.set(buf[i], byteOffsets[entryIndex] / 4); break
+        case 1: uintView.set(buf[i], byteOffsets[entryIndex] / 4); break
+        case 2: floatView.set(buf[i], byteOffsets[entryIndex] / 4); break
+        case 3: {
+          if (this.bufferUsageFlags & GPUBufferUsage.UNIFORM) {
+            logger?.err(`Resource::Buffer[${this.label}]`, 'Uniform buffer must be host-sharable type (int, uint, float) and their composites.')
+            continue
+          }
+          byteView.set(buf[i], byteOffsets[entryIndex])
+        }
+      }
     }
-    this.buffer.unmap()
   }
 
 }

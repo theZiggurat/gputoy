@@ -15,7 +15,7 @@ const REGEX_REPLACE_MODEL = /@model\s+/g
 const REGEX_REPLACE_BRING_STATEMENT = /@bring\s+([a-zA-Z_][_a-zA-Z0-9]*)\s*;/gm
 const REGEX_REPLACE_BRING_INLINE = /@bring\s+([a-zA-Z_][_a-zA-Z0-9]*)\s*/gm
 
-const REGEX_CAPTURE_BRING = /(@bring\s+([a-zA-Z_][a-zA-Z0-9]*)\s*;)|(:\s*@bring\s+([a-zA-Z_][a-zA-Z0-9]*)\s*;)/gm
+const REGEX_CAPTURE_BRING = /(@bring\s+([a-zA-Z_][a-zA-Z0-9]*)\s*;)|(:\s*@bring\s+([a-zA-Z_][a-zA-Z0-9]*)\s*)/gm
 
 class Compiler {
 
@@ -39,8 +39,14 @@ class Compiler {
    * @returns 
    */
   findModel = (file: File, logger?: Logger): Model | undefined => {
-    let input = file.data
-    let matches = [...input.matchAll(REGEX_CAPTURE_MODELS)].map(m => m[0].concat('};')).filter(m => !!m).join('\n')
+
+    // remove comments
+    let input = file.data.replaceAll(/^\s*\/\/.*$/gm, '')
+
+    let matches = [...input.matchAll(REGEX_CAPTURE_MODELS)]
+      .map(m => m[0].concat('};'))
+      .filter(m => !!m)
+      .join('\n')
 
     // just a quirk that the naga parser needs an entry point to parse while a wgsl does not
     if (file.extension === 'glsl') {
@@ -85,7 +91,9 @@ class Compiler {
    */
   findDeps = (file: File, logger?: Logger): Dependency[] => {
 
-    let input = file.data
+    // remove comments 
+    let input = file.data.replaceAll(/^\s*\/\/.*$/gm, '')
+
     let matches = input.matchAll(REGEX_CAPTURE_BRING)
     let ret = []
 
@@ -123,7 +131,7 @@ class Compiler {
 
     // regex the shader string to remove gputoy defined declarations
     let processedShader = file.data
-    // model names need to be fetched before the tag is removed
+    // all exported types were already obtained. Remove the attribute
     processedShader = processedShader.replaceAll(REGEX_REPLACE_MODEL, '')
     // invalid group and bindings are not caught by the parser, so this will let us label the 
     // global variables that need group and binding assignments
@@ -169,6 +177,7 @@ class Compiler {
       }
     }
 
+    console.log(processedShader)
 
     // now processedShader has all dependent types baked in
     // ready for naga validation
@@ -193,21 +202,22 @@ class Compiler {
   compile = async (
     device: GPUDevice,
     file: File,
-    validationInfo: ValidationResult
-  ): Promise<Module | null> => {
+    source: string
+  ): Promise<GPUShaderModule | null> => {
 
-    if ('errors' in validationInfo || !validationInfo.processedShader) {
+    const module = device.createShaderModule({
+      label: file.filename,
+      code: source,
+    })
+
+    const compilationInfo = await module.compilationInfo()
+    for (const message of compilationInfo.messages) {
+      console.log('COMPILATION MESSAGE FOR ', file.filename, message)
       return null
     }
 
-    device.createShaderModule({
-      code: validationInfo.processedShader,
-      label: file.filename,
 
-    })
-
-
-    return null
+    return module
   }
 
   constructor() {

@@ -72,16 +72,13 @@ fn introspect_glsl(src: &str, stage: &str) -> Option<Module> {
     }
 }
 
-fn introspect_wgsl(src: &str) -> Option<Module> {
+fn introspect_wgsl(src: &str) -> Result<Module, String> {
     use naga::front::wgsl::Parser;
 
     let mut parser = Parser::new();
     match parser.parse(src) {
-        Ok(module) => Some(module),
-        Err(err) => {
-            ERRORS.lock().unwrap().push(err.to_string());
-            None
-        }
+        Ok(module) => Ok(module),
+        Err(err) => serde_json::to_string(&err).unwrap()
     }
 }
 

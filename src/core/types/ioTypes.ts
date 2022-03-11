@@ -1,15 +1,12 @@
 import { Resource, Model, Namespace } from "."
 import { Logger } from "@core/recoil/atoms/console"
 
-export type IOType = 'viewport' | 'mouse' | 'keyboard' | 'file'
-export type IOArgs = ViewportIOArgs | MouseIOArgs | KeyboardIOArgs | FileIOArgs | StateIOArgs
+export type IOType = 'viewport' | 'file'
+export type IOArgs = ViewportIOArgs | KeyboardIOArgs | FileIOArgs | StateIOArgs
 
 export type ViewportIOArgs = {
-  canvasId: string
-}
-
-export type MouseIOArgs = {
-  eventTargetId: string
+  canvasId: string,
+  mouseId: string
 }
 
 export type KeyboardIOArgs = {
@@ -42,15 +39,58 @@ export type IOChannel = {
  * Created on build from IOSync objects obtained from recoil values
  */
 export interface IO {
-  label: string
-  type: IOType
-  usage: 'read' | 'write' | 'readwrite'
-  build: (args: IOArgs, label: string, logger?: Logger) => Promise<boolean>
-  destroy: (logger?: Logger) => void
-  onBeginDispatch: (queue: GPUQueue) => void
-  onEndDispatch: (queue: GPUQueue) => void
-  getNamespace: () => Namespace
-  getResource: () => Resource
-}
 
-export type IOConnectorType = 'viewport' | 'file' | 'key' | 'mouse'
+  /**
+   * This will be used as webgpu internal label, along with console messages
+   */
+  label: string
+
+  /**
+   * Static io type
+   * 
+   *  TODO: investigate whether this is needed
+   */
+  type: IOType
+
+  /**
+   * 
+   */
+  usage: 'read' | 'write' | 'readwrite'
+
+  /**
+   * Build io using selected arguments.
+   * On fail, returns false.
+   * IO not valid for use until build has returned true.
+   * IO is valid until an external event (layout change, device lost)
+   * occurs when it will need to be rebuilt.
+   */
+  build: (args: IOArgs, label: string, logger?: Logger) => Promise<boolean>
+
+  /**
+   * Invalidate all gpu resources and close io connections
+   */
+  destroy: (logger?: Logger) => void
+
+  /**
+   * Called at the beginning of every frame
+   * @param queue current queue
+   */
+  onBeginDispatch: (queue: GPUQueue) => void
+
+  /**
+   * Called at the end of every frame
+   */
+  onEndDispatch: (queue: GPUQueue) => void
+
+  /**
+   * Gets shader namespace declarations of this io
+   */
+  getNamespace: () => Namespace
+
+  /**
+   * Gets gpu resources associated with this io
+   * 
+   * resource name => resource map
+   */
+  getResources: () => Record<string, Resource>
+}

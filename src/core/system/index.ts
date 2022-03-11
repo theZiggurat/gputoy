@@ -1,11 +1,14 @@
 import { Logger } from '@core/recoil/atoms/console'
 import * as types from '@core/types'
-import { IOChannel, ValidationResult } from '@core/types'
+import { IOChannel, NagaGlobalVariable, ValidationResult } from '@core/types'
 import { intersection, isEqual, union } from 'lodash'
 import { uniq } from 'lodash/fp'
 import Compiler from './compiler'
 import GPU from './gpu'
-import { MouseIO, ViewportIO } from './io'
+import { ViewportIO } from './io'
+import { QuadPipeline } from './pipeline'
+import BufferResource from './resource/bufferResource'
+import TextureResource from './resource/textureResource'
 
 class System {
 
@@ -36,53 +39,32 @@ class System {
     this._destroy()
   }
 
-  gpuAttach!: types.AttachResult
   resizeNeeded: boolean = false
   resizeSize: number[] = [0, 0]
-
-  graph: types.Rendergraph = {
-    passNodes: {
-      "p1": {
-        id: "p1",
-        label: 'mainPass',
-        fileId: "gq2tY1",
-        passType: 'render'
-      },
-    },
-    ioNodes: {
-      "canvas": {
-        id: "canvas",
-        mode: "write",
-        type: "viewport",
-        args: {
-          canvasId: 'viewport_rIal-o6i'
-        }
-      }
-    },
-    connections: [
-      {
-        src: { type: 'pass', id: 'p1' },
-        dst: { type: 'io', id: 'canvas' }
-      },
-    ]
-  }
 
   isValidated: boolean = false
   isBuilt: boolean = false
 
   // file id => file
   files: Record<types.FileId, types.File> = {}
-  // file id => boolean
-  fileNeedCompile: Record<types.FileId, boolean> = {}
-  // file id => boolean
-  fileNeedPreprocess: Record<types.FileId, boolean> = {}
+
   // file id => process result
   processedFiles: Record<types.FileId, types.ValidationResult> = {}
+  // file id => boolean
+  fileNeedPreprocess: Record<types.FileId, boolean> = {}
 
   // file id => namespace
-  namespace: Record<types.FileId, types.Namespace> = {}
+  namespace: Record<types.FileId, types.Namespace> = {
+    "Pipeline::Quad[static]": QuadPipeline.getNamespace(),
+    "System::InvocationInfo": invocationInfoNamespace
+  }
   // file id => boolean
   namespaceNeedsRebuild: Record<types.FileId, boolean> = {}
+
+  // file id => compiled shader module
+  modules: Record<string, GPUShaderModule> = {}
+  // file id => boolean
+  moduleNeedCompile: Record<types.FileId, boolean> = {}
 
 
   resources: Record<string, types.Resource> = {}
@@ -90,8 +72,6 @@ class System {
   currentRunnerFileId: string = ""
   runner: any
   runnerNeedValidation: boolean = false
-
-
 
   // channelId => channel
   // all available io channels fed in from react world using pushIODelta().
@@ -118,23 +98,46 @@ class System {
   channelLock: Record<types.ChannelNodeId, types.ChannelId> = {}
 
 
+  pipelines: types.Pipeline[] = []
 
-  // pass key => module
-  modules: Record<string, types.Module> = {}
-  // pass key => boolean
-  moduleNeedRebuild: Record<string, boolean> = {}
+  invocationInfoBuffer: BufferResource
+
+  resolveResource = (path?: string, logger?: Logger): types.Resource | undefined => {
+    if (!path) return undefined
+    const split = path.split('::')
+    const [domain, name, key] = split
+    if (!domain || !name) {
+      logger?.err('System::resolve', 'Invalid path: ' + path)
+      return undefined
+    }
+    if (domain === 'system') {
+      if (name !== 'frame') {
+        logger?.err('System::resolve', 'Resource does not belong to system: ' + name)
+        return undefined
+      }
+      return this.invocationInfoBuffer
+    }
+    if (domain === 'bus') {
+      let channel = this.activeChannels[this.channelLock[name]]
+      if (!channel) {
+        logger?.err('System::resolve', 'IO Channel not found: ' + name)
+        return undefined
+      }
+      let resource = channel.getResources()[key ?? '_']
+      if (!resource) {
+        logger?.err('System::resolve', 'Resource does not exist in io: ' + key)
+      }
+      return resource
+    }
+
+    return undefined
+  }
 
 
 
   build = async (logger?: Logger): Promise<boolean> => {
 
     logger?.trace('System::build', 'Build initiated')
-
-    if (!this.graph) {
-      logger?.err('System::build', 'No render graph. Aborting.')
-      return false
-    }
-
     logger?.debug('System::build', 'CHECK_RUN')
     if (!this.checkRunner(logger)) {
       return false
@@ -165,13 +168,14 @@ class System {
     }
     logger?.debug('System::build', 'BUILD_MODULES -- COMPLETE')
 
-    logger?.debug('System::build', 'BUILD_PASSES')
-    if (!(await this.buildPasses(logger))) {
-      return false
-    }
-    logger?.debug('System::build', 'BUILD_PASSES -- COMPLETE')
+    // logger?.debug('System::build', 'BUILD_PASSES')
+    // if (!(await this.buildPasses(logger))) {
+    //   return false
+    // }
+    // logger?.debug('System::build', 'BUILD_PASSES -- COMPLETE')
 
-    return false
+    this.isBuilt = true
+    return true
   }
 
   checkRunner = (logger?: Logger): boolean => {
@@ -195,7 +199,6 @@ class System {
       logger?.err('System::check_runner', 'Exception thrown when parsing json: '.concat(err.toString()))
       return false
     }
-    console.log('RUNNER IS NOW SET', this.runner)
     return true
   }
 
@@ -243,16 +246,8 @@ class System {
       switch (foundChannel.ioType) {
         case 'viewport': {
           newIO = new ViewportIO()
-          if (!(newIO.build(foundChannel.args, foundChannel.label, logger))) {
+          if (!(await newIO.build(foundChannel.args, foundChannel.label, logger))) {
             logger?.err(`System::build_io::viewport[${foundChannel.id}]`, `IO build failed`)
-            return false
-          }
-          break
-        }
-        case 'mouse': {
-          newIO = new MouseIO()
-          if (!(newIO.build(foundChannel.args, foundChannel.label, logger))) {
-            logger?.err(`System::build_io::mouse[${foundChannel.id}]`, `IO build failed`)
             return false
           }
           break
@@ -290,7 +285,7 @@ class System {
       let localNamespace = io.getNamespace()
       namespaces[ch] = localNamespace
       this.ioNeedBuildNamespace[ch] = false
-      logger?.debug('System::build_namespaces', `Namespace rebuilt for io: ${label}`)
+      logger?.debug('System::build_namespaces', `Namespace rebuilt for bus::${label}`)
     }
 
     const filesToRebuildNamespace = Object.values(this.files)
@@ -349,7 +344,7 @@ class System {
 
       // keep mark on file as dirty
       // fail validation for entire run
-      if ('error' in validationResult) {
+      if ('errors' in validationResult) {
         logger?.err(`System::validate[${fileId}]`, `Validation failed for ${file.filename}.${file.extension} due to above error`)
 
         if (!stopOnError) return false
@@ -359,13 +354,11 @@ class System {
 
       // mark file as clean
       this.fileNeedPreprocess[fileId] = false
-      this.fileNeedCompile[fileId] = true
+      this.moduleNeedCompile[fileId] = true
       logger?.trace(`System::validate[${fileId}]`, `Validation complete for ${file.filename}.${file.extension}`)
     }
 
-    console.log(this.namespace)
-    console.log(this.processedFiles)
-
+    this.isValidated = passedValidation
     return passedValidation
   }
 
@@ -376,18 +369,46 @@ class System {
    */
   buildModules = async (logger?: Logger): Promise<boolean> => {
 
-    this.runner.run
+    const { bus, runs } = this.runner
 
-    const { bus, run } = this.runner
+    let pipelines: types.Pipeline[] = []
+    for (const run of runs) {
+      switch (run.type) {
+        case 'quad': {
+          const quadPipeline = new QuadPipeline()
+          let success = await quadPipeline.build(
+            GPU.device,
+            run,
+            this.modules,
+            this.moduleNeedCompile,
+            this.files,
+            this.processedFiles,
+            this.resolveResource,
+            logger
+          )
+          if (!success) {
+            return false
+          }
+          pipelines.push(quadPipeline)
+          break
+        }
+        case 'render': {
+          break
+        }
+        case 'compute': {
+          break
+        }
+      }
+    }
+    this.pipelines = pipelines
 
-
-    return false
+    return true
   }
 
-  buildPasses = async (logger?: Logger): Promise<boolean> => {
-    const { passNodes } = this.graph
-    return false
-  }
+  // buildPasses = async (logger?: Logger): Promise<boolean> => {
+  //   const { bus, runs } = this.runner
+  //   return true
+  // }
 
   pushFileDelta = (delta: Record<string, types.File>, removed: string[], logger?: Logger) => {
     // overwrite/append file deltas, and set the delta'd files as dirty
@@ -404,10 +425,10 @@ class System {
     let namespaceEntriesToRemove = []
 
     // delete removed files
-    for (const fileId in removed) {
+    for (const fileId of removed) {
       delete this.files[fileId]
       delete this.fileNeedPreprocess[fileId]
-      delete this.fileNeedCompile[fileId]
+      delete this.moduleNeedCompile[fileId]
       delete this.namespaceNeedsRebuild[fileId]
 
       let namespace = this.namespace[fileId]
@@ -431,7 +452,7 @@ class System {
       }
     }
 
-    logger?.debug('System::push_file_delta', `Namespaces invalidated: ${namespaceEntriesToRemove}`)
+    //logger?.debug('System::push_file_delta', `Namespaces invalidated: ${namespaceEntriesToRemove}`)
 
     // if there was any change, signal a rebuild is needed
     if (Object.keys(delta).length > 0 || removed.length > 0) {
@@ -453,9 +474,9 @@ class System {
       }
       delete this.availChannels[removedKey]
       delete this.ioNeedBuild[removedKey]
-      for (const ioKey of Object.keys(this.graph.ioNodes)) {
-        if (this.channelLock[ioKey] === removedKey) {
-          delete this.channelLock[ioKey]
+      for (const channelName of Object.keys(this.runner?.bus ?? {})) {
+        if (this.channelLock[channelName] === removedKey) {
+          delete this.channelLock[channelName]
         }
       }
       logger?.debug('System::push_io_delta', `IO destroyed. key = ${removedKey}`)
@@ -472,16 +493,19 @@ class System {
 
     if (!this.isValidated || !this.isBuilt) {
       logger?.trace('System::dispatch', 'Forced to rebuild during dispatch.')
-      if (!(await this.build(logger))) {
-        return
-      }
+      return
+      // if (!(await this.build(logger))) {
+      //   return
+      // }
     }
 
-    const { passNodes, ioNodes, connections } = this.graph
-
+    for (const activeChannel of Object.values(this.activeChannels)) {
+      activeChannel.onBeginDispatch(GPU.device.queue)
+      activeChannel.onEndDispatch(GPU.device.queue)
+    }
     const commandEncoder = GPU.device.createCommandEncoder()
-    for (const ioKey of Object.keys(ioNodes)) {
-      let io
+    for (const pipeline of this.pipelines) {
+      pipeline.dispatch(commandEncoder, logger)
     }
 
     GPU.device.queue.submit([commandEncoder.finish()])
@@ -491,6 +515,66 @@ class System {
 
 
 
+}
+
+const invocationInfoNamespace: types.Namespace = {
+  exported: {
+    definingFileId: 'system',
+    name: 'invocation_info',
+    dependentFileIds: [],
+    indexedTypes: [
+      {
+        "name": null,
+        "inner": {
+          "Scalar": {
+            "kind": "Float",
+            "width": 4
+          }
+        }
+      },
+      {
+        "name": null,
+        "inner": {
+          "Scalar": {
+            "kind": "Sint",
+            "width": 4
+          }
+        }
+      },
+      {
+        "name": "Frame",
+        "inner": {
+          "Struct": {
+            "members": [
+              {
+                "name": "time",
+                "ty": 1,
+                "binding": null,
+                "offset": 0
+              },
+              {
+                "name": "dt",
+                "ty": 1,
+                "binding": null,
+                "offset": 4
+              },
+              {
+                "name": "index",
+                "ty": 2,
+                "binding": null,
+                "offset": 8
+              }
+            ],
+            "span": 12
+          }
+        }
+      }
+    ],
+    namedTypes: {
+      'Frame': 3
+    }
+  },
+  imported: []
 }
 
 export default System

@@ -6,6 +6,7 @@ export * from './fileTypes'
 export * from './ioTypes'
 export * from './graphTypes'
 export * from './prismaTypes'
+export * from './pipelineTypes'
 
 export type FileId = string
 export type ChannelId = string
@@ -32,10 +33,6 @@ export type ProjectStatus = {
   runDuration: number
   prevDuration: number
   running: boolean
-}
-
-export interface Module {
-  module: GPUShaderModule
 }
 
 export interface Resource {
@@ -87,20 +84,3 @@ export type EditorLayout = {
 }
 
 export type InstanceState = any
-
-/**
- * Passes
- */
-export type Pass = {
-  label: string
-  shaderFileId: string
-  deps: any[]
-}
-
-export type RenderPass = Pass & {
-
-}
-
-export type ComputePass = Pass & {
-
-}

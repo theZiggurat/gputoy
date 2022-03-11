@@ -134,7 +134,6 @@ export const useDirectory = (): DirectoryProps => {
 
 
       if (files[fileId].extension !== '_DELETED') {
-        console.log(files[fileId].filename, files[fileId].path)
         const pathParts = objectPath(path).concat('c', filename)
         ret = _.merge(ret, _fp.set(pathParts, { fileId }, {}))
       }
@@ -203,7 +202,6 @@ export const useDirectory = (): DirectoryProps => {
       const newPathPartsRelative = file.path.split('/').filter(s => s.length > 0).slice(rootDepth)
 
       const newPathFull = '/' + newPathParts.concat(newPathPartsRelative).join('/')
-      console.log(oldpath, newpath, newPathPartsRelative, newPathParts, newPathFull)
       pushFile({ id: id, file: { path: newpath } })
     }
     return true
@@ -227,9 +225,7 @@ export const useDirectory = (): DirectoryProps => {
     const filename = targetdir.filename.length == 0 ? '""' : targetdir.filename
     let objpath = objectPath(targetdir.path.concat('/' + filename))
     const chunk = _.get(directory, objpath)
-    console.log('CHUNK', chunk, objpath, directory, targetdir)
     const idsInChunk = findAllByKey(chunk, 'fileId')
-    console.log('ids in chunk', idsInChunk)
     for (const id of idsInChunk) {
       pushFile({ id })
     }

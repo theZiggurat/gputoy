@@ -148,7 +148,6 @@ const DirectoryList = (props: {
     ev.preventDefault()
     let data = ev.dataTransfer.getData(INTERNAL_DND_TYPE)
     let path = fileMetadata.path
-    console.log('aweaweaweae', data, path)
     path = path.endsWith('/') ? path : path.concat('/')
     if (data === path.concat(fileMetadata.filename)) return
     onMove(data, path.concat(fileMetadata.filename))
