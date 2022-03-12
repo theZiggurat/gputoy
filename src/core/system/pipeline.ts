@@ -45,6 +45,8 @@ export class QuadPipeline implements types.Pipeline {
     const { binds, module, targets } = run
     const [filename, entryName] = module.split('::')
 
+
+
     const fileId = Object.values(files).find(f => f.filename === filename)?.id
     if (!fileId) {
       logger?.err(`System::build_modules[${filename}]`, 'File not found: ' + filename)
@@ -61,6 +63,7 @@ export class QuadPipeline implements types.Pipeline {
       logger?.fatal(`System::build_modules[${filename}]`, 'Cannot continue compilation. Required shader did not pass validation: ' + filename)
       return false
     }
+
 
     // must exist if there are no errors
     const { nagaModule, processedShader } = processedFile
@@ -101,20 +104,25 @@ export class QuadPipeline implements types.Pipeline {
         logger?.err(`System::build_modules[${filename}]`, 'Bind not found in runner: ' + globalVariable.name)
         continue
       }
-      const split = bindPath.split('::')
-      const [region] = split.splice(0, 1)
-
-      if (region === 'bus') {
-        let [channelName, resourceName] = split
-        if (!channelName || !resourceName) {
-          logger?.err(`System::build_modules[${filename}]`, 'Invalid resource path: ' + bindPath)
-          return false
-        }
-
-      } else {
-        logger?.err(`System::build_modules[${filename}]`, 'Cannot handle non bus resources at the moment.')
+      const resource = resolve(bindPath, logger)
+      if (!resource) {
+        logger?.err(`Pipeline::build[${filename}]`, 'Resource at path not found: ' + bindPath)
         return false
       }
+
+      // const split = bindPath.split('::')
+      // const [region] = split.splice(0, 1)
+
+      // if (region === 'bus') {
+      //   let [channelName, resourceName] = split
+      //   if (!channelName || !resourceName) {
+      //     logger?.err(`System::build_modules[${filename}]`, 'Invalid resource path: ' + bindPath)
+      //     return false
+      //   }
+      // } else {
+      //   logger?.err(`System::build_modules[${filename}]`, 'Cannot handle non bus resources at the moment.')
+      //   return false
+      // }
 
       const { binding, group } = globalVariable.binding
       if (binding === 999 || group === 999) {
@@ -166,19 +174,19 @@ export class QuadPipeline implements types.Pipeline {
       ))
       let bindGroupEntries = resources.map((r, binding_index) => r!.getBindGroupEntry(binding_index))
 
-      console.log(bindGroupEntries, bindGroupLayoutEntries)
 
       device.pushErrorScope('validation')
       let bindGroupLayout = device.createBindGroupLayout({
         label: `${filename}[${group_idx}]`,
         entries: bindGroupLayoutEntries
       })
-      let err = await device.popErrorScope()
-      if (err) {
-        logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group layout: ' + err.message)
-        return false
-      }
+      // let err = await device.popErrorScope()
+      // if (err) {
+      //   logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group layout: ' + err.message)
+      //   return false
+      // }
       bindGroupLayouts.push(bindGroupLayout)
+
 
       device.pushErrorScope('validation')
       let bindGroup = device.createBindGroup({
@@ -186,12 +194,13 @@ export class QuadPipeline implements types.Pipeline {
         layout: bindGroupLayout,
         entries: bindGroupEntries
       })
-      err = await device.popErrorScope()
-      if (err) {
-        logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group: ' + err.message)
-        return false
-      }
+      // let err = await device.popErrorScope()
+      // if (err) {
+      //   logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group: ' + err.message)
+      //   return false
+      // }
       bindGroups.push(bindGroup)
+
     }
 
 
@@ -237,7 +246,7 @@ export class QuadPipeline implements types.Pipeline {
     })
 
     device.pushErrorScope('validation')
-    const pipeline = await device.createRenderPipeline({
+    const pipeline = await device.createRenderPipelineAsync({
       label: `${filename}[]`,
       layout: layout,
       vertex: {
@@ -259,12 +268,7 @@ export class QuadPipeline implements types.Pipeline {
     this.pipeline = pipeline
     this.renderPassDescriptor = {
       colorAttachments: targetTextures.map((v: TextureResource) => ({
-        loadValue: {
-          r: 0,
-          g: 0,
-          b: 0,
-          a: 1
-        },
+        loadOp: 'clear',
         storeOp: 'store',
         view: v.texture.createView()
       }))
@@ -284,16 +288,16 @@ export class QuadPipeline implements types.Pipeline {
     }
     const renderPass = commandEncoder.beginRenderPass(this.renderPassDescriptor)
     renderPass.setPipeline(this.pipeline)
-    console.log(this.bindGroups)
     for (const [i, bindGroup] of this.bindGroups.entries()) {
       if (bindGroup) {
         renderPass.setBindGroup(i, bindGroup)
       }
     }
     renderPass.draw(6)
-    renderPass.endPass()
+    renderPass.end()
     return true
   }
+
 
   static getNamespace = (): types.Namespace => {
     return {

@@ -71,11 +71,11 @@ export default class BufferResource implements types.Resource {
       mappedAtCreation: shouldMap
     })
 
-    let bufferCreationError = await device.popErrorScope()
-    if (bufferCreationError) {
-      logger?.err('Resource::Buffer', `Could not create buffer [${label ?? 'unknown'}]. Reason: ${bufferCreationError}`)
-      return undefined
-    }
+    // let bufferCreationError = await device.popErrorScope()
+    // if (bufferCreationError) {
+    //   logger?.err('Resource::Buffer', `Could not create buffer [${label ?? 'unknown'}]. Reason: ${bufferCreationError}`)
+    //   return undefined
+    // }
 
     let ret = new BufferResource(label, buffer, bufferBindingType, bufferUsageFlags, layout, optimizedMemLayout)
     if (shouldMap) {

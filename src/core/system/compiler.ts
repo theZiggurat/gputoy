@@ -177,8 +177,6 @@ class Compiler {
       }
     }
 
-    console.log(processedShader)
-
     // now processedShader has all dependent types baked in
     // ready for naga validation
     const nagaModule = JSON.parse(introspect(processedShader, file.extension, "") ?? "{}")
@@ -210,9 +208,9 @@ class Compiler {
       code: source,
     })
 
+    if (!module.compilationInfo) return module
     const compilationInfo = await module.compilationInfo()
     for (const message of compilationInfo.messages) {
-      console.log('COMPILATION MESSAGE FOR ', file.filename, message)
       return null
     }
 

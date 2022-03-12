@@ -53,7 +53,6 @@ export class ViewportIO implements types.IO {
 
     this.label = label
 
-    console.log('building')
 
     // set up DOM events
     const canvasElem = document.getElementById(canvasId)
@@ -70,10 +69,11 @@ export class ViewportIO implements types.IO {
       logger?.err(`System::IO::Viewport[${mouseId}]`, 'Element not found: ' + mouseId)
       return false
     }
-    mouseElem.addEventListener('mousemove', this.onMouseMove)
-    mouseElem.addEventListener('mousedown', this.onMouseDown)
-    mouseElem.addEventListener('mouseup', this.onMouseUp)
+    // mouseElem.addEventListener('mousemove', this.onMouseMove)
+    // mouseElem.addEventListener('mousedown', this.onMouseDown)
+    // mouseElem.addEventListener('mouseup', this.onMouseUp)
     this.mouseElem = mouseElem
+
 
     // canvas texture
     const tex = await CanvasTextureResource.fromId(canvasId, GPU.device, GPU.adapter)
@@ -83,12 +83,14 @@ export class ViewportIO implements types.IO {
     }
     this.texture = tex as CanvasTextureResource
 
+
     // mouse buffer
     const fullStructMouse = types.getStructFromModel(this.getNamespace().exported, 'Mouse')
     if (!fullStructMouse) {
       logger?.debug(`System::IO::Viewport[${canvasId}]`, 'Was the namespace changed? Cannot build Mouse struct from namespace.')
       return false
     }
+
     const mousebuffer = await BufferResource.build({
       bufferBindingType: 'uniform',
       bufferUsageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -96,19 +98,21 @@ export class ViewportIO implements types.IO {
       layout: fullStructMouse,
     }, GPU.device, logger) as BufferResource
 
-    console.log('building2')
+
     // res buffer
     const fullStructRes = types.getStructFromModel(this.getNamespace().exported, 'Res')
     if (!fullStructRes) {
       logger?.debug(`System::IO::Viewport[${canvasId}]`, 'Was the namespace changed? Cannot build Res struct from namespace.')
       return false
     }
+
     const resbuffer = await BufferResource.build({
       bufferBindingType: 'uniform',
       bufferUsageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       label: `${this.label}::res`,
       layout: fullStructRes,
     }, GPU.device, logger) as BufferResource
+
 
     if (!mousebuffer || !resbuffer) {
       logger?.debug(`System::IO::Viewport[${canvasId}]`, 'Could not contruct buffer resource due to previous error')

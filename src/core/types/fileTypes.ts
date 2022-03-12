@@ -23,6 +23,7 @@ export type Extension =
   typeof EXT_DATA[number] |
   '_DIR' |
   '_UNCREATED' |
+  '_DIR_UNCREATED' |
   '_DELETED' |
   '_ROOT'
 export type ExtensionShader = typeof EXT_SHADER[number]

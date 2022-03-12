@@ -56,7 +56,7 @@ class System {
   // file id => namespace
   namespace: Record<types.FileId, types.Namespace> = {
     "Pipeline::Quad[static]": QuadPipeline.getNamespace(),
-    "System::InvocationInfo": invocationInfoNamespace
+    "System::InvocationInfo": frameStateNamespace
   }
   // file id => boolean
   namespaceNeedsRebuild: Record<types.FileId, boolean> = {}
@@ -100,7 +100,7 @@ class System {
 
   pipelines: types.Pipeline[] = []
 
-  invocationInfoBuffer: BufferResource
+  frameStateBuffer!: BufferResource
 
   resolveResource = (path?: string, logger?: Logger): types.Resource | undefined => {
     if (!path) return undefined
@@ -115,7 +115,7 @@ class System {
         logger?.err('System::resolve', 'Resource does not belong to system: ' + name)
         return undefined
       }
-      return this.invocationInfoBuffer
+      return this.frameStateBuffer
     }
     if (domain === 'bus') {
       let channel = this.activeChannels[this.channelLock[name]]
@@ -137,12 +137,27 @@ class System {
 
   build = async (logger?: Logger): Promise<boolean> => {
 
+    if (this.isBuilt) {
+      return true
+    }
     logger?.trace('System::build', 'Build initiated')
     logger?.debug('System::build', 'CHECK_RUN')
     if (!this.checkRunner(logger)) {
       return false
     }
     logger?.debug('System::build', 'CHECK_RUN -- COMPLETE')
+
+    let framebuf = await BufferResource.build({
+      bufferBindingType: 'uniform',
+      bufferUsageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      label: 'sys_framestate_buffer',
+      layout: types.getStructFromModel(frameStateNamespace.exported, 'Frame')!,
+    }, GPU.device, logger)
+    if (!framebuf) {
+      logger?.err('System::build', 'Failed to build frame state buffer')
+      return false
+    }
+    this.frameStateBuffer = framebuf as BufferResource
 
     logger?.debug('System::build', 'BUILD_IO')
     if (!(await this.buildIo(logger))) {
@@ -168,11 +183,7 @@ class System {
     }
     logger?.debug('System::build', 'BUILD_MODULES -- COMPLETE')
 
-    // logger?.debug('System::build', 'BUILD_PASSES')
-    // if (!(await this.buildPasses(logger))) {
-    //   return false
-    // }
-    // logger?.debug('System::build', 'BUILD_PASSES -- COMPLETE')
+
 
     this.isBuilt = true
     return true
@@ -245,11 +256,14 @@ class System {
       let newIO: types.IO | undefined = undefined
       switch (foundChannel.ioType) {
         case 'viewport': {
+
           newIO = new ViewportIO()
           if (!(await newIO.build(foundChannel.args, foundChannel.label, logger))) {
+
             logger?.err(`System::build_io::viewport[${foundChannel.id}]`, `IO build failed`)
             return false
           }
+
           break
         }
         default: {
@@ -257,12 +271,14 @@ class System {
           return false
         }
       }
+
       if (newIO) {
         this.activeChannels[foundChannel.id] = newIO
         this.channelLock[ioName] = foundChannel.id
         this.ioNeedBuild[foundChannel.id] = false
         this.ioNeedBuildNamespace[foundChannel.id] = true
       }
+
     }
     return true
   }
@@ -405,11 +421,13 @@ class System {
     return true
   }
 
-  // buildPasses = async (logger?: Logger): Promise<boolean> => {
-  //   const { bus, runs } = this.runner
-  //   return true
-  // }
 
+  /**
+   * 
+   * @param delta 
+   * @param removed 
+   * @param logger 
+   */
   pushFileDelta = (delta: Record<string, types.File>, removed: string[], logger?: Logger) => {
     // overwrite/append file deltas, and set the delta'd files as dirty
     this.files = { ...this.files, ...delta }
@@ -489,35 +507,44 @@ class System {
 
   }
 
-  dispatch = async (logger?: Logger) => {
+
+  /**
+   * 
+   * @param frameState 
+   * @param logger 
+   * @returns 
+   */
+  dispatch = (frameState: types.SystemFrameState, logger?: Logger): boolean => {
+
+    const queue = GPU.device.queue
+
+    const { dt, frameNum, runDuration } = frameState
+    let buf = [[runDuration], [dt], [frameNum]]
+    this.frameStateBuffer.write(buf, queue)
 
     if (!this.isValidated || !this.isBuilt) {
       logger?.trace('System::dispatch', 'Forced to rebuild during dispatch.')
-      return
-      // if (!(await this.build(logger))) {
-      //   return
-      // }
+      return false
     }
 
     for (const activeChannel of Object.values(this.activeChannels)) {
-      activeChannel.onBeginDispatch(GPU.device.queue)
-      activeChannel.onEndDispatch(GPU.device.queue)
+      activeChannel.onBeginDispatch(queue)
     }
     const commandEncoder = GPU.device.createCommandEncoder()
     for (const pipeline of this.pipelines) {
       pipeline.dispatch(commandEncoder, logger)
     }
+    for (const activeChannel of Object.values(this.activeChannels)) {
+      activeChannel.onEndDispatch(queue)
+    }
 
-    GPU.device.queue.submit([commandEncoder.finish()])
+    queue.submit([commandEncoder.finish()])
+
+    return true
   }
-
-
-
-
-
 }
 
-const invocationInfoNamespace: types.Namespace = {
+const frameStateNamespace: types.Namespace = {
   exported: {
     definingFileId: 'system',
     name: 'invocation_info',

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react"
-import { useRecoilValue, useSetRecoilState } from "recoil"
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 
 import useLogger from "../useLogger"
 import useProjectControls from "../useProjectControls"
@@ -19,24 +19,17 @@ import * as types from "@core/types"
 import System from "@core/system"
 import { withProjectIO } from "@core/recoil/atoms/io"
 import { intersection } from "lodash"
+import { systemBuildStateAtom, systemFrameStateAtom, systemValidationStateAtom } from "@core/recoil/atoms/system"
 
 
 
 
 const useProjectManager = () => {
 
-  const projectRunStatus = useRecoilValue(projectRunStatusAtom)
-
-  const isCanvasInitialized = useRecoilValue(canvasInitializedAtom)
-  const setFileError = useSetRecoilState(projectShaderErrorsAtom)
-  const gpuStatus = useRecoilValue(gpuStatusAtom)
-  const defaultParamState = useRecoilValue(withDefaultParams)
-  const paramState = useRecoilValue(withParamsJSON)
-
   const projectID = useRecoilValue(currentProjectIdAtom)
 
   const { controlStatus, play, pause, stop } = useProjectControls()
-  const { _smPlay, _smPause, _smStop, _smStep } = useProjectStateMachine()
+  const { _smPlay, _smPause, _smStop, _smStep } = _useSystemFrameState()
 
   const files = useRecoilValue(withProjectFilesJSON)
 
@@ -49,7 +42,8 @@ const useProjectManager = () => {
 
   const ioChannels = useRecoilValue(withProjectIO)
 
-  const type = types.NAGA_BUILTIN_VARIANTS[12]
+  const [validationState, setValidationState] = useRecoilState(systemValidationStateAtom)
+  const [buildState, setBuildState] = useRecoilState(systemBuildStateAtom)
 
   useEffect(() => {
     console.log('PROJECT', 'STARTING')
@@ -61,22 +55,29 @@ const useProjectManager = () => {
    */
   useEffect(() => {
 
-    const renderStep = () => {
+    const renderStep = (timestamp: DOMHighResTimeStamp) => {
       if (isRunning.current) {
-        _smStep()
-        System.instance().dispatch(logger)
-        intervalHandle.current = window.requestAnimationFrame(renderStep)
+        intervalHandle.current = requestAnimationFrame(renderStep)
+        _smStep(timestamp)
       }
     }
 
     const onControlChange = async () => {
       if (controlStatus == ProjectControl.PLAY) {
-        _smPlay()
+        _smPlay(performance.now())
         isRunning.current = true
 
-        if (await System.instance().build(logger))
-          window.requestAnimationFrame(renderStep)
+        setValidationState('validating')
+        setBuildState('building')
+        let result = await System.instance().build(logger)
+        if (result) {
+          setBuildState('built')
+          setValidationState('validated')
+          requestAnimationFrame(renderStep)
+        }
         else {
+          setBuildState('failed')
+          setValidationState('failed')
           stop()
         }
 
@@ -142,7 +143,6 @@ const useProjectManager = () => {
   // a component mount/unmount should this be called
   const processIODelta = useCallback((currentChannels: Record<string, types.IOChannel>) => {
     const prevChannels = System.instance().availChannels
-    //console.log('PUSHING SYSTEM IO DELTA', currentChannels)
 
     let prevKeys = Object.keys(prevChannels)
 
@@ -192,65 +192,35 @@ const useProjectManager = () => {
       stop()
     }
   }, [projectID])
-
-  /**
-   * On site load, attach error handler for device
-   */
-  // useEffect(() => {
-
-  //   const errorHandler = (ev: GPUUncapturedErrorEvent) => {
-  //     let error = ev.error
-  //     if (error instanceof GPUOutOfMemoryError) {
-  //       logger.fatal('GPU', 'Out of memory')
-  //       return
-  //     }
-  //     let message: string = error.message
-  //     // shader error
-  //     if (message.startsWith('Tint WGSL reader failure')) {
-
-  //       let start = message.indexOf(':') + 1
-  //       let body = message.substr(start, message.indexOf('Shader') - start).trim()
-  //       logger.err("Shader error", body)
-  //     }
-  //     else if (message.startsWith('[ShaderModule] is an error.')) {
-  //       logger.err("Shader module", message)
-  //     }
-  //     else {
-  //       logger.err("Unknown error", message)
-  //     }
-  //     stop()
-  //   }
-
-  //   if (GPU.isInitialized())
-  //     GPU.device.onuncapturederror = errorHandler
-  // }, [logger, stop])
 }
 
-const useProjectStateMachine = () => {
-  const setProjectRunStatus = useSetRecoilState(projectRunStatusAtom)
+
+
+const _useSystemFrameState = () => {
+  const setFrameState = useSetRecoilState(systemFrameStateAtom)
 
   const _smPause = useCallback(() => {
-    setProjectRunStatus(old => {
+    setFrameState(old => {
       return {
         ...old,
         running: false,
         prevDuration: old.runDuration
       }
     })
-  }, [setProjectRunStatus])
+  }, [setFrameState])
 
-  const _smPlay = useCallback(() => {
-    setProjectRunStatus(old => {
+  const _smPlay = useCallback((timestamp: DOMHighResTimeStamp) => {
+    setFrameState(old => {
       return {
         ...old,
         running: true,
-        lastStartTime: performance.now(),
+        lastStartTime: timestamp,
       }
     })
-  }, [setProjectRunStatus])
+  }, [setFrameState])
 
   const _smStop = useCallback(() => {
-    setProjectRunStatus(old => {
+    setFrameState(old => {
       return {
         ...old,
         running: false,
@@ -259,20 +229,20 @@ const useProjectStateMachine = () => {
         prevDuration: 0,
       }
     })
-  }, [setProjectRunStatus])
+  }, [setFrameState])
 
-  const _smStep = useCallback(() => {
-    setProjectRunStatus(old => {
-      let now = performance.now()
+  const _smStep = useCallback((timestamp: DOMHighResTimeStamp) => {
+    setFrameState(old => {
+      System.instance().dispatch(old)
       return {
         ...old,
-        runDuration: (now - old.lastStartTime) / 1000 + old.prevDuration,
-        lastFrameRendered: now,
-        dt: now - old.lastFrameRendered,
+        runDuration: (timestamp - old.lastStartTime) / 1000 + old.prevDuration,
+        lastFrameRendered: timestamp,
+        dt: timestamp - old.lastFrameRendered,
         frameNum: old.frameNum + 1
       }
     })
-  }, [setProjectRunStatus])
+  }, [setFrameState])
 
   useEffect(() => {
     return () => _smStop()

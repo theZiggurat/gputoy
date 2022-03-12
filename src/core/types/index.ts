@@ -8,6 +8,30 @@ export * from './graphTypes'
 export * from './prismaTypes'
 export * from './pipelineTypes'
 
+
+export type SystemValidationState = 'unvalidated' | 'validating' | 'validated' | 'failed'
+export type SystemBuildState = 'unbuilt' | 'building' | 'built' | 'failed'
+
+export type SystemFrameState = {
+  lastStartTime: number
+  lastFrameRendered: number
+  dt: number
+  frameNum: number
+  runDuration: number
+  prevDuration: number
+  running: boolean
+}
+
+export const defaultFrameState = {
+  lastStartTime: 0,
+  lastFrameRendered: 0,
+  dt: 0,
+  frameNum: 0,
+  runDuration: 0,
+  prevDuration: 0,
+  running: false,
+}
+
 export type FileId = string
 export type ChannelId = string
 export type ChannelNodeId = string
@@ -20,19 +44,6 @@ export type AttachResult = {
   targetTexture: GPUTexture,
   presentationSize: number[],
   preferredFormat: GPUTextureFormat,
-}
-
-/**
- * Current status of project
- */
-export type ProjectStatus = {
-  lastStartTime: number
-  lastFrameRendered: number
-  dt: number
-  frameNum: number
-  runDuration: number
-  prevDuration: number
-  running: boolean
 }
 
 export interface Resource {

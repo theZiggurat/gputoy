@@ -103,7 +103,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
             borderColor={themed('p')}
             fontSize="xs"
           >
-            <Text ml={1}>
+            <Box ml={1}>
               <Text display="inline" color={themed('textMid')} fontFamily="mono">
                 {formatTime(message.time)}&nbsp;&nbsp;
               </Text>
@@ -119,7 +119,7 @@ const ConsolePanel = (props: DynamicPanelProps & any) => {
                 {message.body}
               </Text>
 
-            </Text>
+            </Box>
           </Box>
         )}
         <div ref={bottom}></div>

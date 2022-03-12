@@ -3,19 +3,15 @@ import {
 	Center, chakra, Flex, Text,
 	useColorModeValue
 } from '@chakra-ui/react';
-import { Project } from '@core/system/project'
 import { ProjectControl, projectRunStatusAtom } from 'core/recoil/atoms/controls';
-import { gpuStatusAtom } from 'core/recoil/atoms/gpu';
 import useInstance from '@core/hooks/useInstance';
-import useLogger from 'core/hooks/useLogger';
-import { canvasInitializedAtom, mousePosAtom, resolutionAtom, withDefaultParams } from 'core/recoil/atoms/project';
-import { throttle } from 'lodash';
+import { resolutionAtom, withDefaultParams } from 'core/recoil/atoms/project';
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { BsRecordFill } from 'react-icons/bs';
 import { FaPause, FaPlay, FaStop, FaVideo } from 'react-icons/fa';
 import { MdInfo, MdSettings } from 'react-icons/md';
 import { useResizeDetector } from 'react-resize-detector';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { themed } from 'theme/theme';
 import consts from '../../../theme/consts';
 import { RowButton } from '../../shared/rowButton';
@@ -30,6 +26,7 @@ import useProjectControls from '@core/hooks/useProjectControls';
 import TaskReciever from '../taskReciever';
 import * as types from '@core/types'
 import useChannel from '@core/hooks/useIO';
+import { systemBuildStateAtom, systemFrameStateAtom, systemValidationStateAtom } from '@core/recoil/atoms/system';
 
 const ViewportInfo = () => {
 
@@ -60,12 +57,12 @@ const ViewportInfo = () => {
 const StatusInfo = () => {
 
 	const [display, setDisplay] = useState(0)
-	const projectRunStatus = useRecoilValue(projectRunStatusAtom)
+	const frameState = useRecoilValue(systemFrameStateAtom)
 
 	let text
 	switch (display) {
-		case 0: text = `${projectRunStatus.runDuration.toFixed(2)}s`; break
-		case 1: text = `${(1000 / projectRunStatus.dt).toFixed(2)} fps`; break
+		case 0: text = `${frameState.runDuration.toFixed(2)}s`; break
+		case 1: text = `${(1000 / frameState.dt).toFixed(2)} fps`; break
 	}
 
 	return (
@@ -113,6 +110,9 @@ const _ViewportCanvas = (props: { instanceID: number, width: number, height: num
 	const vid = 'viewport_' + props.instanceID
 	const mid = 'mouse_' + props.instanceID
 	const { controlStatus } = useProjectControls()
+
+
+
 	useChannel(vid, {
 		id: vid,
 		label: 'Viewport',
@@ -144,6 +144,9 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
 	const [videoSrc, setVideoSrc] = useState('')
 	const [recording, setRecording] = useState(false)
 	const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+
+	const buildState = useRecoilValue(systemBuildStateAtom)
+	const validationState = useRecoilValue(systemValidationStateAtom)
 
 	useEffect(() => {
 		if (recording) {
@@ -222,6 +225,16 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
 						overflow="hidden"
 					>
 						{showInfo && <ViewportInfo />}
+						<Box pos="absolute">
+							<Text>
+								validated: {validationState}
+							</Text>
+							<Text>
+								built: {buildState}
+							</Text>
+
+
+						</Box>
 
 						<ViewportCanvas
 							instanceID={props.instanceID}

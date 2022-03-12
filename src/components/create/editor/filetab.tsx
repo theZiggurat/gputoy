@@ -48,7 +48,6 @@ const FileTab = (props: FileTabProps) => {
     _hover={{ bg: selected ? themed('bg') : themed('input') }}
     transition="backgroundColor 0s"
     color={selected ? themed("text") : themed("textLight")}
-    onMouse
     px="4px"
     ps="10px"
     role="group"

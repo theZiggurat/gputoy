@@ -38,11 +38,6 @@ const useFork = () => {
         image: session?.user?.image ?? null
       } ?? null,
       id: localProjectId,
-      shaders: project.shaders.map(s => ({
-        ...s,
-        id: '',
-        projectId: localProjectId,
-      })),
       updatedAt: updateDateLocal,
       published: false
     }

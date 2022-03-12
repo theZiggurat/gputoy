@@ -1,5 +1,5 @@
 export default {
-  fontMono: '"JetBrains Mono", "Fira code", "Fira Mono", monospace'
+  fontMono: 'monospace'
 }
 
 export const darkEditor = {

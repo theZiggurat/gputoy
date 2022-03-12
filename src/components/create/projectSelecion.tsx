@@ -15,13 +15,15 @@ import NavUser from "@components/shared/user"
 import generate from "project-name-generator"
 import { MdPublishedWithChanges, MdCheck } from 'react-icons/md'
 import useProjectSession from "@core/hooks/useProjectSession"
+import Link from "next/link"
 
 type ProjectInfo = {
   id: string,
   title: string,
   authorId: string | null
   updatedAt: string,
-  type: number
+  type: number,
+  unclaimed?: boolean
 }
 
 const projectAccessModeIcon = [
@@ -41,7 +43,8 @@ const foldProjectArrays = (local: ProjectInfo[], remote: ProjectInfo[], authorId
   return localChangesSet
     .concat(localFiltered)
     .concat(remoteFiltered)
-    .filter(i => i.authorId == authorId)
+    .filter(i => i.authorId == authorId || !i.authorId)
+    .map(i => i.authorId ? i : { ...i, unclaimed: true })
     .sort((a, b) => {
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     })
@@ -144,31 +147,33 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
       >
         {
           allProjects.map(p => (
-            <Flex
-              key={p.id}
-              justifyContent="space-between"
-              w="100%"
-              borderBottom="1px"
-              borderColor={themed('borderLight')}
-              p="0.5rem"
-              pl="1rem"
-              fontSize="sm"
-              transition="background-color 0.2s ease"
-              cursor="pointer"
-              _hover={{
-                bg: themed('inputHovered')
-              }}
-              onClick={() => onClickProject(p.id)}
-            >
-              <Text fontWeight="bold" color={themed('textMid')}>
-                {p.title}
-              </Text>
-              <HStack sx={{ color: themed('textLight'), fontSize: 'lg' }}>
-                <Text fontSize="xs">
+            <Link key={p.id} href={`/editor/${p.id}`} passHref>
+              <Flex
+
+                justifyContent="space-between"
+                w="100%"
+                borderBottom="1px"
+                borderColor={themed('borderLight')}
+                p="0.5rem"
+                pl="1rem"
+                fontSize="sm"
+                transition="background-color 0.2s ease"
+                cursor="pointer"
+                _hover={{
+                  bg: themed('inputHovered')
+                }}
+              //onClick={() => onClickProject(p.id)}
+              >
+                <Text fontWeight="bold" color={themed('textMid')}>
+                  {p.title}
                 </Text>
-                {projectAccessModeIcon[p.type]}
-              </HStack>
-            </Flex>
+                <HStack sx={{ color: themed('textLight'), fontSize: 'lg' }}>
+                  <Text fontSize="xs">
+                  </Text>
+                  {projectAccessModeIcon[p.type]}
+                </HStack>
+              </Flex>
+            </Link>
           ))
         }
         {

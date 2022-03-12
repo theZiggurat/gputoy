@@ -71,7 +71,7 @@ const theme = extendTheme({
         bg: mode('light.p', 'dark.p')(props),
       },
       button: {
-        color: mode('rgba(0, 0, 0, 0.72)', 'rgba(255, 255, 255, 0.72)')(props),
+        color: mode('rgba(0, 0, 0, 0.65)', 'rgba(255, 255, 255, 0.72)')(props),
         bg: mode('rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.04)')(props),
         border: '1px',
         borderColor: 'transparent',//mode('rgba(0, 0, 0, 0.2)', 'rgba(255, 255, 255, 0.05)')(props),

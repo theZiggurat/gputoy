@@ -40,7 +40,7 @@ const Dropdown = (props: DropdownProps) => {
         open &&
         <Flex
           position="absolute"
-          minW="10rem"
+          minW="9rem"
           width="fit-content"
           height="fit-content"
           bg={themed('a2')}

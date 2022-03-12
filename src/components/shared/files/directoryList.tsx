@@ -5,7 +5,6 @@ import { themed } from "@theme/theme"
 import { useMemo, useState } from "react"
 import { AiFillFolderOpen, AiFillFolder } from "react-icons/ai"
 import { MdCheck, MdClose, MdDelete } from "react-icons/md"
-import { RiFile3Fill, RiFolderFill } from "react-icons/ri"
 import FileIcon from "../misc/fileIcon"
 import * as types from '@core/types'
 
@@ -13,25 +12,26 @@ const buttonProps = {
   size: "xs",
   variant: "empty",
   height: "1rem",
-  visibility: "hidden",
-  _groupHover: { visibility: "visible" }
 }
 
 type DirectoryNameChangerProps = {
   fileMetadata?: types.FileMetadata
   onSubmit: (filename: string, extension: Extension) => void
   onCancel: () => void
+  isDir?: boolean
 }
 
 const INTERNAL_DND_TYPE = 'gputoy/files'
 
 const DirectoryNameChanger = (props: DirectoryNameChangerProps) => {
 
-  const { fileMetadata, onSubmit, onCancel } = props
+  const { fileMetadata, onSubmit, onCancel, isDir } = props
 
-  const insertedExtension = fileMetadata?.extension === '_UNCREATED' ? '' : '.' + fileMetadata.extension
-  const [userNameChange, setUserNameChange] = useState(name + insertedExtension)
+  const insertedExtension = fileMetadata?.extension === '_UNCREATED' || fileMetadata?.extension === '_DIR_UNCREATED'
+    ? '' : '.' + fileMetadata?.extension
+  const [userNameChange, setUserNameChange] = useState(fileMetadata?.filename + insertedExtension)
   const [inferredName, inferredExtension] = useMemo(() => {
+    if (isDir) return [userNameChange, '_DIR']
     const split = userNameChange.split('.')
     const inferredExtension = split.length > 1 ? split[split.length - 1].trimEnd() : undefined
     const inferredName = split.slice(0, split.length - 1).join('.')
@@ -40,7 +40,7 @@ const DirectoryNameChanger = (props: DirectoryNameChangerProps) => {
 
 
 
-  const isExtension = types.isSupportedFileType(inferredExtension ?? '_UNCREATED')
+  const isExtension = isDir || types.isSupportedFileType(inferredExtension ?? '_UNCREATED')
   const canUserSubmit = inferredName.length > 0 && isExtension
 
   const onHandleUserNameChange = (ev) => {
@@ -58,7 +58,20 @@ const DirectoryNameChanger = (props: DirectoryNameChangerProps) => {
   return <form onSubmit={onHandleUserSubmit}>
     <Flex alignItems="center">
 
-      <FileIcon extension={inferredExtension as Extension} size={20} opacity={isExtension ? 1 : 0} />
+      {
+        !isDir &&
+        <FileIcon extension={inferredExtension as Extension} size={20} opacity={isExtension ? 1 : 0} />
+      }
+      {
+        isDir &&
+        <Icon
+          as={AiFillFolder}
+          size={10}
+          transform="translate(1px, 0)"
+          color={themed('textMidLight')}
+        />
+      }
+
       <Input
         spellCheck="false"
         type="text"
@@ -68,36 +81,25 @@ const DirectoryNameChanger = (props: DirectoryNameChangerProps) => {
         variant="empty"
         size="xs"
         bg="none"
-        placeholder="file name"
+        placeholder={isDir ? "dir name" : "file name"}
       />
       <IconButton
         aria-label="Set name"
+        title="Set name"
         disabled={!canUserSubmit}
-        size="xs"
         icon={<MdCheck />}
         type="submit"
         {...buttonProps}
       />
       <IconButton
-        size="xs"
+        aria-label="Cancel"
+        title="Cancel"
         icon={<MdClose />}
         onClick={onCancel}
         {...buttonProps}
       />
     </Flex>
   </form>
-}
-
-const ListItemMenuFile = (props: ListMenuItemProps) => {
-  return <Box>
-    <IconButton
-      aria-label="Delete File"
-      title="Delete File"
-      icon={<MdDelete />}
-      onClick={() => props.fileId && props.onDelete(props.fileId)}
-      {...buttonProps}
-    />
-  </Box>
 }
 
 const DirectoryList = (props: {
@@ -117,7 +119,8 @@ const DirectoryList = (props: {
   const onHandleNameChange = (newFileName: string, newExtension: Extension) => {
     setFilename(newFileName)
     setExtension(newExtension)
-    onOpen(fileId!)
+    if (newExtension !== '_DIR')
+      onOpen(fileId!)
   }
 
   const onHandleCancelNewFile = () => {
@@ -185,6 +188,8 @@ const DirectoryList = (props: {
         pl="1rem"
         cursor="pointer"
         justifyContent="space-between"
+        alignItems="center"
+        role="group"
         onClick={toggleShowChildren}
         draggable
         onDragOver={onHandleDragOver}
@@ -192,10 +197,16 @@ const DirectoryList = (props: {
         onDrop={onHandleDragDrop}
         onDragStart={onHandleDragStart}
         bg={isDraggedOver ? themed('inputHovered') : 'none'}
+        _hover={{ bg: themed('a1') }}
       >
         <Flex alignItems="center" gridGap="8px">
-          <Icon as={showChildren || isDraggedOver ? AiFillFolderOpen : AiFillFolder} size={10} transform="translate(1px, 0)" />
-          <Text fontSize="13px" fontWeight="light" color={themed('textMidLight')} userSelect="none"
+          <Icon
+            as={showChildren || isDraggedOver ? AiFillFolderOpen : AiFillFolder}
+            size={10}
+            transform="translate(1px, 0)"
+            color={themed('textMidLight')}
+          />
+          <Text fontSize="13px" fontWeight="light" color={themed('textMid')} userSelect="none"
             _groupHover={{
               color: themed('textHigh')
             }}
@@ -229,7 +240,7 @@ const DirectoryList = (props: {
       </Flex>
     </Flex>
   }
-  if (fileMetadata.extension === '_UNCREATED') {
+  if (fileMetadata.extension === '_UNCREATED' || fileMetadata.extension === '_DIR_UNCREATED') {
     return <Flex
       w="100%"
       alignItems="center"
@@ -242,6 +253,7 @@ const DirectoryList = (props: {
       <DirectoryNameChanger
         onSubmit={onHandleNameChange}
         fileMetadata={fileMetadata}
+        isDir={fileMetadata.extension === '_DIR_UNCREATED'}
         onCancel={onHandleCancelNewFile}
       />
     </Flex>
@@ -255,7 +267,7 @@ const DirectoryList = (props: {
       cursor="pointer"
       justifyContent="space-between"
       _hover={{ bg: themed('a1') }}
-      onClick={() => onOpen(fileId)}
+      onClick={() => fileId && onOpen(fileId)}
       draggable
       onDragStart={onHandleDragStart}
     >
@@ -274,7 +286,15 @@ const DirectoryList = (props: {
           {fileMetadata.filename}.{fileMetadata.extension}
         </Text>
       </Flex>
-      <ListItemMenuFile onDelete={onDelete} fileId={fileId} />
+      <Box>
+        <IconButton
+          aria-label="Delete File"
+          title="Delete File"
+          icon={<MdDelete />}
+          onClick={() => fileId && onDelete(fileId)}
+          {...buttonProps}
+        />
+      </Box>
     </Flex>
   }
 

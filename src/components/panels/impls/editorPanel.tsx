@@ -63,7 +63,7 @@ const EditorContent = (props: {
 		setTimeout(() => monaco?.editor.setTheme(monacoTheme), 1)
 	}, [monacoTheme, monaco])
 
-	return <Box width="100%" flex="1 1 auto" overflowX="hidden">
+	return <Box width="100%" flex="1 1 auto" overflowX="hidden" overflowY="hidden">
 		{
 			isText(extension) &&
 			<Editor
@@ -155,7 +155,7 @@ const EditorPanel = (props: PanelInProps) => {
 
 	return (
 		<Panel {...props}>
-			<PanelContent display="flex" flexDir="column" overflowY="hidden" overFlowX="hidden">
+			<PanelContent display="flex" flexDir="column" overflowY="hidden" overflowX="hidden">
 				{
 					workspace.length > 0 &&
 					<Flex

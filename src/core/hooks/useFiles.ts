@@ -88,7 +88,7 @@ export const useFileMetadata = (fileId?: string): FileMetadataProps => {
 export type DirectoryProps = {
   directory: types.Directory
   addFile: (path: string, infile: Omit<types.File, 'id' | 'path'>) => string | undefined
-  addDirectory: (path: string, title: string) => string | undefined
+  addDirectory: (path: string) => string | undefined
   deleteDirectory: (fileId: string, force?: boolean) => boolean
   moveDirectory: (fileId: string, path: string) => boolean
   fileExists: (fileId?: string, filename?: string) => boolean
@@ -167,10 +167,10 @@ export const useDirectory = (): DirectoryProps => {
   /**
    * 
    */
-  const addDirectory = useCallback((path: string, title: string): string | undefined => {
+  const addDirectory = useCallback((path: string): string | undefined => {
     // add file
     const id = nanoid(8)
-    const newfile: types.File = { filename: title, id, path: path, data: '', extension: '_DIR', metadata: { children: 0 } }
+    const newfile: types.File = { filename: '', id, path: path, data: '', extension: '_DIR_UNCREATED', metadata: { children: 0 } }
     for (const file of Object.values(files)) {
       if (file.filename === newfile.filename) {
         logger.err('directory::addDirectory', `Name taken: ${file.filename}.${file.extension}`)
