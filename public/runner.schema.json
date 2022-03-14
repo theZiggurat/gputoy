@@ -1,0 +1,352 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "$id": "https://gputoy.io/runner.schema.json",
+  "uri": "https://gputoy.io/runner.schema.json",
+  "title": "Runner",
+  "description": "Contains all project references needed to execute gpu commands",
+  "type": "object",
+  "properties": {
+    "bus": {
+      "$ref": "#/definitions/bus"
+    },
+    "runs": {
+      "$ref": "#/definitions/runs"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "bus",
+    "runs"
+  ],
+  "definitions": {
+    "binds": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/bind"
+        },
+        {
+          "title": "Bind Group List",
+          "description": "Zero-indexed list of bind groups to be able to select when choosing to dispatch. By default, these groups will cycle in order infinitely.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/bind"
+          }
+        }
+      ]
+    },
+    "bind": {
+      "type": "object",
+      "title": "Bind Group",
+      "description": "Binds resources to shader stages",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "runs": {
+      "title": "Run",
+      "description": "Holds all the pipelines in sequential order of execution.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/pass"
+      }
+    },
+    "pass": {
+      "title": "Pipeline pass",
+      "description": "One invocation of a shader",
+      "properties": {
+        "type": {
+          "enum": [
+            "quad",
+            "render",
+            "compute"
+          ]
+        },
+        "binds": {
+          "$ref": "#/definitions/binds"
+        }
+      },
+      "oneOf": [
+        {
+          "$ref": "#/definitions/quad_pass"
+        },
+        {
+          "$ref": "#/definitions/render_pass"
+        },
+        {
+          "$ref": "#/definitions/compute_pass"
+        }
+      ],
+      "required": [
+        "type",
+        "binds"
+      ]
+    },
+    "quad_pass": {
+      "title": "Quad pass",
+      "description": "Fragment shader on a normalized quad.",
+      "properties": {
+        "type": {
+          "const": "quad"
+        },
+        "module": {
+          "title": "Module",
+          "description": "Name of shader file",
+          "type": "string"
+        }
+      },
+      "$ref": "#/definitions/fragment_sub_pass_inner",
+      "required": [
+        "module"
+      ]
+    },
+    "render_pass": {
+      "title": "Render pass",
+      "description": "Vertex and Fragment shader pass.",
+      "properties": {
+        "type": {
+          "const": "render"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "module": {
+              "title": "Module",
+              "description": "Name of shader file",
+              "type": "string"
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/vertex_sub_pass_inner"
+            },
+            {
+              "$ref": "#/definitions/fragment_sub_pass_inner"
+            }
+          ]
+        },
+        {
+          "properties": {
+            "vertex": {
+              "$ref": "#/definitions/vertex_sub_pass"
+            },
+            "fragment": {
+              "$ref": "#/definitions/fragment_sub_pass"
+            }
+          }
+        }
+      ]
+    },
+    "compute_pass": {
+      "title": "Compute pass",
+      "description": "Compute directly from values in buffers and storage textures.",
+      "properties": {
+        "type": {
+          "const": "compute"
+        },
+        "module": {
+          "title": "Module",
+          "description": "Name of shader file",
+          "type": "string"
+        },
+        "workgroup_size": {
+          "$ref": "#/definitions/compute_workgroup_size"
+        }
+      },
+      "required": [
+        "module"
+      ]
+    },
+    "compute_workgroup_size": {
+      "title": "Workgroup size",
+      "description": "How the size of the workgroup should be determined.",
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 1
+    },
+    "vertex_sub_pass": {
+      "title": "Vertex Sub-pass",
+      "description": "Describes the vertex stage of a render pipeline.",
+      "properties": {
+        "module": {
+          "title": "Vertex module",
+          "description": "Name of shader file containing the vertex entry point.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "module"
+      ],
+      "$ref": "#/definitions/vertex_sub_pass_inner"
+    },
+    "vertex_sub_pass_inner": {
+      "properties": {
+        "vertex_buffer": {
+          "title": "Vertex Buffer",
+          "description": "Vertex storage of type defined in vertex module",
+          "type": "string"
+        },
+        "index_buffer": {
+          "title": "Index Buffer",
+          "description": "Index buffer. If set, the render pass will draw indexed.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "vertex_buffer"
+      ]
+    },
+    "fragment_sub_pass": {
+      "title": "Fragment Sub-pass",
+      "description": "Describes the fragment stage of a render pipeline.",
+      "properties": {
+        "module": {
+          "title": "Fragment module",
+          "description": "Name of shader file containing the fragment entry point.",
+          "type": "string"
+        }
+      },
+      "$ref": "#/definitions/fragment_sub_pass_inner"
+    },
+    "fragment_sub_pass_inner": {
+      "title": "Fragment pass",
+      "description": "Simplest type of pass. Configure this pass with binds and targets.",
+      "type": "object",
+      "properties": {
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fragment_pass_target"
+          }
+        }
+      },
+      "required": [
+        "targets",
+        "frag_module"
+      ]
+    },
+    "fragment_pass_target": {
+      "anyOf": [
+        {
+          "title": "Target texture",
+          "description": "Path to target texture i.e. 'res::some_texture'",
+          "type": "string"
+        },
+        {
+          "title": "Target texture",
+          "description": "Target texture options",
+          "type": "object",
+          "properties": {
+            "texture": {
+              "title": "Target texture",
+              "description": "Path to target texture i.e. 'res::some_texture'",
+              "type": "string"
+            },
+            "clear_mode": {
+              "title": "Load-op",
+              "description": "Load operation",
+              "enum": [
+                "preserve",
+                "clear"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "bus": {
+      "title": "Project Bus",
+      "description": "Modular i/o which provides exported resources and types for shaders.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/io"
+      }
+    },
+    "io": {
+      "properties": {
+        "type": {
+          "title": "Channel type",
+          "description": "viewport, sound, video",
+          "enum": [
+            "viewport",
+            "sound",
+            "video"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "$ref": "#/definitions/sound_io"
+        },
+        {
+          "$ref": "#/definitions/viewport_io"
+        },
+        {
+          "$ref": "#/definitions/video_io"
+        }
+      ]
+    },
+    "viewport_io": {
+      "type": "object",
+      "title": "Viewport",
+      "description": "A drawable surface with user input capabilities",
+      "properties": {
+        "type": {
+          "const": "viewport"
+        },
+        "resX": {
+          "type": "number"
+        },
+        "resY": {
+          "type": "number"
+        }
+      }
+    },
+    "sound_io": {
+      "type": "object",
+      "title": "Sound",
+      "description": "Sound to play directly or be accessed by shader",
+      "properties": {
+        "type": {
+          "const": "sound"
+        },
+        "src": {
+          "title": "Source",
+          "description": "Sound link or file path",
+          "type": "string"
+        },
+        "direct": {
+          "title": "Play direct",
+          "description": "Play sound file directly",
+          "default": true,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "src"
+      ]
+    },
+    "video_io": {
+      "type": "object",
+      "title": "Video",
+      "description": "Video to be accessed by shaders",
+      "properties": {
+        "type": {
+          "const": "video"
+        },
+        "src": {
+          "title": "Video",
+          "description": "Video link or file path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "src"
+      ]
+    }
+  }
+}

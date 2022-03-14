@@ -25,12 +25,6 @@ export const validateCreateProjectEntry = (res: NextApiResponse<any>, body: any,
     res.status(406).send({ error: 'Missing description' })
     return false
   }
-  if (!project.shaders || project.shaders.length <= 0) {
-    res.status(406).send({ error: 'Missing shaders' })
-    return false
-  }
-
-
 
   return true
 }

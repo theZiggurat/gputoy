@@ -1,215 +1,30 @@
-import {
-  chakra, Avatar, Box, Flex, HStack, Icon, Stack, Tag, Text, Input, Skeleton
-} from '@chakra-ui/react'
-import {
-  useProjectAuthor,
-  useProjectDescription,
-  useProjectTitle
-} from '@core/hooks/useProjectMetadata'
-import useProjectSession from '@core/hooks/useProjectSession'
-import { projectForkSource, projectIsPublished } from 'core/recoil/atoms/project'
-import React, { ReactElement, useState } from "react"
-import { AiFillLike } from 'react-icons/ai'
-import { BiGitRepoForked } from 'react-icons/bi'
-import { IoIosEye } from 'react-icons/io'
-import { MdArrowRight } from 'react-icons/md'
-import { useRecoilValue } from 'recoil'
+import React, { } from "react"
 import { themed } from "@theme/theme"
-import { Divider } from "@components/shared/misc/micro"
-import { Panel, PanelBar, PanelContent } from "../panel"
-import OutwardLink from '@components/shared/outwardLink'
-import Label from '@components/shared/label'
-
-const ProjectInfo = () => {
-
-  const [title, setTitle] = useProjectTitle()
-  const [description, setDescription] = useProjectDescription()
-  const isPublished = useRecoilValue(projectIsPublished)
-
-  const author = useProjectAuthor()
-  const [_s, _l, isOwner] = useProjectSession()
-  const forkSource = useRecoilValue(projectForkSource)
-
-  let titleComponent
-  let descriptionComponent
-  if (title != null) {
-    if (isOwner) {
-      titleComponent = <Input
-        value={title}
-        bg="transparent"
-        onChange={setTitle}
-        placeholder="Project Title"
-        //isInvalid={title.isValid}
-        //color={title.isValid ? themed('textMid') : "red.500"}
-        pl="0"
-        fontWeight="bold"
-        fontSize="lg"
-      />
-      descriptionComponent = <chakra.textarea
-        value={description ?? undefined}
-        onChange={setDescription}
-        //color={description.isValid ? themed('textMid') : "red.500"}
-        fontSize="xs"
-        bg="transparent"
-        w="100%"
-        resize="vertical"
-        outline="none"
-        placeholder="Project Description"
-      />
-    } else {
-      titleComponent = <Text
-        fontWeight="bold"
-        fontSize="lg"
-      >
-        {title}
-      </Text>
-
-      descriptionComponent = <Text
-        fontSize="xs"
-      >
-        {description}
-      </Text>
-    }
-  } else {
-    titleComponent = <Skeleton height="20px" startColor={themed('border')} endColor={themed('borderLight')} speed={0.5} />
-    descriptionComponent = (
-      <>
-        <Skeleton height="10px" startColor={themed('border')} endColor={themed('borderLight')} speed={0.5} />
-        <Skeleton height="10px" startColor={themed('border')} endColor={themed('borderLight')} speed={0.5} />
-      </>
-    )
-  }
+import { Panel, PanelBar, PanelContent, PanelInProps } from "../panel"
+import Accordion from '@components/shared/accordion'
+import SummaryInfo from '@components/create/summary/summaryInfo'
+import SummaryFiles from '@components/create/summary/summaryFiles'
 
 
-  return (
-    <Stack>
-      <Stack p="1rem" py="0.5rem">
-        {titleComponent}
-        {descriptionComponent}
-        <Stack direction={['column', 'row']} pt="0.5rem">
-          <Tag size="sm" colorScheme="red"> wgsl </Tag><Tag size="sm" colorScheme="blue"> mouse </Tag><Tag size="sm" colorScheme="teal"> spiral </Tag>
-        </Stack>
-        {
-          isPublished &&
-          <HStack pt="0.5rem">
-            <HStack>
-              <AiFillLike size={13} />
-              <Text fontSize="xs">529&nbsp;&nbsp;&bull;</Text>
-            </HStack>
-            <HStack>
-              <IoIosEye size={13} />
-              <Text fontSize="xs">20493&nbsp;&nbsp;&bull;</Text>
-            </HStack>
-            <HStack>
-              <BiGitRepoForked size={13} />
-              <Text fontSize="xs">29</Text>
-            </HStack>
-          </HStack >
-        }
-
-      </Stack>
-      <Divider />
-      <Stack p="1rem" py="0.5rem">
-        <HStack dir="row" mb="0.5rem">
-          <Avatar name={author?.name ?? 'Anonymous'} size="xs" display="inline" src={author?.image ?? undefined} />
-          <Text display="inline">
-            {author ? author.name ?? 'Anonymous' : 'Anonymous'}
-          </Text>
-        </HStack>
-
-        {
-          forkSource &&
-          <Label text="Forks">
-            <OutwardLink title={forkSource.title} href={`/editor/${forkSource.id}`} />
-          </Label>
-        }
-      </Stack>
-
-    </Stack>
-  )
-}
-
-type AccordionPanelProps = {
-  title: string,
-  initOpen?: boolean
-  children: ReactElement<any>[] | ReactElement<any>,
-  first?: boolean
-  last?: boolean
-}
-const AccordionPanel = (props: AccordionPanelProps) => {
-
-
-  const { title, children, initOpen, first } = props
-  const [isOpen, setOpen] = useState(initOpen ?? false)
-
-  const onHandleClick = () => {
-    setOpen(o => !o)
-  }
-
-  return (
-    <Flex flexDir="column">
-      <Box
-        onClick={onHandleClick}
-        cursor="pointer"
-        flex="0"
-        borderBottom={isOpen ? "1px" : props.last ? '1px' : '0px'}
-        borderTop={first ? "0px" : "1px"}
-        borderColor={themed('border')}
-        bg={themed('a1')}
-        p="0.5rem"
-        py="0.3rem"
-        _hover={{
-          bg: themed('buttonHovered')
-        }}
-      >
-        <Icon
-          as={MdArrowRight}
-          transform={isOpen ? "rotate(90deg)" : ""}
-          transition="transform 0.15s ease"
-          mr="0.5rem"
-        />
-        <Text
-          fontWeight="semibold"
-          display="inline"
-          color={themed('textMid')}
-          userSelect="none"
-          fontSize="sm"
-        >
-          {title}
-        </Text>
-      </Box>
-      {isOpen &&
-        <Box
-          maxHeight={isOpen ? "1000px" : "0px"}
-          transition="min-height 0.5s ease"
-          bg={themed('bg')}
-        >
-          {children}
-        </Box>
-      }
-    </Flex>
-  )
-
-}
-
-const SummaryPanel = (props) => {
-
-
+const SummaryPanel = (props: PanelInProps) => {
 
   return (
     <Panel {...props}>
       <PanelContent>
-        <AccordionPanel title="Shader Info" initOpen first>
-          <ProjectInfo />
-        </AccordionPanel>
-        <AccordionPanel title="Files" last>
-          <Text>
-            Test
-          </Text>
-        </AccordionPanel>
+        <Accordion title="Shader Info" initOpen first bg={themed('bg')}>
+          <SummaryInfo />
+        </Accordion>
+        <Accordion title="Files" bg={themed('a3')} w="100%">
+          <SummaryFiles instanceId={props.instanceID} />
+        </Accordion>
+        <Accordion title="Pipelines">
+
+        </Accordion>
+        <Accordion title="Project Settings" last>
+
+        </Accordion>
       </PanelContent>
       <PanelBar>
-
       </PanelBar>
     </Panel>
   )

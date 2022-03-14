@@ -3,7 +3,7 @@ import React, { } from "react"
 import { themedRaw } from "theme/theme"
 import { InterfaceProps, useInterface, useInterfaceProps } from "../paramInterface"
 import Checkbox from "@components/shared/checkbox"
-import SVGMarginBox from "@components/shared/svgMarginBox"
+import { SVGBoxManaged } from "@components/shared/svgBox"
 
 export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
@@ -63,7 +63,7 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
 
   return (
     <>
-      <svg width={size} height={size} viewBox={`-${half + 8} -${half + 8} ${size + 16} ${size + 16}`} ref={ref} onWheel={onHandleWheel}>
+      <SVGBoxManaged size={size} innerMargin={8} ref={ref} onWheel={onHandleWheel}>
         <defs>
           <clipPath id="clip">
             <circle cx={0} cy={0} r={half} />
@@ -91,12 +91,12 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
             <line x1={0} x2={activeParam[0]} y1={0} y2={activeParam[1]} strokeWidth="3px" stroke={redAlpha} strokeLinecap="round" />
           }
 
-          <text x={5} y={5} fill={text} fontSize="0.6em" fontFamily="JetBrains Mono">
+          <text x={5} y={5} fill={text} fontSize="0.6em" fontFamily="JetBrains Mono" pointerEvents="none">
             <tspan x={radius + 4} y={-4}>Θ: {(angle * (180 / Math.PI)).toFixed(0)}°</tspan>
             {/* <tspan x={-half + 5} y={20} dominantBaseline="hanging">x: {normalize(paramVal)[0].toFixed(2)}, y: {normalize(paramVal)[1].toFixed(2)}</tspan> */}
           </text>
 
-          <text fill={text} fontSize="0.55em" fontFamily="JetBrains Mono">
+          <text fill={text} fontSize="0.55em" fontFamily="JetBrains Mono" pointerEvents="none">
             <tspan x={2} y={-line1Radius + 4} dominantBaseline="hanging" opacity={Math.sqrt(actRadius / zoom)}>{actRadius}</tspan>
             <tspan x={2} y={-line2Radius + 4} dominantBaseline="hanging" opacity={Math.sqrt(actRadius / 2 / zoom)}>{actRadius / 2}</tspan>
             <tspan x={2} y={-line1Radius * 10 + 4} dominantBaseline="hanging" opacity={Math.sqrt(actRadius * 10 / zoom)}>{actRadius * 10}</tspan>
@@ -110,7 +110,7 @@ export const Vec2InterfaceRadial = (props: InterfaceProps) => {
           <tspan x={-half} y={half - 10}>x: {paramVal[0].toFixed(2)}</tspan>
           <tspan x={-half} y={half}>y: {paramVal[1]?.toFixed(2)}</tspan>
         </text>
-      </svg>
+      </SVGBoxManaged>
 
       <Box position="absolute" top="0px" p="0.25rem">
         <Checkbox title="Normalize" checked={isNorm} onCheck={onToggleNormalize} />
@@ -165,15 +165,15 @@ export const Vec2InterfaceCartesian = (props: InterfaceProps) => {
   const redAlpha = '#E53E3E50'
 
   const paramVal = toParamSpace(svgCoord)
-  console.log('paramVal', paramVal)
+  //console.log('paramVal', paramVal)
   const activeParam = fromParamSpace(paramVal)
-  console.log('activeParam', activeParam)
+  //console.log('activeParam', activeParam)
 
   const lineFreq = 5
 
   return (
     <>
-      <SVGMarginBox size={size} innerMargin={0} ref={ref} onWheel={onHandleWheel}>
+      <SVGBoxManaged size={size} innerMargin={0} ref={ref} onWheel={onHandleWheel}>
         <defs>
         </defs>
 
@@ -197,7 +197,7 @@ export const Vec2InterfaceCartesian = (props: InterfaceProps) => {
             ))
           }
         </g>
-      </SVGMarginBox>
+      </SVGBoxManaged>
     </>
   )
 }

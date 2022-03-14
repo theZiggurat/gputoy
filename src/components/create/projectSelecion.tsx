@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { Modal } from '@components/shared/modal'
 import { Box, Flex, Text, Grid, HStack, Avatar, Center, Spinner, useColorModeValue, Input } from '@chakra-ui/react'
 import { themed } from "theme/theme"
-import { CreatePageProjectQueryWithId } from "core/types/queries"
+import { ProjectQuery } from "@core/types"
 import useProjectDirect from "@core/hooks/useProjectDirect"
 import { useSession } from "next-auth/client"
 import { FiHardDrive } from 'react-icons/fi'
@@ -15,13 +15,15 @@ import NavUser from "@components/shared/user"
 import generate from "project-name-generator"
 import { MdPublishedWithChanges, MdCheck } from 'react-icons/md'
 import useProjectSession from "@core/hooks/useProjectSession"
+import Link from "next/link"
 
 type ProjectInfo = {
   id: string,
   title: string,
   authorId: string | null
   updatedAt: string,
-  type: number
+  type: number,
+  unclaimed?: boolean
 }
 
 const projectAccessModeIcon = [
@@ -41,7 +43,8 @@ const foldProjectArrays = (local: ProjectInfo[], remote: ProjectInfo[], authorId
   return localChangesSet
     .concat(localFiltered)
     .concat(remoteFiltered)
-    .filter(i => i.authorId == authorId)
+    .filter(i => i.authorId == authorId || !i.authorId)
+    .map(i => i.authorId ? i : { ...i, unclaimed: true })
     .sort((a, b) => {
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     })
@@ -91,6 +94,7 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
     for (let key in localStorage) {
       if (key.startsWith('project')) {
         const project = JSON.parse(localStorage.getItem(key)!)
+
         localProj.push({
           id: key.match(/(?<=project_local_).*/gm)![0],
           title: project.title,
@@ -143,31 +147,33 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
       >
         {
           allProjects.map(p => (
-            <Flex
-              key={p.id}
-              justifyContent="space-between"
-              w="100%"
-              borderBottom="1px"
-              borderColor={themed('borderLight')}
-              p="0.5rem"
-              pl="1rem"
-              fontSize="sm"
-              transition="background-color 0.2s ease"
-              cursor="pointer"
-              _hover={{
-                bg: themed('inputHovered')
-              }}
-              onClick={() => onClickProject(p.id)}
-            >
-              <Text fontWeight="bold" color={themed('textMid')}>
-                {p.title}
-              </Text>
-              <HStack sx={{ color: themed('textLight'), fontSize: 'lg' }}>
-                <Text fontSize="xs">
+            <Link key={p.id} href={`/editor/${p.id}`} passHref>
+              <Flex
+
+                justifyContent="space-between"
+                w="100%"
+                borderBottom="1px"
+                borderColor={themed('borderLight')}
+                p="0.5rem"
+                pl="1rem"
+                fontSize="sm"
+                transition="background-color 0.2s ease"
+                cursor="pointer"
+                _hover={{
+                  bg: themed('inputHovered')
+                }}
+              //onClick={() => onClickProject(p.id)}
+              >
+                <Text fontWeight="bold" color={themed('textMid')}>
+                  {p.title}
                 </Text>
-                {projectAccessModeIcon[p.type]}
-              </HStack>
-            </Flex>
+                <HStack sx={{ color: themed('textLight'), fontSize: 'lg' }}>
+                  <Text fontSize="xs">
+                  </Text>
+                  {projectAccessModeIcon[p.type]}
+                </HStack>
+              </Flex>
+            </Link>
           ))
         }
         {
@@ -182,7 +188,7 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
   )
 }
 
-const ProjectTemplates = (props: { templates: CreatePageProjectQueryWithId[] }) => {
+const ProjectTemplates = (props: { templates: ProjectQuery[] }) => {
 
   const fork = useFork()
   const onClickProjectTemplate = (idx: number) => fork(props.templates[idx], { title: generate().dashed })
@@ -219,7 +225,7 @@ const ProjectTemplates = (props: { templates: CreatePageProjectQueryWithId[] }) 
 }
 
 type ProjectTemplateProps = {
-  project: CreatePageProjectQueryWithId,
+  project: ProjectQuery,
   onClickProjectTemplate: (idx: number) => void,
   idx: number
 }
@@ -306,7 +312,7 @@ const ProjectTemplate = (props: ProjectTemplateProps) => {
   )
 }
 
-const ProjectSelection = (props: { templates: CreatePageProjectQueryWithId[] }) => {
+const ProjectSelection = (props: { templates: ProjectQuery[] }) => {
 
   const [session, loading] = useSession()
 

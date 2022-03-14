@@ -5,6 +5,7 @@ export default {
   base: 'vs-dark',
   inherit: true,
   rules: [
+    { token: 'attributes', foreground: "#CFBD10" },
     { token: 'keyword', foreground: "#FF6188" },
     { token: 'typeKeyword', foreground: "#AB9DF2" },
     { token: 'constants', foreground: "#AB9DF2" },
@@ -14,17 +15,18 @@ export default {
     { token: 'number', foreground: "#78DCE8" },
     { token: 'operator', foreground: '#FF6188' },
     { token: 'punctuation', foreground: "#939293" },
+    { token: 'params', foreground: '#FFFF00' },
+
   ],
   colors: {
     'editor.foreground': '#FFFFFF30',
-    'editor.background': '#0D0D0D',
+    'editor.background': '#050505',
     'editorCursor.foreground': '#FFFFFF80',
     'editor.lineHighlightBackground': '#FFFFFF10',
     'editorLineNumber.foreground': '#FFFFFF30',
     'editorLineNumber.activeForeground': '#FFFFFF80',
     'editor.selectionBackground': '#FFFFFF25',
     'editor.inactiveSelectionBackground': '#FFFFFF15',
-
     'scrollbarSlider.background': '#FFFFFF06', // Slider background color.
     'scrollbarSlider.hoverBackground': '#FFFFFF10', // Slider background color when hovering.
     'scrollbarSlider.activeBackground': '#FFFFFF16',
@@ -35,7 +37,6 @@ export default {
     'editorSuggestWidget.selectedBackground': '#FFFFFF20', // Background color of the selected entry in the suggest widget.
     'editorSuggestWidget.highlightForeground': '#78DCE8', // Color of the match highlights in the suggest widget.
     'editorWidget.border': '#FFFFFF20',
-
     'input.background': '#FFFFFF20', // Input box background.
     'input.foreground': '#FFFFFF80', // Input box foreground.
     'input.border': 'none', // Input box border.

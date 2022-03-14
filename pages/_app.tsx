@@ -1,7 +1,7 @@
 import { Box, ChakraProvider, Flex, Spinner } from '@chakra-ui/react'
 import "@fontsource/jetbrains-mono"
 import Compiler from '@core/system/compiler'
-import useGPU from '@core/hooks/useGPU'
+import useGPU from '@core/hooks/singleton/useGPU'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import { useRouter } from 'next/router'

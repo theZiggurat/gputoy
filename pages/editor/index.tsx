@@ -1,5 +1,5 @@
 import { chakra, useColorModeValue } from '@chakra-ui/react'
-import usePanels from '@core/hooks/usePanels'
+import usePanels from '@core/hooks/singleton/usePanels'
 import { GetStaticProps } from 'next'
 import Head from 'next/head'
 import React from 'react'
@@ -9,12 +9,12 @@ import descriptors from '@components/panels/descriptors'
 import { Panels } from '@components/panels/panel'
 import Nav from '@components/create/navbar'
 import { scrollbarHidden } from 'theme/consts'
-import { CreatePageProjectQueryWithId, createPageProjectQueryWithId } from 'core/types/queries'
+import { ProjectQuery, projectQuery } from '@core/types'
 import ProjectSelection from '@components/create/projectSelecion'
 
 export const getStaticProps: GetStaticProps = async ({ req, res }) => {
   const templates = await prisma.project.findMany({
-    ...createPageProjectQueryWithId,
+    ...projectQuery,
     where: {
       template: true,
     }
@@ -22,11 +22,11 @@ export const getStaticProps: GetStaticProps = async ({ req, res }) => {
   return {
     props: {
       templates
-    },
+    }
   }
 }
 
-const Create = (props: { templates: CreatePageProjectQueryWithId[] }) => {
+const Create = (props: { templates: ProjectQuery[] }) => {
 
   const panelProps = usePanels({})
 

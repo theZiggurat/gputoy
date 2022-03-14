@@ -6,22 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="ea527df2-fa52-4273-9ae1-d7403b9fac23" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../next.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../next.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pages/_app.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/_app.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pages/create.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/create.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pages/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../pages/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/index/editorDemo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/index/editorDemo.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/panels/impls/editorPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/impls/editorPanel.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/components/panels/impls/viewPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/impls/viewPanel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/panels/panel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/panels/panel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/shared/misc/typer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/shared/misc/typer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/shared/navbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/shared/navbar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/shared/user.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/shared/user.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/gpu/params.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/gpu/params.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/recoil/project.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/recoil/project.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/theme/theme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/theme/theme.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/hooks/singleton/useProjectManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/singleton/useProjectManager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/hooks/singleton/useProjectStorage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/hooks/singleton/useProjectStorage.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/recoil/atoms/system.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/recoil/atoms/system.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/core/system/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/core/system/index.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,9 +41,9 @@
   </component>
   <component name="RunManager">
     <configuration name="Build" type="WasmPackCommandRunConfiguration" factoryName="wasm-pack" nameIsGenerated="true">
-      <option name="command" value="build --target web" />
+      <option name="command" value="build --target web --out-dir ../pkg" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="command" value="build --target web" />
+      <option name="command" value="build --target web --out-dir ../pkg" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <method v="2">
         <option name="WASM_PACK.BUILD_TASK_PROVIDER" enabled="true" />

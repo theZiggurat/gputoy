@@ -1,7 +1,19 @@
-/**
- * Current status of project
- */
-export type ProjectStatus = {
+import { Logger } from "@core/recoil/atoms/console"
+import { Namespace, ValidationResult } from "./shaderTypes"
+
+
+export * from './shaderTypes'
+export * from './fileTypes'
+export * from './ioTypes'
+export * from './graphTypes'
+export * from './prismaTypes'
+export * from './pipelineTypes'
+
+
+export type SystemValidationState = 'unvalidated' | 'validating' | 'validated' | 'failed'
+export type SystemBuildState = 'unbuilt' | 'building' | 'built' | 'failed'
+
+export type SystemFrameState = {
   lastStartTime: number
   lastFrameRendered: number
   dt: number
@@ -11,40 +23,45 @@ export type ProjectStatus = {
   running: boolean
 }
 
-/**
- * TODO: add mat4, vec4f, vec4i, and rgba
- */
-export type ParamType = 'int' | 'float' | 'color' | 'vec3f' | 'vec2f' | 'vec3i' | 'vec2i'
-
-/**
-* Holds data and metadata for single parameter in uniform
-*/
-export type ParamDesc = {
-  paramName?: string,
-  paramType: ParamType
-  param: number[],
-  key?: string,
-  interface?: number,
-  interfaceProps?: any
+export type SystemPrebuildResult = {
+  namespace: Record<string, Namespace>,
+  validations: Record<string, ValidationResult>
 }
 
-
-/**
- * Both languages supported by GPUtoy
- */
-export type Lang = 'wgsl' | 'glsl'
-
-/**
- * A single shader file
- */
-export type Shader = {
-  id: string
-  filename: string,
-  file: string,
-  lang: Lang,
-  isRender?: boolean,
+export const defaultFrameState = {
+  lastStartTime: 0,
+  lastFrameRendered: 0,
+  dt: 0,
+  frameNum: 0,
+  runDuration: 0,
+  prevDuration: 0,
+  running: false,
 }
 
+export type FileId = string
+export type ChannelId = string
+export type ChannelNodeId = string
+
+export type GPUInitResult = 'ok' | 'error' | 'incompatible' | 'uninitialized'
+
+export type AttachResult = {
+  canvas: HTMLCanvasElement,
+  canvasContext: GPUCanvasContext,
+  targetTexture: GPUTexture,
+  presentationSize: number[],
+  preferredFormat: GPUTextureFormat,
+}
+
+export interface Resource {
+  label: string
+  getBindGroupEntry: (binding: number) => GPUBindGroupEntry
+  getBindGroupLayoutEntry: (binding: number, visibility: number) => GPUBindGroupLayoutEntry
+  destroy: () => void
+}
+
+/**
+ * Misc project types
+ */
 export type MousePos = {
   x: number,
   y: number
@@ -59,3 +76,28 @@ export type Author = {
   name: string | null,
   image: string | null
 }
+
+/**
+ *  Layout types
+ */
+export type Locator = 'last-select' | 'depth' | 'depth-inv'
+export type Task = {
+  sourceId: string,
+  message: string,
+  targetId?: string,
+  targetPanelIndex?: number
+  locateBy?: Locator
+  args?: any
+}
+
+export type InstanceSelector = {
+  id: string,
+  index?: number
+}
+
+export type EditorLayout = {
+  layout: any,
+  instances: { [key: string]: InstanceState & { index?: number } }
+}
+
+export type InstanceState = any

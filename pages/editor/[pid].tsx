@@ -1,8 +1,8 @@
 import { chakra, useColorModeValue } from '@chakra-ui/react'
-import usePanels from '@core/hooks/usePanels'
-import useProjectManager from '@core/hooks/useProjectManager'
-import useProjectStorage from '@core/hooks/useProjectStorage'
-import { GetServerSideProps, GetStaticPaths, GetStaticProps } from 'next'
+import usePanels from '@core/hooks/singleton/usePanels'
+import useProjectManager from '@core/hooks/singleton/useProjectManager'
+import useProjectStorage from '@core/hooks/singleton/useProjectStorage'
+import { GetServerSideProps } from 'next'
 import React, { useEffect } from 'react'
 import { lightResizer, darkResizer } from 'theme/consts'
 import prisma from 'core/backend/prisma'
@@ -10,7 +10,7 @@ import descriptors from '@components/panels/descriptors'
 import { Panels } from '@components/panels/panel'
 import Nav from '@components/create/navbar'
 import { scrollbarHidden } from 'theme/consts'
-import { CreatePageProjectQuery, createPageProjectQuery, createPageProjectSaveHistory, CreatePageProjectSaveHistorySer } from 'core/types/queries'
+import { ProjectQuery, projectQuery, projectSaveHistory, ProjectSaveHistorySerialized } from 'core/types'
 import { useSession } from 'next-auth/client'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { currentProjectIdAtom, projectTitleAtom } from 'core/recoil/atoms/project'
@@ -18,56 +18,41 @@ import KeybindManager from '@components/create/keybinds'
 import RecoilDebugPanel from '@components/create/debug'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import { useTaskCoordinator } from '@core/hooks/useTask'
+import useLogger from '@core/hooks/useLogger'
 
 type CreatePageProps = {
   projectId: string,
-  project?: CreatePageProjectQuery | null,
-  dateInfo: CreatePageProjectSaveHistorySer | null
+  project?: ProjectQuery | null,
+  dateInfo: ProjectSaveHistorySerialized | null
 }
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  const query = await prisma.project.findMany({
-    select: {
-      id: true
-    },
-    where: {
-      template: true
-    }
-  })
-  const paths = query.map(q => ({ params: { pid: q.id } }))
-
-  return { paths, fallback: 'blocking' }
-}
-
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+export const getServerSideProps: GetServerSideProps = async ({ params }) => {
 
   const id = params.pid as string
-
   const project = await prisma.project.findUnique({
-    ...createPageProjectQuery,
+    ...projectQuery,
     where: {
       id: id
     }
   })
 
   const dateInfo = await prisma.project.findUnique({
-    ...createPageProjectSaveHistory,
+    ...projectSaveHistory,
     where: {
       id: id
     }
   })
-
-  const ret = {
-    projectId: id,
-    project,
-    dateInfo: dateInfo == null ?
-      null : {
-        updatedAt: dateInfo?.updatedAt?.toISOString() ?? "",
-        createdAt: dateInfo?.createdAt?.toISOString() ?? ""
-      }
-  }
   return {
-    props: ret
+    props: {
+      projectId: id,
+      project,
+      dateInfo: dateInfo == null ?
+        null : {
+          updatedAt: dateInfo?.updatedAt?.toISOString() ?? "",
+          createdAt: dateInfo?.createdAt?.toISOString() ?? ""
+        }
+    }
   }
 }
 
@@ -82,8 +67,15 @@ const ScopedProjectManager = (props: CreatePageProps) => {
 
   const [session, loading] = useSession()
 
-  useProjectStorage({ session, projectFromDB: props.project, dateInfo: props.dateInfo })
+  useProjectStorage({ session, projectFromDB: props.project ?? undefined, dateInfo: props.dateInfo })
   useProjectManager()
+
+  return <></>
+}
+
+const UITaskCoordinator = () => {
+  const logger = useLogger()
+  useTaskCoordinator(logger)
 
   return <></>
 }
@@ -98,10 +90,6 @@ const Create = (props: CreatePageProps) => {
   useEffect(() => {
     setProjectId(props.projectId)
   }, [props.projectId, setProjectId])
-
-  useEffect(() => {
-    console.log('FALLBACK?: ', router.isFallback)
-  }, [router])
 
   return (
     <>
@@ -119,6 +107,7 @@ const Create = (props: CreatePageProps) => {
 
         <RecoilDebugPanel />
         <ScopedProjectManager {...props} />
+        <UITaskCoordinator />
         <KeybindManager />
 
         <Nav />

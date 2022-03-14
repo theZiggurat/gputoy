@@ -1,5 +1,4 @@
 import { Box, chakra, Flex, FlexProps } from "@chakra-ui/react"
-import { useState } from "react"
 import { themed } from "theme/theme"
 
 type CheckboxProps = {

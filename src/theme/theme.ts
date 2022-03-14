@@ -6,7 +6,7 @@ export const themed = (key: string) => useColorModeValue(`light.${key}`, `dark.$
 // eslint-disable-next-line react-hooks/rules-of-hooks
 export const themedRaw = (key: string) => useColorModeValue(light[key], dark[key])
 
-export const fontMono = '"JetBrains Mono", "Fira code", "Fira Mono", monospace'
+export const fontMono = '"Fira code", "Fira Mono", monospace'
 
 const dark = {
   p: '#0D0D0D',
@@ -30,6 +30,7 @@ const dark = {
   bgInterface: '#050505',
   s1Interface: 'rgba(255, 255, 255, 0.1)',
   s2Interface: 'rgba(255, 255, 255, 0.05)',
+  overlay: 'rgba(0, 0, 0, 0.2)'
 }
 
 const light = {
@@ -54,6 +55,7 @@ const light = {
   bgInterface: '#DADADA',
   s1Interface: 'rgba(0, 0, 0, 0.2)',
   s2Interface: 'rgba(0, 0, 0, 0.1)',
+  overlay: 'rgba(255, 255, 255, 0.2)'
 }
 
 const theme = extendTheme({
@@ -71,7 +73,7 @@ const theme = extendTheme({
         bg: mode('light.p', 'dark.p')(props),
       },
       button: {
-        color: mode('rgba(0, 0, 0, 0.72)', 'rgba(255, 255, 255, 0.72)')(props),
+        color: mode('rgba(0, 0, 0, 0.65)', 'rgba(255, 255, 255, 0.72)')(props),
         bg: mode('rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.04)')(props),
         border: '1px',
         borderColor: 'transparent',//mode('rgba(0, 0, 0, 0.2)', 'rgba(255, 255, 255, 0.05)')(props),

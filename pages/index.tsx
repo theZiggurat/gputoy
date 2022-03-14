@@ -3,7 +3,6 @@ import {
   Button, chakra, Flex, FlexProps, Heading, HeadingProps, Link, Stack, Text, TextProps, useColorModeValue
 } from '@chakra-ui/react'
 import Footer from '@components/index/footer'
-import { CreatePageProjectQueryWithId } from 'core/types/queries'
 import "@fontsource/jetbrains-mono"
 import Head from 'next/head'
 import React, { ReactNode, useEffect, useState } from 'react'

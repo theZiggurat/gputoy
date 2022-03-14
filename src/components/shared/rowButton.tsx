@@ -2,6 +2,7 @@ import {
   Button, ButtonProps, IconButton,
   IconButtonProps, useColorModeValue
 } from '@chakra-ui/react'
+import { themed } from '@theme/theme';
 import React from 'react'
 
 declare type OmittedProps = "aria-label";
@@ -34,17 +35,17 @@ interface RowToggleButtonProps {
 }
 export const RowToggleButton = (props: RowToggleButtonProps) => {
   const { first, last, toggled, text, onClick } = props
-  const color = useColorModeValue('whiteAlpha.600', 'whiteAlpha.50')
+  const color = toggled ? themed('buttonHovered') : themed('button')
 
   return (
     <Button
       size="xs"
       fontWeight="normal"
-      bg={toggled ? '' : color}
+      bg={color}
       borderStartRadius={first ? "" : "0px"}
       borderEndRadius={last ? "" : "0px"}
       borderLeft={first ? "" : "0"}
-      px="1rem"
+      px="0.75rem"
       onClick={onClick}
     >
       {text}

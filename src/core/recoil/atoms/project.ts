@@ -1,8 +1,11 @@
 import * as types from '@core/types'
+import { ProjectType } from '@prisma/client'
+import generate from 'project-name-generator'
 import { atom, atomFamily, DefaultValue, selector } from 'recoil'
-// @ts-ignore
-import defaultShader from '../../../../shaders/basicShader.wgsl'
 import { projectRunStatusAtom } from './controls'
+import { withProjectFilesJSON } from './files'
+import { withEditorLayout } from './instance'
+import { layoutAtom } from './layout'
 
 
 export const currentProjectIdAtom = atom<string>({
@@ -28,11 +31,6 @@ export const projectTagsAtom = atom<string[]>({
 export const projectAuthorAtom = atom<types.Author | null>({
   key: 'projectAuthor',
   default: null
-})
-
-export const projectShadersAtom = atom<types.Shader[]>({
-  key: 'projectShaders',
-  default: [{ file: defaultShader, filename: 'render', lang: 'wgsl', isRender: true, id: '' }],
 })
 
 export const projectParamsAtom = atomFamily<types.ParamDesc, string>({
@@ -100,7 +98,7 @@ export const projectShaderErrorsAtom = atom<FileErrors>({
 })
 
 export const withDefaultParams = selector<types.ParamDesc[]>({
-  key: 'defaultParams',
+  key: 'withDefaultParams',
   get: ({ get }) => {
 
     const mouseFlipped = get(mousePosAtom)
@@ -121,8 +119,8 @@ export const withDefaultParams = selector<types.ParamDesc[]>({
   },
 })
 
-export const withUserParams = selector<types.ParamDesc[]>({
-  key: 'userParams',
+export const withParamsJSON = selector<types.ParamDesc[]>({
+  key: 'withParamsJSON',
   get: ({ get }) => {
     const paramKeys = get(projectParamKeys)
     return paramKeys.map(k => ({
@@ -140,6 +138,73 @@ export const withUserParams = selector<types.ParamDesc[]>({
         set(projectParamsAtom(param.key!), param)
         set(projectParamInterfaceProps(param.key!), interfaceProps)
       })
+    }
+  }
+})
+
+export const withProjectJSON = selector<types.ProjectQuery>({
+  key: 'createPageProject',
+  get: ({ get }): types.ProjectQuery => {
+
+    const id = get(currentProjectIdAtom)
+    const title = get(projectTitleAtom)!
+    const description = get(projectDescriptionAtom)
+    const author = get(projectAuthorAtom)
+    const forkSource = get(projectForkSource)
+    const type = ProjectType.DEFAULT
+
+    const params = get(withParamsJSON)
+    const files = get(withProjectFilesJSON)
+    const tags = get(projectTagsAtom)
+    const layout = get(withEditorLayout)
+    const config = {}
+    const graph = {}
+    //console.log('GETTING', layout)
+
+    return {
+      id: id,
+      title,
+      description,
+      params,
+      type,
+      files,
+      layout,
+      config,
+      graph,
+      author,
+      published: false,
+      tags: tags.map(t => { return { tag: { name: t } } }),
+      forkedFrom: forkSource
+    }
+  },
+  set: ({ set, reset }, proj) => {
+    if (proj instanceof DefaultValue) {
+      reset(currentProjectIdAtom)
+      reset(projectTitleAtom)
+      reset(projectDescriptionAtom)
+      reset(projectAuthorAtom)
+      reset(withParamsJSON)
+      reset(layoutAtom)
+      reset(projectForkSource)
+      reset(projectIsPublished)
+      reset(withProjectFilesJSON)
+    } else {
+
+      set(currentProjectIdAtom, proj.id)
+      set(projectTitleAtom, proj.title ?? `${generate().dashed}`)
+      set(projectDescriptionAtom, proj.description)
+      set(projectAuthorAtom, proj.author)
+      set(projectIsPublished, proj.published)
+      set(projectForkSource, proj.forkedFrom)
+
+      const layout: types.EditorLayout = {
+        layout: proj.layout?.layout ?? new DefaultValue(),
+        instances: proj.layout?.instances ?? new DefaultValue(),
+      }
+      set(withEditorLayout, layout)
+
+      set(withProjectFilesJSON, (proj.files as { [key: string]: types.File }) ?? new DefaultValue())
+      set(withParamsJSON, (proj.params as types.ParamDesc[]) ?? [])
     }
   }
 })

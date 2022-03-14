@@ -1,15 +1,5 @@
-import { Logger } from "core/recoil/atoms/console"
-
-export type GPUInitResult = 'ok' | 'error' | 'incompatible' | 'uninitialized'
-
-export type AttachResult = {
-    canvas: HTMLCanvasElement,
-    canvasContext: GPUCanvasContext,
-    targetTexture: GPUTexture,
-    presentationSize: number[],
-    preferredFormat: GPUTextureFormat,
-}
-
+import * as types from '@core/types'
+import { Logger } from '@core/recoil/atoms/console'
 class _GPU {
 
     adapter!: GPUAdapter
@@ -19,7 +9,7 @@ class _GPU {
 
     constuctor() { }
 
-    async init(logger?: Logger): Promise<GPUInitResult> {
+    async init(logger?: Logger): Promise<types.GPUInitResult> {
 
         if (!navigator.gpu)
             return 'incompatible'
@@ -62,7 +52,7 @@ class _GPU {
         return !(this.adapter == null || this.device == null)
     }
 
-    attachCanvas = async (canvasID: string, logger?: Logger): Promise<AttachResult | null> => {
+    attachCanvas = async (canvasID: string, logger?: Logger): Promise<types.AttachResult | null> => {
 
         if (!GPU.isInitialized()) {
             logger?.err('GPU', 'Trying to attach canvas without GPU initialized.')
@@ -128,7 +118,7 @@ class _GPU {
         }
     }
 
-    handleResize = (attachResult: AttachResult, newsize: number[]) => {
+    handleResize = (attachResult: types.AttachResult, newsize: number[]) => {
         attachResult.targetTexture.destroy()
         attachResult.canvasContext.configure({
             device: this.device,
@@ -140,10 +130,6 @@ class _GPU {
 
         return attachResult
     }
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 const GPU = new _GPU;

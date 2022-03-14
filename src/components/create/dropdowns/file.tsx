@@ -12,10 +12,7 @@ const FileDropdown = () => {
 
   return (
     <Dropdown text="File">
-      <DropdownItem text="Exit" rightText="Ctrl+Esc" />
-      <DropdownDivider />
-      <DropdownItem text="New" rightText="Ctrl+N" />
-      <DropdownItem text="Open" rightText="Ctrl+O" onClick={goToOpen} />
+      <DropdownItem text="Select Workspace" onClick={goToOpen} />
       <DropdownDivider />
       <DropdownItem text="Save" rightText="Ctrl+S" onClick={() => post('save')} disabled={!canPost} />
       <DropdownItem text="Download" />

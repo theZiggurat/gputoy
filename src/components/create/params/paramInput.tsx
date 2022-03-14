@@ -161,10 +161,39 @@ const Vec3IInput = (props: InputProps) => {
   </>
 }
 
+const ColorInput = (props: InputProps) => {
+  return <>
+    <ValueInput
+      value={props.value[0]}
+      precision={0}
+      onValueChange={num => props.onChange([num, props.value[1], props.value[2], props.value[3]])}
+      label="r"
+    />
+    <ValueInput
+      value={props.value[1]}
+      precision={0}
+      onValueChange={num => props.onChange([props.value[0], num, props.value[2], props.value[3]])}
+      label="g"
+    />
+    <ValueInput
+      value={props.value[2]}
+      precision={0}
+      onValueChange={num => props.onChange([props.value[0], props.value[1], num, props.value[3]])}
+      label="b"
+    />
+    <ValueInput
+      value={props.value[3]}
+      precision={0}
+      onValueChange={num => props.onChange([props.value[0], props.value[1], props.value[2], num])}
+      label="a"
+    />
+  </>
+}
+
 export const typeToInputs = {
   'int': IntInput,
   'float': FloatInput,
-  'color': FloatInput,
+  'color': ColorInput,
   'vec3f': Vec3FInput,
   'vec3i': Vec3IInput,
   'vec2f': Vec2FInput,

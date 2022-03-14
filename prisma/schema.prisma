@@ -8,14 +8,9 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-model Shader {
-  id        String   @id @default(cuid())
-  project   Project? @relation(fields: [projectId], references: [id])
-  projectId String?
-  source    String
-  lang      String
-  name      String
-  isRender  Boolean  @default(false)
+enum ProjectType {
+  DEFAULT
+  LIB
 }
 
 model Project {
@@ -23,13 +18,14 @@ model Project {
   title        String
   description  String?
   tags         TagsOnProjects[]
+  type         ProjectType      @default(DEFAULT)
   author       User?            @relation(fields: [authorId], references: [id])
   authorId     String?
-  shaders      Shader[]
-  params       String?
-  graph        String?
-  layout       String?
-  config       String?
+  files        Json?
+  params       Json?
+  graph        Json?
+  layout       Json?
+  config       Json?
   published    Boolean          @default(false)
   forkedFrom   Project?         @relation("ProjectForks", fields: [forkedFromId], references: [id])
   forkedFromId String?
@@ -68,10 +64,10 @@ model User {
   image         String?
   createdAt     DateTime  @default(now()) @map(name: "created_at")
   updatedAt     DateTime  @updatedAt @map(name: "updated_at")
-  config        String?
+  config        Json?
   projects      Project[]
+  Tag           Tag[]
 
-  Tag Tag[]
   @@map(name: "users")
 }
 

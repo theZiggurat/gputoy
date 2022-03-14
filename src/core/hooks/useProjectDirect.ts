@@ -1,4 +1,4 @@
-import { CreatePageProjectQueryWithId } from "core/types/queries"
+import { ProjectQuery } from "@core/types"
 import ProjectDirect from "@core/system/projectDirect"
 import { projectStatusDefault } from "core/recoil/atoms/controls"
 import { Dispatch, SetStateAction, useRef, useState, useEffect, MutableRefObject } from "react"
@@ -6,7 +6,7 @@ import { useRecoilValue } from "recoil"
 import { gpuStatusAtom } from "../../core/recoil/atoms/gpu"
 
 const useProjectDirect = (
-  project: CreatePageProjectQueryWithId,
+  project: ProjectQuery,
   autoplay: boolean,
   ...canvasIDs: string[]
 ): [boolean, Dispatch<SetStateAction<boolean>>] => {

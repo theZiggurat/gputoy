@@ -1,6 +1,6 @@
 import { useToast } from "@chakra-ui/toast"
-import { CreatePageProjectQueryWithId } from "core/types/queries"
-import { withCreatePageProject } from "core/recoil/selectors/queries"
+import { ProjectQuery } from "@core/types"
+import { withProjectJSON } from "@core/recoil/atoms/project"
 import { projectLastSave, projectLastSaveLocal } from "core/recoil/atoms/project"
 import { nanoid } from "nanoid"
 import router from "next/router"
@@ -15,12 +15,12 @@ const useFork = () => {
   const setProjectLastSave = useSetRecoilState(projectLastSave)
   const setProjectLastSaveLocal = useSetRecoilState(projectLastSaveLocal)
 
-  const getProject = useRecoilCallback(({ snapshot: { getLoadable } }) => () => getLoadable(withCreatePageProject).getValue())
+  const getProject = useRecoilCallback(({ snapshot: { getLoadable } }) => () => getLoadable(withProjectJSON).getValue())
   const [session, loading, isOwner] = useProjectSession()
 
   const toast = useToast()
 
-  const fork = (inputProject?: CreatePageProjectQueryWithId, forkOptions?: ForkOptions) => {
+  const fork = (inputProject?: ProjectQuery, forkOptions?: ForkOptions) => {
 
     const localProjectId = nanoid(8)
     const updateDateLocal = new Date().toISOString()
@@ -38,11 +38,6 @@ const useFork = () => {
         image: session?.user?.image ?? null
       } ?? null,
       id: localProjectId,
-      shaders: project.shaders.map(s => ({
-        ...s,
-        id: '',
-        projectId: localProjectId,
-      })),
       updatedAt: updateDateLocal,
       published: false
     }

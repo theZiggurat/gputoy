@@ -1,41 +1,6 @@
 import { Logger } from 'core/recoil/atoms/console'
-import * as types from '../core/types'
-
-const declInfo = {
-  'int': { size: 4, align: 4, order: 6, glsl: 'int', wgsl: 'i32', writeType: 'int' },
-  'float': { size: 4, align: 4, order: 3, glsl: 'float', wgsl: 'f32', writeType: 'float' },
-  'color': { size: 12, align: 16, order: 1, glsl: 'vec3', wgsl: 'vec3<f32>', writeType: 'float' },
-  'vec3f': { size: 12, align: 16, order: 0, glsl: 'vec3', wgsl: 'vec3<f32>', writeType: 'float' },
-  'vec3i': { size: 12, align: 16, order: 4, glsl: 'ivec3', wgsl: 'vec3<i32>', writeType: 'int' },
-  'vec2f': { size: 8, align: 8, order: 2, glsl: 'vec2', wgsl: 'vec2<f32>', writeType: 'float' },
-  'vec2i': { size: 8, align: 8, order: 5, glsl: 'ivec2', wgsl: 'vec2<i32>', writeType: 'int' },
-}
-
-export const encode = (val: number[], type: types.ParamType): string => {
-  switch (type) {
-    case 'color': return "#".concat(val.map(d => {
-      let v = (d * 255).toString(16)
-      return v.length == 1 ? '0' + v : v
-    }).join(''))
-    case 'int': return val[0].toString()
-    case 'float': return val[0].toString()
-    default: return val.map(toString).join(',')
-  }
-}
-
-export const decode = (val: string, type: types.ParamType): number[] => {
-  switch (type) {
-    case 'float': return [parseFloat(val)]
-    case 'int': return [parseInt(val)]
-    case 'vec2f' || 'vec3f': return val.split(',').map(parseFloat)
-    case 'vec2i' || 'vec3i': return val.split(',').map(parseInt)
-    case 'color': {
-      let z = parseInt(val.substr(1), 16)
-      return [(z >> 16 & 0xFF) / 255, (z >> 8 & 0xFF) / 255, (z >> 0 & 0xFF) / 255]
-    }
-    default: return [0]
-  }
-}
+import * as types from '@core/types'
+import { typeInfo } from '@core/types'
 
 class Params {
 
@@ -117,11 +82,11 @@ class Params {
     if (namedParams.length > 0) {
       namedParams.forEach((p, idx) => {
         this.byteOffsets[idx] = idx == 0 ? 0 :
-          roundUp(declInfo[p.paramType].align, this.byteOffsets[idx - 1] + declInfo[namedParams[idx - 1].paramType].size)
-        align = Math.max(align, declInfo[p.paramType].align)
+          roundUp(typeInfo[p.paramType].align, this.byteOffsets[idx - 1] + typeInfo[namedParams[idx - 1].paramType].size)
+        align = Math.max(align, typeInfo[p.paramType].align)
       })
       let lastMemberType = namedParams[namedParams.length - 1].paramType
-      this.sizeByte = roundUp(align, this.byteOffsets[namedParams.length - 1] + declInfo[lastMemberType].size)
+      this.sizeByte = roundUp(align, this.byteOffsets[namedParams.length - 1] + typeInfo[lastMemberType].size)
     }
 
     if (this.sizeByte == 0) return
@@ -131,8 +96,8 @@ class Params {
       size: this.sizeByte,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
-    logger?.debug(`Params_@${this.name}`, `Buffer created with size of ${this.sizeByte} bytes and config: \n`.concat(
-      namedParams.map((p: types.ParamDesc, idx: number) => `${this.byteOffsets[idx]}\t${p.paramName}\t\t${declInfo[p.paramType].size} bytes -- ${declInfo[p.paramType].align} align`).join('\n')
+    logger?.debug(`Params`, `Buffer \`${this.name}\` created with size of ${this.sizeByte} bytes and config: \n`.concat(
+      namedParams.map((p: types.ParamDesc, idx: number) => `${this.byteOffsets[idx]}\t${p.paramName}\t\t${typeInfo[p.paramType].size} bytes -- ${typeInfo[p.paramType].align} align`).join('\n')
     ))
 
     this.bindGroupLayout = device.createBindGroupLayout({
@@ -172,7 +137,7 @@ class Params {
     let intView = new Int32Array(byteBuffer, 0, this.sizeByte / 4)
 
     namedParams.forEach((p, idx) => {
-      if (declInfo[p.paramType].writeType == 'int')
+      if (typeInfo[p.paramType].writeType == 'int')
         intView.set(p.param, this.byteOffsets[idx] / 4)
       else
         floatView.set(p.param, this.byteOffsets[idx] / 4)
@@ -190,18 +155,18 @@ class Params {
   getBindGroup = (): GPUBindGroup => this.bindGroup
   getBindGroupLayout = (): GPUBindGroupLayout => this.bindGroupLayout
   getBuffer = (): GPUBuffer => this.buffer
-  getShaderDecl = (lang: string): string => {
+  getShaderDecl = (lang: types.ExtensionShader): string => {
     const namedParams = this.params.filter(p => !!p.paramName)
     if (namedParams.length == 0) return ''
     let unidecl = []
     if (lang == 'wgsl') {
       //unidecl.push('[[block]]')
       unidecl.push(`struct ${this.name} {`)
-      namedParams.forEach(p => unidecl.push(`\t${p.paramName}: ${declInfo[p.paramType].wgsl};`))
-      unidecl.push(`};\n[[group(${this.group}), binding(${this.binding})]]\nvar<uniform> ${this.prefix}: ${this.name};\n`)
+      namedParams.forEach(p => unidecl.push(`\t${p.paramName}: ${typeInfo[p.paramType].wgsl};`))
+      unidecl.push(`};\n@group(${this.group}) @binding(${this.binding}) var<uniform> ${this.prefix}: ${this.name};\n`)
     } else {
       unidecl.push(`layout(binding = ${this.binding}, set = ${this.group}) uniform ${this.name} {`)
-      namedParams.forEach(p => unidecl.push(`\t${declInfo[p.paramType].glsl} ${p.paramName};`))
+      namedParams.forEach(p => unidecl.push(`\t${typeInfo[p.paramType].glsl} ${p.paramName};`))
       unidecl.push(`} ${this.prefix};\n`)
     }
     return unidecl.join('\n')

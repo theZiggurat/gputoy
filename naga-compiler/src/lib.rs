@@ -5,9 +5,8 @@ use std::ops::Deref;
 use wasm_bindgen::prelude::*;
 use serde_json;
 
-use naga::ShaderStage;
+use naga::{Module, ShaderStage};
 use naga::valid::{Validator, ValidationFlags, Capabilities};
-//use naga::back::spv::{Writer, Options};
 
 use console_error_panic_hook;
 use std::panic;
@@ -29,6 +28,58 @@ extern "C" {
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     pub fn log(s: &str);
+}
+
+#[wasm_bindgen]
+pub fn introspect(src: &str, lang: &str, stage: &str) -> Option<String> {
+
+    panic::set_hook(Box::new(console_error_panic_hook::hook));
+
+    let module = match lang {
+        "glsl" => introspect_glsl(src, stage),
+        "wgsl" => introspect_wgsl(src),
+        _ => None
+    };
+
+    module.map(|m| serde_json::to_string_pretty(&m).unwrap())
+}
+
+fn introspect_glsl(src: &str, stage: &str) -> Option<Module> {
+    use naga::front::glsl::{Parser};
+
+    let mut parser = Parser::default();
+    let options = naga::front::glsl::Options::from(match stage {
+        "vertex" => ShaderStage::Vertex,
+        "fragment" => ShaderStage::Fragment,
+        "compute" => ShaderStage::Compute,
+        _ => {
+            let errstr = format!("Invalid shader stage: {}", stage);
+            error(&errstr[..]);
+            ERRORS.lock().unwrap().push(errstr);
+            return None;
+        }
+    });
+
+    match parser.parse(&options, src) {
+        Ok(module) => Some(module),
+        Err(errs) => {
+            errs.iter().for_each(|err| {
+                error(&err.to_string()[..]);
+                ERRORS.lock().unwrap().push(err.to_string());
+            });
+            None
+        }
+    }
+}
+
+fn introspect_wgsl(src: &str) -> Result<Module, String> {
+    use naga::front::wgsl::Parser;
+
+    let mut parser = Parser::new();
+    match parser.parse(src) {
+        Ok(module) => Ok(module),
+        Err(err) => serde_json::to_string(&err).unwrap()
+    }
 }
 
 #[wasm_bindgen]
@@ -62,8 +113,7 @@ pub fn compile_glsl(src: &str, stage: &str) -> Option<String> {
         }
     };
 
-    let config = ron::ser::PrettyConfig::default().with_new_line("\n".to_string());
-    let string = ron::ser::to_string_pretty(&module, config).unwrap();
+    let string = serde_json::to_string_pretty(&module).unwrap();
     IR.lock().unwrap().replace_range(.., &string[..]);
 
     let info = match Validator::new(
@@ -78,12 +128,11 @@ pub fn compile_glsl(src: &str, stage: &str) -> Option<String> {
         }
     };
 
-    let config = ron::ser::PrettyConfig::default().with_new_line("\n".to_string());
-    let string = ron::ser::to_string_pretty(&info, config).unwrap();
+    let string = serde_json::to_string_pretty(&info).unwrap();
     MODULE_INFO.lock().unwrap().replace_range(.., &string[..]);
 
     let out = String::new();
-    let mut wgsl = Writer::new(out);
+    let mut wgsl = Writer::new(out, WriterFlags::all());
     match wgsl.write(&module, &info) {
         Ok(_) => (),
         Err(err) => {

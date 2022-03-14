@@ -9,10 +9,10 @@ import {
   useColorModeValue
 } from '@chakra-ui/react'
 import Link from "next/link"
-import { CreatePageProjectQueryWithId } from "core/types/queries"
+import { ProjectQuery } from "@core/types"
 
 const ProjectCard = (props: {
-  project: CreatePageProjectQueryWithId
+  project: ProjectQuery
   autoplay?: boolean
   bg?: boolean
   bgScale?: number
@@ -144,9 +144,6 @@ const ProjectCard = (props: {
           zIndex={2}
           scaleY={0}
           transition="transform 0.2s ease"
-          _groupHover={{
-            scaleY: 1
-          }}
         >
           {props.project?.description}
         </Text>
