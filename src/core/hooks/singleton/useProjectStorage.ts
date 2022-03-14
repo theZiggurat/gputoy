@@ -106,7 +106,6 @@ const useProjectStorage = (props: ProjectStorageProps) => {
   }, [router, debouncedSaveToLocalStorage])
 
   useEffect(() => {
-    console.log('hererer')
     if (projectID !== undefined && projectID !== 'NOT_SET' && isOwner && enableSave) {
       debouncedSaveToLocalStorage()
     }

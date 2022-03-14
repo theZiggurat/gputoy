@@ -14,12 +14,12 @@ import {
 } from "@core/recoil/atoms/project"
 import { gpuStatusAtom } from "@core/recoil/atoms/gpu"
 import { withProjectFilesJSON } from "@core/recoil/atoms/files"
-import { debounce, isEqual, union, without } from "lodash"
+import { debounce, isEqual, union, uniq, without } from "lodash"
 import * as types from "@core/types"
 import System from "@core/system"
 import { withProjectIO } from "@core/recoil/atoms/io"
 import { intersection } from "lodash"
-import { systemBuildStateAtom, systemFrameStateAtom, systemValidationStateAtom } from "@core/recoil/atoms/system"
+import { systemBuildStateAtom, systemFrameStateAtom, systemValidationStateAtom, withSystemPrebuildResult } from "@core/recoil/atoms/system"
 
 
 
@@ -44,6 +44,7 @@ const useProjectManager = () => {
 
   const [validationState, setValidationState] = useRecoilState(systemValidationStateAtom)
   const [buildState, setBuildState] = useRecoilState(systemBuildStateAtom)
+  const setPrebuildResult = useSetRecoilState(withSystemPrebuildResult)
 
   useEffect(() => {
     console.log('PROJECT', 'STARTING')
@@ -68,20 +69,27 @@ const useProjectManager = () => {
         isRunning.current = true
 
         setValidationState('validating')
+        let preres = await System.instance().prebuild(logger)
+        if (!preres) {
+          setValidationState('failed')
+          if (buildState === 'built') {
+            requestAnimationFrame(renderStep)
+            return () => cancelAnimationFrame(intervalHandle.current)
+          }
+          return
+        }
+        setPrebuildResult(preres)
+        setValidationState('validated')
         setBuildState('building')
         let result = await System.instance().build(logger)
         if (result) {
           setBuildState('built')
-          setValidationState('validated')
           requestAnimationFrame(renderStep)
+          return () => cancelAnimationFrame(intervalHandle.current)
         }
-        else {
-          setBuildState('failed')
-          setValidationState('failed')
-          stop()
-        }
+        setBuildState('failed')
+        stop()
 
-        return () => cancelAnimationFrame(intervalHandle.current)
       }
       if (controlStatus == ProjectControl.PAUSE) {
         _smPause()
@@ -100,7 +108,7 @@ const useProjectManager = () => {
   // TODO find better solution than brute forcing diff
   // very unoptimized, but heavily debounced so this is low priority for now
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const processFileDelta = useCallback(debounce((files: { [key: string]: types.File; }) => {
+  const processFileDelta = useCallback(debounce(async (files: { [key: string]: types.File; }) => {
 
     const prev = System.instance().files
     const prevFiles = Object.keys(prev)
@@ -130,6 +138,10 @@ const useProjectManager = () => {
     }
 
     System.instance().pushFileDelta(diff, removed, logger)
+    setValidationState('validating')
+    let preres = await System.instance().prebuild(logger)
+    setValidationState(preres ? 'validated' : 'failed')
+    preres && setPrebuildResult(preres)
 
   }, 500), [])
 
@@ -141,14 +153,14 @@ const useProjectManager = () => {
   // TODO find better solution than brute forcing diff
   // very unoptimized, but it shouldn't run much at all. basically only on
   // a component mount/unmount should this be called
-  const processIODelta = useCallback((currentChannels: Record<string, types.IOChannel>) => {
+  const processIODelta = useCallback(async (currentChannels: Record<string, types.IOChannel>) => {
     const prevChannels = System.instance().availChannels
 
     let prevKeys = Object.keys(prevChannels)
 
     // skip delta calculations
     if (prevKeys.length === 0) {
-      System.instance().pushIoDelta(currentChannels, [])
+      System.instance().pushIoDelta(currentChannels, [], [], logger)
       return
     }
 
@@ -156,13 +168,16 @@ const useProjectManager = () => {
     let currentKeys = Object.keys(currentChannels)
     let diff: Record<string, types.IOChannel> = {}
     let removed: string[] = []
-    for (const channelKey of union(prevKeys, currentKeys)) {
+    let updated: string[] = []
+    for (const channelKey of uniq([...prevKeys, ...currentKeys])) {
       const prevIOChannel = prevChannels[channelKey]
       const currentIOChannel = currentChannels[channelKey]
 
       if (prevIOChannel && currentIOChannel) {
         if (!isEqual(prevIOChannel, currentIOChannel)) {
           diff[channelKey] = currentIOChannel
+        } else {
+          updated.push(channelKey)
         }
       } else if (prevIOChannel && !currentIOChannel) {
         removed.push(channelKey)
@@ -171,7 +186,11 @@ const useProjectManager = () => {
       }
     }
 
-    System.instance().pushIoDelta(diff, removed, logger)
+    System.instance().pushIoDelta(diff, updated, removed, logger)
+    setBuildState('building')
+    let preres = await System.instance().build(logger)
+    setBuildState(preres ? 'built' : 'failed')
+
 
   }, [])
 

@@ -30,7 +30,7 @@ export class ViewportIO implements types.IO {
     const rect = this.mouseElem.getBoundingClientRect()
     const x = ev.clientX
     const y = ev.clientY
-    this.mousePos = [x - rect.x, y - rect.y]
+    this.mousePos = [x - rect.x, rect.height - y + rect.y]
     this.mouseNorm = [this.mousePos[0] / rect.width, this.mousePos[1] / rect.height]
     this.needUpdate = true
   }
@@ -69,9 +69,9 @@ export class ViewportIO implements types.IO {
       logger?.err(`System::IO::Viewport[${mouseId}]`, 'Element not found: ' + mouseId)
       return false
     }
-    // mouseElem.addEventListener('mousemove', this.onMouseMove)
-    // mouseElem.addEventListener('mousedown', this.onMouseDown)
-    // mouseElem.addEventListener('mouseup', this.onMouseUp)
+    mouseElem.addEventListener('mousemove', this.onMouseMove)
+    mouseElem.addEventListener('mousedown', this.onMouseDown)
+    mouseElem.addEventListener('mouseup', this.onMouseUp)
     this.mouseElem = mouseElem
 
 
@@ -148,9 +148,9 @@ export class ViewportIO implements types.IO {
     const label = this.label
     let ret: types.Namespace = {
       exported: {
-        definingFileId: `IO::Viewport[${label}]`,
+        name: `Viewport`,
+        definingFileId: `system`,
         dependentFileIds: [],
-        name: `Viewport_${label}`,
         indexedTypes: [
           {
             "name": null,

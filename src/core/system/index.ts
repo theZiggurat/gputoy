@@ -1,14 +1,13 @@
 import { Logger } from '@core/recoil/atoms/console'
 import * as types from '@core/types'
-import { IOChannel, NagaGlobalVariable, ValidationResult } from '@core/types'
-import { intersection, isEqual, union } from 'lodash'
+import { IOChannel } from '@core/types'
+import { intersection, isEqual } from 'lodash'
 import { uniq } from 'lodash/fp'
 import Compiler from './compiler'
 import GPU from './gpu'
 import { ViewportIO } from './io'
 import { QuadPipeline } from './pipeline'
 import BufferResource from './resource/bufferResource'
-import TextureResource from './resource/textureResource'
 
 class System {
 
@@ -56,7 +55,7 @@ class System {
   // file id => namespace
   namespace: Record<types.FileId, types.Namespace> = {
     "Pipeline::Quad[static]": QuadPipeline.getNamespace(),
-    "System::InvocationInfo": frameStateNamespace
+    "System::Frame": frameStateNamespace
   }
   // file id => boolean
   namespaceNeedsRebuild: Record<types.FileId, boolean> = {}
@@ -133,19 +132,52 @@ class System {
     return undefined
   }
 
+  prebuild = async (logger?: Logger): Promise<types.SystemPrebuildResult | undefined> => {
+    if (this.isValidated) {
+      return {
+        namespace: this.namespace,
+        validations: this.processedFiles
+      }
+    }
+
+    logger?.trace('System::prebuild', 'Build initiated')
+    logger?.debug('System::prebuild', 'CHECK_RUN')
+    if (!this.checkRunner(logger)) {
+      return
+    }
+    logger?.debug('System::prebuild', 'CHECK_RUN -- COMPLETE')
+
+    logger?.debug('System::prebuild', 'BUILD_NAMESPACE')
+    if (!(await this.buildNamespaces(logger))) {
+      return
+    }
+    logger?.debug('System::prebuild', 'BUILD_NAMESPACE -- COMPLETE')
+
+    logger?.debug('System::prebuild', 'VALIDATE')
+    if (!(await this.validate(logger))) {
+      return
+    }
+    logger?.debug('System::prebuild', 'VALIDATE -- COMPLETE')
+
+    this.isValidated = true
+    return {
+      namespace: this.namespace,
+      validations: this.processedFiles
+    }
+  }
+
 
 
   build = async (logger?: Logger): Promise<boolean> => {
 
+    if (!this.isValidated) {
+      logger?.err('System::build', 'Cannot build, validation failed in previous step.')
+      return false
+    }
+
     if (this.isBuilt) {
       return true
     }
-    logger?.trace('System::build', 'Build initiated')
-    logger?.debug('System::build', 'CHECK_RUN')
-    if (!this.checkRunner(logger)) {
-      return false
-    }
-    logger?.debug('System::build', 'CHECK_RUN -- COMPLETE')
 
     let framebuf = await BufferResource.build({
       bufferBindingType: 'uniform',
@@ -154,36 +186,22 @@ class System {
       layout: types.getStructFromModel(frameStateNamespace.exported, 'Frame')!,
     }, GPU.device, logger)
     if (!framebuf) {
-      logger?.err('System::build', 'Failed to build frame state buffer')
+      logger?.err('System::prebuild', 'Failed to build frame state buffer')
       return false
     }
     this.frameStateBuffer = framebuf as BufferResource
 
-    logger?.debug('System::build', 'BUILD_IO')
+    logger?.debug('System::prebuild', 'BUILD_IO')
     if (!(await this.buildIo(logger))) {
       return false
     }
-    logger?.debug('System::build', 'BUILD_IO -- COMPLETE')
-
-    logger?.debug('System::build', 'BUILD_NAMESPACE')
-    if (!(await this.buildNamespaces(logger))) {
-      return false
-    }
-    logger?.debug('System::build', 'BUILD_NAMESPACE -- COMPLETE')
-
-    logger?.debug('System::build', 'VALIDATE')
-    if (!(await this.validate(logger))) {
-      return false
-    }
-    logger?.debug('System::build', 'VALIDATE -- COMPLETE')
+    logger?.debug('System::prebuild', 'BUILD_IO -- COMPLETE')
 
     logger?.debug('System::build', 'BUILD_MODULES')
     if (!(await this.buildModules(logger))) {
       return false
     }
     logger?.debug('System::build', 'BUILD_MODULES -- COMPLETE')
-
-
 
     this.isBuilt = true
     return true
@@ -292,16 +310,20 @@ class System {
 
     let namespaces: Record<string, types.Namespace> = {}
 
-    const ioToBuildNamespace = Object.keys(this.activeChannels)
+    const ioToBuildNamespace = Object.keys(this.availChannels)
       .filter(ch => this.namespaceNeedsRebuild[ch] ?? true)
 
     for (const ch of ioToBuildNamespace) {
-      const io = this.activeChannels[ch]
-      const label = io.label
-      let localNamespace = io.getNamespace()
-      namespaces[ch] = localNamespace
+      const io = this.availChannels[ch]
+      const type = io.ioType
+      switch (type) {
+        case 'viewport': {
+          namespaces['viewport'] = new ViewportIO().getNamespace()
+          break
+        }
+      }
       this.ioNeedBuildNamespace[ch] = false
-      logger?.debug('System::build_namespaces', `Namespace rebuilt for bus::${label}`)
+      logger?.debug('System::build_namespaces', `Namespace rebuilt for bus::${io.label}`)
     }
 
     const filesToRebuildNamespace = Object.values(this.files)
@@ -479,7 +501,7 @@ class System {
     }
   }
 
-  pushIoDelta = (delta: Record<string, types.IOChannel>, removed: string[], logger?: Logger) => {
+  pushIoDelta = (delta: Record<string, types.IOChannel>, rebuild: string[], removed: string[], logger?: Logger) => {
     // update the dictionary of availible io channels
     this.availChannels = { ...this.availChannels, ...delta }
     for (const key of Object.keys(delta)) this.ioNeedBuild[key] = true
@@ -500,11 +522,18 @@ class System {
       logger?.debug('System::push_io_delta', `IO destroyed. key = ${removedKey}`)
     }
 
-    if (Object.keys(delta).length > 0 || removed.length > 0) {
-      this.isBuilt = false
-      this.isValidated = false
+    for (const rebuildKey of rebuild) {
+      let io = this.activeChannels[rebuildKey]
+      if (io) {
+        io.destroy()
+        delete this.activeChannels[rebuildKey]
+      }
+      this.ioNeedBuild[rebuildKey] = true
     }
 
+    if (Object.keys(delta).length > 0 || removed.length > 0 || rebuild.length > 0) {
+      this.isBuilt = false
+    }
   }
 
 
@@ -546,8 +575,8 @@ class System {
 
 const frameStateNamespace: types.Namespace = {
   exported: {
+    name: 'Frame State',
     definingFileId: 'system',
-    name: 'invocation_info',
     dependentFileIds: [],
     indexedTypes: [
       {

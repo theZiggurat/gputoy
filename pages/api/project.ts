@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from "next-auth/client";
 import prisma from "core/backend/prisma";
-import { ProjectQuery } from 'core/types/queries';
+import { ProjectQuery } from '@core/types';
 import { validateCreateProjectEntry } from 'core/backend/validators';
 import { projectAuthorAtom } from 'core/recoil/atoms/project';
 
@@ -28,7 +28,6 @@ const handlePost = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   const isValid = validateCreateProjectEntry(res, body, session)
   if (!isValid) return
   const insertQuery = transformToInsertQuery(body, session!.user!.id)
-
   try {
 
     const { authorId } = await prisma.project.findUnique({
@@ -44,7 +43,6 @@ const handlePost = async (req: NextApiRequest, res: NextApiResponse<any>) => {
       res.status(406).send({ error: 'Cannot overwrite project that isn\'t yours' })
       return
     }
-
     const ret = await prisma.project.upsert({
       where: {
         id: body.project.id
@@ -52,12 +50,12 @@ const handlePost = async (req: NextApiRequest, res: NextApiResponse<any>) => {
       create: insertQuery,
       update: insertQuery,
       include: {
-        forkedFrom: {
-          select: {
-            id: true,
-            title: true,
-          }
-        },
+        // forkedFrom: {
+        //   select: {
+        //     id: true,
+        //     title: true,
+        //   }
+        // },
         author: true
       }
     })
@@ -72,8 +70,9 @@ const handlePost = async (req: NextApiRequest, res: NextApiResponse<any>) => {
 
 const transformToInsertQuery = (body: any, sid: string) => {
 
+
   const { project, action } = body
-  const { id, ...projectNoId } = project as ProjectQuery
+  const { id, forkedFrom, author, ...projectNoId } = project as ProjectQuery
 
   const tagsConnectOrCreate = project.tags.map(t => {
     return {
@@ -92,13 +91,16 @@ const transformToInsertQuery = (body: any, sid: string) => {
         id: sid
       }
     },
-    forkedFrom: {
-      connect: {
-        id: project.forkedFrom?.id ?? undefined
-      }
-    },
+    // forkedFrom: {
+    //   connect: {
+    //     id: project.forkedFrom?.id ?? undefined
+    //   }
+    // },
     tags: {
       connectOrCreate: tagsConnectOrCreate
-    }
+    },
+    ...(project.forkedFrom?.id ? {
+      forkedFromId: project.forkedFrom?.id
+    } : {})
   }
 }

@@ -30,6 +30,7 @@ const dark = {
   bgInterface: '#050505',
   s1Interface: 'rgba(255, 255, 255, 0.1)',
   s2Interface: 'rgba(255, 255, 255, 0.05)',
+  overlay: 'rgba(0, 0, 0, 0.2)'
 }
 
 const light = {
@@ -54,6 +55,7 @@ const light = {
   bgInterface: '#DADADA',
   s1Interface: 'rgba(0, 0, 0, 0.2)',
   s2Interface: 'rgba(0, 0, 0, 0.1)',
+  overlay: 'rgba(255, 255, 255, 0.2)'
 }
 
 const theme = extendTheme({

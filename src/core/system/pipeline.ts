@@ -302,8 +302,8 @@ export class QuadPipeline implements types.Pipeline {
   static getNamespace = (): types.Namespace => {
     return {
       exported: {
-        name: 'QuadPipeline',
-        definingFileId: 'Pipeline::Quad[static]',
+        name: 'Quad Pipeline',
+        definingFileId: 'system',
         dependentFileIds: [],
         indexedTypes: [
           {

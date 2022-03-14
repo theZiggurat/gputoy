@@ -1,4 +1,5 @@
 import { Logger } from "@core/recoil/atoms/console"
+import { Namespace, ValidationResult } from "./shaderTypes"
 
 
 export * from './shaderTypes'
@@ -20,6 +21,11 @@ export type SystemFrameState = {
   runDuration: number
   prevDuration: number
   running: boolean
+}
+
+export type SystemPrebuildResult = {
+  namespace: Record<string, Namespace>,
+  validations: Record<string, ValidationResult>
 }
 
 export const defaultFrameState = {

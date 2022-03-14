@@ -27,6 +27,7 @@ import TaskReciever from '../taskReciever';
 import * as types from '@core/types'
 import useChannel from '@core/hooks/useIO';
 import { systemBuildStateAtom, systemFrameStateAtom, systemValidationStateAtom } from '@core/recoil/atoms/system';
+import { ModelList } from '@components/shared/shadermodel';
 
 const ViewportInfo = () => {
 
@@ -58,12 +59,19 @@ const StatusInfo = () => {
 
 	const [display, setDisplay] = useState(0)
 	const frameState = useRecoilValue(systemFrameStateAtom)
+	const validationState = useRecoilValue(systemValidationStateAtom)
+	const buildState = useRecoilValue(systemBuildStateAtom)
 
 	let text
 	switch (display) {
 		case 0: text = `${frameState.runDuration.toFixed(2)}s`; break
 		case 1: text = `${(1000 / frameState.dt).toFixed(2)} fps`; break
 	}
+
+	const statusIconColor = validationState === 'failed' ? 'red.500' :
+		buildState === 'built' ? 'green.500' :
+			validationState === 'validated' ? 'yellow.500' : themed('textMidLight')
+
 
 	return (
 
@@ -77,7 +85,10 @@ const StatusInfo = () => {
 			width={120}
 			onClick={() => setDisplay((display + 1) % 2)}
 			unselectable="on"
+			pos="relative"
 		>
+
+			<Box bg={statusIconColor} w="8px" h="8px" borderRadius="6px" pos="absolute" left="8px" />
 			<Text fontSize={12}>{text}</Text>
 		</Center>
 	)
@@ -126,9 +137,8 @@ const _ViewportCanvas = (props: { instanceID: number, width: number, height: num
 	return <canvas id={vid} ref={ref} style={{
 		width: props.width,
 		height: props.height,
-		//visibility: controlStatus == ProjectControl.STOP ? 'hidden' : 'visible',
-		//cursor: 'crosshair',
-		//	pointerEvents: "auto",
+		visibility: controlStatus == ProjectControl.STOP ? 'hidden' : 'visible',
+		cursor: 'crosshair',
 	}} />
 }
 const ViewportCanvas = forwardRef(_ViewportCanvas)
@@ -223,18 +233,19 @@ const ViewportPanel = (props: DynamicPanelProps & any) => {
 						height="100%"
 						ref={ref}
 						overflow="hidden"
+						pos="relative"
 					>
-						{showInfo && <ViewportInfo />}
-						<Box pos="absolute">
-							<Text>
-								validated: {validationState}
-							</Text>
-							<Text>
-								built: {buildState}
-							</Text>
-
-
-						</Box>
+						{showInfo &&
+							<ModelList
+								h="100%"
+								w="fit-content"
+								bg={themed('overlay')}
+								p="0.5rem"
+								pos="absolute"
+								right="0"
+								backdropFilter="blur(4px)"
+							/>
+						}
 
 						<ViewportCanvas
 							instanceID={props.instanceID}
