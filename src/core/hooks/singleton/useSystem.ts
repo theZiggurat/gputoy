@@ -45,17 +45,17 @@ const useProjectManager = () => {
   const [buildState, setBuildState] = useRecoilState(systemBuildStateAtom)
   const setPrebuildResult = useSetRecoilState(withSystemPrebuildResult)
 
+  const renderStep = useCallback((timestamp: DOMHighResTimeStamp) => {
+    if (isRunning.current) {
+      intervalHandle.current = requestAnimationFrame(renderStep)
+      _smStep(timestamp)
+    }
+  }, [])
+
   /**
    * Handle play/pause/stop signals from the viewport panel
    */
   useEffect(() => {
-
-    const renderStep = (timestamp: DOMHighResTimeStamp) => {
-      if (isRunning.current) {
-        intervalHandle.current = requestAnimationFrame(renderStep)
-        _smStep(timestamp)
-      }
-    }
 
     const onControlChange = async () => {
       if (controlStatus == ProjectControl.PLAY) {
@@ -136,12 +136,6 @@ const useProjectManager = () => {
 
     System.instance().pushFileDelta(diff, removed, logger)
 
-    // revalidate on io change
-    setValidationState('validating')
-    let preres = await System.instance().prebuild(logger)
-    setValidationState(preres ? 'validated' : 'failed')
-    preres && setPrebuildResult(preres)
-
   }, 500), [])
 
   useEffect(() => {
@@ -213,6 +207,41 @@ const useProjectManager = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectID])
+
+
+  const onKeyDown = useCallback(async (ev: KeyboardEvent) => {
+    // save validates the current files
+    if (ev.key == 's' && ev.ctrlKey) {
+      ev.preventDefault()
+
+      _smPause()
+      pause()
+      setBuildState('unbuilt')
+
+      await processFileDelta.flush()
+      setValidationState('validating')
+      let preresult = await System.instance().prebuild(logger)
+      setValidationState(preresult ? 'validated' : 'failed')
+      preresult && setPrebuildResult(preresult)
+
+      setBuildState('building')
+      let result = await System.instance().build(logger)
+      setBuildState(result ? 'built' : 'failed')
+
+      if (result) {
+        const timestamp = performance.now()
+        _smPlay(timestamp)
+        play()
+        requestAnimationFrame(renderStep)
+      }
+    }
+  }, [processFileDelta])
+
+  useEffect(() => {
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [onKeyDown])
+
 }
 
 
