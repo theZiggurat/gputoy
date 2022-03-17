@@ -11,6 +11,7 @@ class _GPU {
 
     async init(logger?: Logger): Promise<types.GPUInitResult> {
 
+        console.log(navigator.gpu)
         if (!navigator.gpu)
             return 'incompatible'
 
@@ -31,7 +32,7 @@ class _GPU {
 
     async tryEnsureDeviceOnCurrentAdapter(logger?: Logger) {
         if (!this.adapter) {
-            this.adapter = await navigator.gpu.requestAdapter({ powerPreference: "low-power" })
+            this.adapter = await navigator.gpu.requestAdapter()
 
             if (!this.adapter) {
                 logger?.err('GPU', 'Adapter not found')

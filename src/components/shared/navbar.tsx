@@ -60,8 +60,8 @@ export default function Nav() {
       alignItems='center'
       zIndex="1"
       borderBottom={useColorModeValue("none", "1px")}
-      bg={themed('bg')}
       borderColor={themed('border')}
+      bg={themed('bg')}
       display="flex"
       boxShadow="0px 3px 6px 0px rgba(0,0,0,0.1)"
     >

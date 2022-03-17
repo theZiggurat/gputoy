@@ -1,6 +1,6 @@
 import { chakra, useColorModeValue } from '@chakra-ui/react'
 import usePanels from '@core/hooks/singleton/usePanels'
-import useProjectManager from '@core/hooks/singleton/useProjectManager'
+import useProjectManager from '@core/hooks/singleton/useSystem'
 import useProjectStorage from '@core/hooks/singleton/useProjectStorage'
 import { GetServerSideProps } from 'next'
 import React, { useEffect } from 'react'

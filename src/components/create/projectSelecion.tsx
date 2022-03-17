@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { Modal } from '@components/shared/modal'
-import { Box, Flex, Text, Grid, HStack, Avatar, Center, Spinner, useColorModeValue, Input } from '@chakra-ui/react'
+import { Box, Flex, Text, Grid, HStack, Avatar, Center, Spinner, useColorModeValue, Input, Checkbox, IconButton, Icon } from '@chakra-ui/react'
 import { themed } from "theme/theme"
-import { ProjectQuery } from "@core/types"
 import useProjectDirect from "@core/hooks/useProjectDirect"
 import { useSession } from "next-auth/client"
 import { FiHardDrive } from 'react-icons/fi'
@@ -13,9 +12,10 @@ import { useRouter } from "next/router"
 import useFork from "core/hooks/useFork"
 import NavUser from "@components/shared/user"
 import generate from "project-name-generator"
-import { MdPublishedWithChanges, MdCheck } from 'react-icons/md'
+import { MdPublishedWithChanges, MdCheck, MdDelete, MdAdd, MdClose, MdDeleteOutline } from 'react-icons/md'
 import useProjectSession from "@core/hooks/useProjectSession"
 import Link from "next/link"
+import * as types from '@core/types'
 
 type ProjectInfo = {
   id: string,
@@ -27,11 +27,11 @@ type ProjectInfo = {
 }
 
 const projectAccessModeIcon = [
-  <FiHardDrive key="0" title="Saved to local storage" />,
-  <BsCloudCheck key="1" title="Saved to account" />,
-  <BsCloudArrowUp key="2" title="Saved to account with local changes" />,
-  <MdCheck key="3" title="Published" />,
-  <MdPublishedWithChanges key="4" title="Published with local changes" />
+  <FiHardDrive key="0" title="Saved to local storage" size={14} />,
+  <BsCloudCheck key="1" title="Saved to account" size={14} />,
+  <BsCloudArrowUp key="2" title="Saved to account with local changes" size={14} />,
+  <MdCheck key="3" title="Published" size={14} />,
+  <MdPublishedWithChanges key="4" title="Published with local changes" size={14} />
 ]
 
 const foldProjectArrays = (local: ProjectInfo[], remote: ProjectInfo[], authorId: string | null) => {
@@ -50,10 +50,14 @@ const foldProjectArrays = (local: ProjectInfo[], remote: ProjectInfo[], authorId
     })
 }
 
-const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
+const ProjectDrawer = () => {
 
   const [localProjects, setLocalProjects] = useState<ProjectInfo[]>([])
   const [remoteProjects, setRemoteProjects] = useState<ProjectInfo[]>([])
+
+  const [checked, setChecked] = useState<boolean[]>([])
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const [session, _l, _i] = useProjectSession()
   const [isSyncing, setIsSyncing] = useState(true)
 
@@ -86,13 +90,10 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
     fetchProjects()
   }, [session])
 
-  /**
-   * load projects from storage
-   */
-  useEffect(() => {
+  const fetchFromLocalStorage = useCallback(() => {
     const localProj: ProjectInfo[] = []
     for (let key in localStorage) {
-      if (key.startsWith('project')) {
+      if (key.startsWith('project_local')) {
         const project = JSON.parse(localStorage.getItem(key)!)
 
         localProj.push({
@@ -107,9 +108,34 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
     setLocalProjects(localProj)
   }, [])
 
-  const onClickProject = (pid: string) => {
-    setCurrentProjectId(pid)
-    router.push(`/editor/${pid}`, undefined, { shallow: true })
+  /**
+   * load projects from storage on component init
+   */
+  useEffect(() => {
+    fetchFromLocalStorage()
+  }, [fetchFromLocalStorage])
+
+  const onCheckboxClick = (idx: number) => {
+    setChecked(old => {
+      let newVal = [...old]
+
+      newVal[idx] = !newVal[idx]
+      console.log(old, newVal, idx)
+      return newVal
+    }
+    )
+  }
+
+  const onHandleDelete = () => {
+    allProjects
+      .filter((_, idx) => checked[idx])
+      .forEach(p => {
+        // TODO: add delete endpoint to /pages/api
+        // for now it only removed local storage
+        localStorage.removeItem(`project_local_${p.id}`)
+      })
+    setIsDeleting(false)
+    fetchFromLocalStorage()
   }
 
   return (
@@ -138,6 +164,40 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
             <Spinner size="xs" ml="1rem" />
           </Box>
         }
+        {
+          !isDeleting &&
+          <IconButton
+            title="Mark for deletion"
+            aria-label="Mark for deletion"
+            icon={<MdDeleteOutline />}
+            color={themed('textLight')}
+            size="8px"
+            onClick={() => setIsDeleting(true)}
+          />
+        }
+        {
+          isDeleting &&
+          <Flex gridGap="0.5rem">
+            <IconButton
+              aria-label="Set name"
+              title="Set name"
+              disabled={!checked.find(v => v)}
+              icon={<MdCheck />}
+              size="8px"
+              onClick={onHandleDelete}
+            />
+            <IconButton
+              aria-label="Cancel"
+              title="Cancel"
+              icon={<MdClose />}
+              size="8px"
+              onClick={() => {
+                setIsDeleting(false)
+                setChecked([])
+              }}
+            />
+          </Flex>
+        }
 
 
       </Flex>
@@ -146,40 +206,50 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
         flexDir="column"
       >
         {
-          allProjects.map(p => (
-            <Link key={p.id} href={`/editor/${p.id}`} passHref>
-              <Flex
+          allProjects.map((p, idx) => (
+            <Flex
+              key={p.id}
+              justifyContent="space-between"
+              alignItems="center"
+              w="100%"
+              borderBottom="1px"
+              borderColor={themed('borderLight')}
+              p="0.5rem"
+              pl="1rem"
+              fontSize="sm"
+              transition="background-color 0.2s ease"
+              _hover={{
+                bg: themed('inputHovered')
+              }}
+            //onClick={() => onClickProject(p.id)}
+            >
+              <Box>
+                {
+                  isDeleting &&
+                  <Checkbox
+                    pr="1rem"
+                    transform="translate(0, 4px)"
+                    isChecked={checked[idx]}
+                    onChange={(e) => onCheckboxClick(idx)}
+                  />
+                }
 
-                justifyContent="space-between"
-                w="100%"
-                borderBottom="1px"
-                borderColor={themed('borderLight')}
-                p="0.5rem"
-                pl="1rem"
-                fontSize="sm"
-                transition="background-color 0.2s ease"
-                cursor="pointer"
-                _hover={{
-                  bg: themed('inputHovered')
-                }}
-              //onClick={() => onClickProject(p.id)}
-              >
-                <Text fontWeight="bold" color={themed('textMid')}>
-                  {p.title}
-                </Text>
-                <HStack sx={{ color: themed('textLight'), fontSize: 'lg' }}>
-                  <Text fontSize="xs">
+                <Link href={`/editor/${p.id}`} passHref>
+                  <Text display="inline" fontWeight="bold" color={themed('textMid')} cursor="pointer">
+                    {p.title}
                   </Text>
-                  {projectAccessModeIcon[p.type]}
-                </HStack>
-              </Flex>
-            </Link>
+                </Link>
+              </Box>
+              <HStack sx={{ color: themed('textLight'), fontSize: 'lg' }}>
+                {projectAccessModeIcon[p.type]}
+              </HStack>
+            </Flex>
           ))
         }
         {
           allProjects.length == 0 &&
-          <Text alignSelf="center" fontWeight="bold" color={themed('textMidLight')} pt="1rem">
-            Choose a template to get started
+          <Text textAlign="center" fontSize="xs" color={themed('textLight')} p="1rem">
+            Choose a template on the right to get started
           </Text>
         }
       </Flex>
@@ -188,10 +258,11 @@ const ProjectDrawer = (props: { projects: ProjectInfo[] }) => {
   )
 }
 
-const ProjectTemplates = (props: { templates: ProjectQuery[] }) => {
+const ProjectTemplates = (props: { templates: types.ProjectQuery[] }) => {
 
   const fork = useFork()
   const onClickProjectTemplate = (idx: number) => fork(props.templates[idx], { title: generate().dashed })
+  const onClickEmptyProject = () => fork(types.defaultProject, { title: generate().dashed })
 
   return (
     <Flex flexDir="column">
@@ -207,7 +278,7 @@ const ProjectTemplates = (props: { templates: ProjectQuery[] }) => {
         justifyContent="space-between"
       >
         <Text>
-          Templates
+          New Project
         </Text>
         {/* <Input size="xs" maxW="50%" h="1.3rem">
 
@@ -219,13 +290,45 @@ const ProjectTemplates = (props: { templates: ProjectQuery[] }) => {
             <ProjectTemplate key={p.title} project={p} idx={idx} onClickProjectTemplate={onClickProjectTemplate} />
           )
         }
+        <Flex
+          width="15rem"
+          height="15rem"
+          position="relative"
+          className="group"
+          transition="transform 0.2s ease"
+          cursor="pointer"
+          _hover={{
+            transform: 'scale(1.03)'
+          }}
+          border="2px dashed"
+          borderColor={themed('borderLight')}
+          justifyContent="center"
+          alignItems="center"
+          flexDir="column"
+          onClick={onClickEmptyProject}
+        >
+          <Text
+            fontSize="xl"
+            fontWeight="bold"
+            color={themed('textMidLight')}
+          >
+            Empty Project
+          </Text>
+          <Icon
+            as={MdAdd}
+            size={30}
+            color={themed('textMidLight')}
+          />
+
+        </Flex>
+
       </Grid>
     </Flex>
   )
 }
 
 type ProjectTemplateProps = {
-  project: ProjectQuery,
+  project: types.ProjectQuery,
   onClickProjectTemplate: (idx: number) => void,
   idx: number
 }
@@ -233,7 +336,20 @@ const ProjectTemplate = (props: ProjectTemplateProps) => {
 
   const { project } = props
 
-  const [loading, setPlaying] = useProjectDirect(project, false, project.id, `${project.id}_bg`)
+  const canvasId = `${project.id}_canvas`
+  const io = {
+    'builtin': {
+      id: project.id,
+      label: 'builtin',
+      ioType: 'viewport',
+      args: {
+        canvasId,
+        mouseId: canvasId
+      }
+    }
+  } as Record<string, types.IOChannel>
+
+  const [loading, failure, setPlaying] = useProjectDirect(project, io, false)
   const textBg = useColorModeValue("light.bg", 'dark.bg')
 
   const onHandleHover = () => {
@@ -294,7 +410,7 @@ const ProjectTemplate = (props: ProjectTemplateProps) => {
       </Box>
 
       <canvas
-        id={project.id}
+        id={canvasId}
         width="100%"
         height="100%"
         style={{
@@ -312,7 +428,7 @@ const ProjectTemplate = (props: ProjectTemplateProps) => {
   )
 }
 
-const ProjectSelection = (props: { templates: ProjectQuery[] }) => {
+const ProjectSelection = (props: { templates: types.ProjectQuery[] }) => {
 
   const [session, loading] = useSession()
 

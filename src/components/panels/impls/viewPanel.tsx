@@ -25,7 +25,7 @@ import { Modal, useModal } from '@components/shared/modal'
 import useProjectControls from '@core/hooks/useProjectControls';
 import TaskReciever from '../taskReciever';
 import * as types from '@core/types'
-import useChannel from '@core/hooks/useIO';
+import useChannel from '@core/hooks/useChannels';
 import { systemBuildStateAtom, systemFrameStateAtom, systemValidationStateAtom } from '@core/recoil/atoms/system';
 import { ModelList } from '@components/shared/shadermodel';
 

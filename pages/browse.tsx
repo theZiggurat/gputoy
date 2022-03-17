@@ -1,7 +1,7 @@
 import { Project } from '.prisma/client'
 import {
 	Box, Flex, Grid,
-	GridItem, Input
+	GridItem, Input, useColorModeValue
 } from '@chakra-ui/react'
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
@@ -19,7 +19,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 		},
 		take: 12,
 		include: {
-			shaders: true,
 			author: {
 				select: {
 					name: true
@@ -52,6 +51,7 @@ const Browse = (props: { projects: Project[] }) => {
 					bg={themed('p')}
 					height="100%"
 					overflowY="scroll"
+
 				>
 					<Flex
 						justifyContent="center"
@@ -63,7 +63,8 @@ const Browse = (props: { projects: Project[] }) => {
 						</Input>
 					</Flex>
 					<Grid
-
+						borderTop={useColorModeValue("none", "1px")}
+						borderColor={themed('border')}
 						bg={themed('bg')}
 						position="relative"
 						templateRows='repeat(6, 1fr)'
@@ -82,7 +83,7 @@ const Browse = (props: { projects: Project[] }) => {
 										colSpan={idx == 0 || idx == 7 ? 2 : 1}
 										cursor="pointer"
 									>
-										<ProjectCard project={p} bg blur={6} />
+										<ProjectCard project={p} />
 									</GridItem>
 								)
 							})
