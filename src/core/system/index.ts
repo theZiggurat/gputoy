@@ -52,12 +52,12 @@ class System {
   // file id => boolean
   fileNeedPreprocess: Record<types.FileId, boolean> = {}
 
-  // file id => namespace
+  // file id | io id => namespace
   namespace: Record<types.FileId, types.Namespace> = {
     "Pipeline::Quad[static]": QuadPipeline.getNamespace(),
     "System::Frame": frameStateNamespace
   }
-  // file id => boolean
+  // file id | io id => boolean
   namespaceNeedsRebuild: Record<types.FileId, boolean> = {}
 
   // file id => compiled shader module

@@ -120,7 +120,6 @@ const ProjectDrawer = () => {
       let newVal = [...old]
 
       newVal[idx] = !newVal[idx]
-      console.log(old, newVal, idx)
       return newVal
     }
     )

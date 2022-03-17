@@ -2,7 +2,6 @@ import * as types from '@core/types'
 import { ProjectType } from '@prisma/client'
 import generate from 'project-name-generator'
 import { atom, atomFamily, DefaultValue, selector } from 'recoil'
-import { projectRunStatusAtom } from './controls'
 import { withProjectFilesJSON } from './files'
 import { withEditorLayout } from './instance'
 import { layoutAtom } from './layout'
@@ -97,28 +96,6 @@ export const projectShaderErrorsAtom = atom<FileErrors>({
   default: {},
 })
 
-export const withDefaultParams = selector<types.ParamDesc[]>({
-  key: 'withDefaultParams',
-  get: ({ get }) => {
-
-    const mouseFlipped = get(mousePosAtom)
-    const res = get(resolutionAtom)
-    const status = get(projectRunStatusAtom)
-
-    const mouse = { x: mouseFlipped.x, y: res.height - mouseFlipped.y }
-
-    return [
-      { paramName: 'time', paramType: 'float', param: [status.runDuration] },
-      { paramName: 'dt', paramType: 'float', param: [status.dt] },
-      { paramName: 'frame', paramType: 'int', param: [status.frameNum] },
-      { paramName: 'mouseNorm', paramType: 'vec2f', param: [mouse.x / res.width, mouse.y / res.height] },
-      { paramName: 'aspectRatio', paramType: 'float', param: [res.width / res.height] },
-      { paramName: 'res', paramType: 'vec2i', param: [res.width, res.height] },
-      { paramName: 'mouse', paramType: 'vec2i', param: [mouse.x, mouse.y] },
-    ]
-  },
-})
-
 export const withParamsJSON = selector<types.ParamDesc[]>({
   key: 'withParamsJSON',
   get: ({ get }) => {
@@ -159,7 +136,6 @@ export const withProjectJSON = selector<types.ProjectQuery>({
     const layout = get(withEditorLayout)
     const config = {}
     const graph = {}
-    //console.log('GETTING', layout)
 
     return {
       id: id,

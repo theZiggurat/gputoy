@@ -1,9 +1,5 @@
 import * as types from '@core/types'
-import { uniq } from 'lodash'
-import { TypeScriptConfig } from 'next/dist/server/config-shared'
 import { atom, atomFamily, DefaultValue, selector } from "recoil"
-
-
 
 export const projectFileDataAtom = atomFamily<string, string>({
   key: 'projectFileData',
