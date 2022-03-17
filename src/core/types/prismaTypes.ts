@@ -88,3 +88,58 @@ export type ProjectSaveHistorySerialized = {
   updatedAt: string,
   createdAt: string
 }
+
+export const defaultProject: ProjectQuery = {
+  id: '',
+  title: '',
+  author: null,
+  type: 'DEFAULT',
+  description: '',
+  forkedFrom: null,
+  files: {},
+  graph: {},
+  layout: {
+    layout: {
+      "left": {
+        "type": "leaf",
+        "index": 5,
+        "instanceID": "y8ZUxqQJ"
+      },
+      "size": 0.1,
+      "type": "vertical",
+      "index": -1,
+      "right": {
+        "left": {
+          "left": {
+            "type": "leaf",
+            "index": 1,
+            "instanceID": "0xSKLShr"
+          },
+          "size": 0.72,
+          "type": "horizontal",
+          "index": -1,
+          "right": {
+            "type": "leaf",
+            "index": 4,
+            "instanceID": "MKIjf_Qa"
+          },
+          "instanceID": "GeqNhtot"
+        },
+        "size": 0.58,
+        "type": "vertical",
+        "index": -1,
+        "right": {
+          "type": "leaf",
+          "index": 3,
+          "instanceID": "jrNLmruC"
+        },
+        "instanceID": "VWoGrNRr"
+      },
+      "instanceID": "R_VTy8at"
+    }
+  },
+  config: {},
+  published: false,
+  tags: [],
+  params: []
+}

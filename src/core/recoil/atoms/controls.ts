@@ -11,17 +11,6 @@ export const projectControlAtom = atom<ProjectControl>({
   default: ProjectControl.STOP
 })
 
-export enum ProjectBuildStatus {
-  NOT_BUILT,
-  BUILDING,
-  SUCCESS,
-  FAILED
-}
-export const projectBuildStatusAtom = atom<ProjectBuildStatus>({
-  key: 'projectBuildStatus',
-  default: ProjectBuildStatus.NOT_BUILT
-})
-
 export const projectStatusDefault = {
   lastStartTime: 0,
   lastFrameRendered: 0,
@@ -31,8 +20,3 @@ export const projectStatusDefault = {
   prevDuration: 0,
   running: false,
 }
-
-export const projectRunStatusAtom = atom<types.ProjectStatus>({
-  key: 'projectStatus',
-  default: projectStatusDefault
-})

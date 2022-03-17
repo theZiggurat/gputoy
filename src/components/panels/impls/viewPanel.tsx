@@ -3,9 +3,9 @@ import {
 	Center, chakra, Flex, Text,
 	useColorModeValue
 } from '@chakra-ui/react';
-import { ProjectControl, projectRunStatusAtom } from 'core/recoil/atoms/controls';
+import { ProjectControl } from 'core/recoil/atoms/controls';
 import useInstance from '@core/hooks/useInstance';
-import { resolutionAtom, withDefaultParams } from 'core/recoil/atoms/project';
+import { resolutionAtom } from 'core/recoil/atoms/project';
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { BsRecordFill } from 'react-icons/bs';
 import { FaPause, FaPlay, FaStop, FaVideo } from 'react-icons/fa';
@@ -25,35 +25,9 @@ import { Modal, useModal } from '@components/shared/modal'
 import useProjectControls from '@core/hooks/useProjectControls';
 import TaskReciever from '../taskReciever';
 import * as types from '@core/types'
-import useChannel from '@core/hooks/useIO';
+import useChannel from '@core/hooks/useChannels';
 import { systemBuildStateAtom, systemFrameStateAtom, systemValidationStateAtom } from '@core/recoil/atoms/system';
 import { ModelList } from '@components/shared/shadermodel';
-
-const ViewportInfo = () => {
-
-	const defaultParams = useRecoilValue(withDefaultParams)
-
-	return (
-		<Flex
-			position="absolute"
-			bg={useColorModeValue("whiteAlpha.600", "blackAlpha.400")}
-			width="fit-content"
-			backdropFilter="blur(12px)"
-			p={3}
-			pointerEvents="none"
-			fontSize="sm"
-			flexDirection="column"
-		>
-			<Text><chakra.span fontWeight="bold">time: </chakra.span>{defaultParams[0].param[0].toFixed(3)}s</Text>
-			<Text><chakra.span fontWeight="bold">dt: </chakra.span>{defaultParams[1].param[0].toFixed(2)}ms</Text>
-			<Text><chakra.span fontWeight="bold">frame: </chakra.span>{defaultParams[2].param[0]}</Text>
-			<Text><chakra.span fontWeight="bold">mouse: </chakra.span>[{defaultParams[6].param[0].toFixed(0)}, {defaultParams[6].param[1].toFixed(0)}] px</Text>
-			<Text><chakra.span fontWeight="bold">mouseNorm: </chakra.span>[{defaultParams[3].param[0].toFixed(3)}, {defaultParams[3].param[1].toFixed(3)}]</Text>
-			<Text><chakra.span fontWeight="bold">aspectRatio: </chakra.span>{defaultParams[4].param[0].toFixed(2)}</Text>
-			<Text><chakra.span fontWeight="bold">res: </chakra.span>{defaultParams[5].param[0].toFixed(0)} by {defaultParams[5].param[1].toFixed(0)} px</Text>
-		</Flex>
-	)
-}
 
 const StatusInfo = () => {
 

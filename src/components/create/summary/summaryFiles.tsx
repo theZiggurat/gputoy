@@ -26,7 +26,7 @@ const SummaryFiles = (props: { instanceId: string }) => {
   const onHandleAddFile = (ev) => {
     ev.stopPropagation()
     addFile('/', {
-      data: "{}",
+      data: '',
       extension: '_UNCREATED',
       filename: '',
       metadata: {},

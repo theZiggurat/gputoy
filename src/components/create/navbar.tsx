@@ -198,7 +198,6 @@ const NavLeft = () => {
           onMouseLeave={() => setLogoHovered(false)}
           bg={logoHovered ? themed('button') : 'none'}
           borderRadius="500px"
-          pr="1rem"
         >
           <IconButton
             variant="empty"

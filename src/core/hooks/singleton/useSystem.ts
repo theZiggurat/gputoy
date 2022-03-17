@@ -4,26 +4,25 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import useLogger from "../useLogger"
 import useProjectControls from "../useProjectControls"
 import { useClearConsole } from "@core/hooks/useConsole"
-import { ProjectControl, projectRunStatusAtom } from "@core/recoil/atoms/controls"
+import { ProjectControl } from "@core/recoil/atoms/controls"
 import {
-  canvasInitializedAtom,
-  currentProjectIdAtom,
-  projectShaderErrorsAtom,
-  withDefaultParams,
-  withParamsJSON
+  currentProjectIdAtom
 } from "@core/recoil/atoms/project"
-import { gpuStatusAtom } from "@core/recoil/atoms/gpu"
 import { withProjectFilesJSON } from "@core/recoil/atoms/files"
-import { debounce, isEqual, union, uniq, without } from "lodash"
+import { debounce, isEqual, union, uniq } from "lodash"
 import * as types from "@core/types"
 import System from "@core/system"
 import { withProjectIO } from "@core/recoil/atoms/io"
-import { intersection } from "lodash"
 import { systemBuildStateAtom, systemFrameStateAtom, systemValidationStateAtom, withSystemPrebuildResult } from "@core/recoil/atoms/system"
 
 
 
-
+/**
+ * Glue between the recoil/react world and System singleton class
+ * Most dataflow is unidirectional from recoil world to System, but
+ * System is also capable of writing to select atoms for build, 
+ * validation, and resource info. 
+ */
 const useProjectManager = () => {
 
   const projectID = useRecoilValue(currentProjectIdAtom)
@@ -46,9 +45,11 @@ const useProjectManager = () => {
   const [buildState, setBuildState] = useRecoilState(systemBuildStateAtom)
   const setPrebuildResult = useSetRecoilState(withSystemPrebuildResult)
 
-  useEffect(() => {
-    console.log('PROJECT', 'STARTING')
-    return () => console.log('PROJECT', 'ENDING')
+  const renderStep = useCallback((timestamp: DOMHighResTimeStamp) => {
+    if (isRunning.current) {
+      intervalHandle.current = requestAnimationFrame(renderStep)
+      _smStep(timestamp)
+    }
   }, [])
 
   /**
@@ -56,18 +57,14 @@ const useProjectManager = () => {
    */
   useEffect(() => {
 
-    const renderStep = (timestamp: DOMHighResTimeStamp) => {
-      if (isRunning.current) {
-        intervalHandle.current = requestAnimationFrame(renderStep)
-        _smStep(timestamp)
-      }
-    }
-
     const onControlChange = async () => {
       if (controlStatus == ProjectControl.PLAY) {
         _smPlay(performance.now())
         isRunning.current = true
 
+        /**
+         * TODO: figure out why this is a long task
+         */
         setValidationState('validating')
         let preres = await System.instance().prebuild(logger)
         if (!preres) {
@@ -138,15 +135,12 @@ const useProjectManager = () => {
     }
 
     System.instance().pushFileDelta(diff, removed, logger)
-    setValidationState('validating')
-    let preres = await System.instance().prebuild(logger)
-    setValidationState(preres ? 'validated' : 'failed')
-    preres && setPrebuildResult(preres)
 
   }, 500), [])
 
   useEffect(() => {
     processFileDelta(files)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files])
 
 
@@ -187,6 +181,9 @@ const useProjectManager = () => {
     }
 
     System.instance().pushIoDelta(diff, updated, removed, logger)
+
+    // re-build on file change
+    // TODO: debounce this or find a more sensible rebuild solution
     setBuildState('building')
     let preres = await System.instance().build(logger)
     setBuildState(preres ? 'built' : 'failed')
@@ -196,13 +193,11 @@ const useProjectManager = () => {
 
   useEffect(() => {
     processIODelta(ioChannels)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ioChannels])
 
 
-
-  /**
-   * Anytime the working project changes, reset project running state
-   */
+  // Anytime the working project changes, reset project running state
   useEffect(() => {
     return () => {
       _smStop()
@@ -210,11 +205,51 @@ const useProjectManager = () => {
       setClearConsole()
       stop()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectID])
+
+
+  const onKeyDown = useCallback(async (ev: KeyboardEvent) => {
+    // save validates the current files
+    if (ev.key == 's' && ev.ctrlKey) {
+      ev.preventDefault()
+
+      _smPause()
+      pause()
+      setBuildState('unbuilt')
+
+      await processFileDelta.flush()
+      setValidationState('validating')
+      let preresult = await System.instance().prebuild(logger)
+      setValidationState(preresult ? 'validated' : 'failed')
+      preresult && setPrebuildResult(preresult)
+
+      setBuildState('building')
+      let result = await System.instance().build(logger)
+      setBuildState(result ? 'built' : 'failed')
+
+      if (result) {
+        const timestamp = performance.now()
+        _smPlay(timestamp)
+        play()
+        requestAnimationFrame(renderStep)
+      }
+    }
+  }, [processFileDelta])
+
+  useEffect(() => {
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [onKeyDown])
+
 }
 
 
-
+/**
+ * 
+ * Time dependent state machine for tracking system run times. 
+ * @returns controls for state machine
+ */
 const _useSystemFrameState = () => {
   const setFrameState = useSetRecoilState(systemFrameStateAtom)
 

@@ -19,7 +19,7 @@ const useGPU = () => {
       if (result == 'error') {
         toast({
           title: 'Could not initialize WebGPU',
-          description: 'Uknown error. Try refreshing the page.',
+          description: 'Unknown error. Try refreshing the page.',
           status: 'info',
           isClosable: true,
           duration: null,

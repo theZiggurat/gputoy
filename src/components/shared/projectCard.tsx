@@ -9,10 +9,10 @@ import {
   useColorModeValue
 } from '@chakra-ui/react'
 import Link from "next/link"
-import { ProjectQuery } from "@core/types"
+import * as types from '@core/types'
 
 const ProjectCard = (props: {
-  project: ProjectQuery
+  project: types.ProjectQuery
   autoplay?: boolean
   bg?: boolean
   bgScale?: number
@@ -29,7 +29,21 @@ const ProjectCard = (props: {
     onHover
   } = props
 
-  const [loading, setPlaying] = useProjectDirect(project, autoplay, project.id, `${project.id}_bg`)
+  const canvasId = `${project.id}_canvas`
+  const mouseId = `${project.id}_mouse`
+  const io = {
+    'builtin': {
+      id: project.id,
+      label: 'builtin',
+      ioType: 'viewport',
+      args: {
+        canvasId,
+        mouseId
+      }
+    }
+  } as Record<string, types.IOChannel>
+
+  const [loading, failure, setPlaying] = useProjectDirect(project, io, autoplay)
   const [hovered, setHovered] = useState(false)
   const textBg = useColorModeValue("light.bg", 'dark.bg')
 
@@ -49,6 +63,7 @@ const ProjectCard = (props: {
   return (
     <Link href={`/editor/${project.id}`} passHref>
       <Box
+        id={mouseId}
         width="100%"
         height="100%"
         position="relative"
@@ -68,7 +83,7 @@ const ProjectCard = (props: {
           </Center>
         }
         <canvas
-          id={project.id}
+          id={canvasId}
           width="100%"
           height="100%"
           style={{
@@ -82,7 +97,7 @@ const ProjectCard = (props: {
             pointerEvents: 'none',
           }}
         />
-        {
+        {/* {
           bg && <canvas
             id={`${project.id}_bg`}
             width="100%"
@@ -99,7 +114,7 @@ const ProjectCard = (props: {
               pointerEvents: 'none'
             }}
           />
-        }
+        } */}
         <Text
           position="relative"
           display="block"

@@ -1,12 +1,12 @@
-import { toast, useToast } from '@chakra-ui/toast'
+import { useToast } from '@chakra-ui/toast'
 import { ProjectQuery, ProjectSaveHistorySerialized } from '@core/types'
 import { withProjectJSON } from '@core/recoil/atoms/project'
 import { currentProjectIdAtom, projectLastSave, projectLastSaveLocal } from 'core/recoil/atoms/project'
-import { debounce, update } from 'lodash'
+import { debounce } from 'lodash'
 import { Session } from 'next-auth'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRecoilState, useSetRecoilState } from 'recoil'
 import useProjectSession from '../useProjectSession'
 import useLogger from '../useLogger'
 
@@ -56,18 +56,13 @@ const useProjectStorage = (props: ProjectStorageProps) => {
       clearTimeout(timeoutId.current)
   }, [isSet])
 
-  /**
-   * 
-   */
+
   useEffect(() => {
-
-
 
     const projectFromStorage = localStorage.getItem(`project_local_${projectID}`)
     if (!projectFromDB && !projectFromStorage) {
       return
     }
-
 
     if (!projectFromStorage) {
       logger.log('Serializer', `Using project from server: ${projectFromDB!.title}`)
@@ -92,7 +87,6 @@ const useProjectStorage = (props: ProjectStorageProps) => {
     const updateDateLocal = new Date().toISOString()
     const projectWithDate = { ...projectState, updatedAt: updateDateLocal }
     setProjectLastSaveLocal(updateDateLocal)
-    //logger.log('Serializer', 'Saving project locally to '.concat(projectID))
     localStorage.setItem(`project_local_${projectID}`, JSON.stringify(projectWithDate))
   }
 

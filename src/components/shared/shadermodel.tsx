@@ -3,6 +3,7 @@ import { withSystemModels } from "@core/recoil/atoms/system"
 import { useRecoilValue } from "recoil"
 import * as types from '@core/types'
 import { fontMono, themed } from '@theme/theme'
+import { projectFileMetadataAtom } from "@core/recoil/atoms/files"
 
 const StructBox = (props: {
   struct: types.NagaTypeStructFull
@@ -28,11 +29,14 @@ const StructBox = (props: {
 const ModelBox = (props: {
   model: types.Model
 }) => {
+
+  const fileMetadata = useRecoilValue(projectFileMetadataAtom(props.model.definingFileId))
+
   return <Flex flexDir="column" w="100%" border="4px" borderColor={themed('border')} >
     <Flex>
       <Text fontSize="md" fontWeight="bold" px="0.5rem" color={themed('textMid')}>
         {props.model.name}
-        {props.model.definingFileId !== 'system' && " (file)"}
+        {props.model.definingFileId !== 'system' && '.' + fileMetadata.extension}
       </Text>
 
     </Flex>
@@ -58,7 +62,7 @@ export const ModelList = (props: ModelListProps & FlexProps) => {
 
   const { ...rest } = props
   return <Flex {...rest} flexDir="column" gridGap="1rem" h="100%" overflowY="scroll">
-    <Text px="0.5rem" fontWeight="bold" color={themed('textMid')}>Global Types</Text>
+    <Text px="0.5rem" fontWeight="bold" color={themed('textMid')}>Models</Text>
     {
       userModels.map(m => (
         <Flex key={m.name + m.definingFileId}>

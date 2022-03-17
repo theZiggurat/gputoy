@@ -1,10 +1,12 @@
 import { useTaskReciever } from "@core/hooks/useTask"
-import { Task } from "@core/types"
+import * as types from "@core/types"
 
-const TaskReciever = (props: { id: string, onTask: (task: Task) => boolean }) => {
+const TaskReciever = (props: {
+  id: string,
+  onTask: Record<string, (task: types.Task) => boolean>
+}) => {
 
   useTaskReciever(props.id, props.onTask)
-
   return <></>
 }
 
