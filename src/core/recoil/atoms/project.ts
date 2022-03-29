@@ -5,6 +5,7 @@ import { atom, atomFamily, DefaultValue, selector } from 'recoil'
 import { withProjectFilesJSON } from './files'
 import { withEditorLayout } from './instance'
 import { layoutAtom } from './layout'
+import { withResourceJSON } from './resource'
 
 
 export const currentProjectIdAtom = atom<string>({
@@ -67,14 +68,6 @@ export const projectIsPublished = atom<boolean>({
   default: false
 })
 
-export const mousePosAtom = atom<types.MousePos>({
-  key: 'mousepos',
-  default: {
-    x: 500,
-    y: 500
-  },
-})
-
 export const resolutionAtom = atom<types.Resolution>({
   key: 'resolution',
   default: {
@@ -130,7 +123,7 @@ export const withProjectJSON = selector<types.ProjectQuery>({
     const forkSource = get(projectForkSource)
     const type = ProjectType.DEFAULT
 
-    const params = get(withParamsJSON)
+    const resources = get(withResourceJSON)
     const files = get(withProjectFilesJSON)
     const tags = get(projectTagsAtom)
     const layout = get(withEditorLayout)
@@ -141,7 +134,7 @@ export const withProjectJSON = selector<types.ProjectQuery>({
       id: id,
       title,
       description,
-      params,
+      resources,
       type,
       files,
       layout,
@@ -180,7 +173,7 @@ export const withProjectJSON = selector<types.ProjectQuery>({
       set(withEditorLayout, layout)
 
       set(withProjectFilesJSON, (proj.files as { [key: string]: types.File }) ?? new DefaultValue())
-      set(withParamsJSON, (proj.params as types.ParamDesc[]) ?? [])
+      set(withResourceJSON, proj.resources ?? {})
     }
   }
 })

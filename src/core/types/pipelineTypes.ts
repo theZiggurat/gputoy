@@ -38,7 +38,7 @@ export interface Pipeline {
     moduleNeedCompile: Record<string, boolean>,
     files: Record<string, types.File>,
     processedFiles: Record<string, types.ValidationResult>,
-    resolve: (path?: string, logger?: Logger) => types.Resource | undefined,
+    resolve: (path?: string, logger?: Logger) => types.ResourceInstance | undefined,
     logger?: Logger
   ) => Promise<boolean>
 

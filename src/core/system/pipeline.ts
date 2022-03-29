@@ -18,7 +18,6 @@ export class QuadPipeline implements types.Pipeline {
 
   /**
    * TODO: demote pipeline build resposibilities
-   * this is a really trash way to do it, i'll iron it out with some better contructs.
    * unfortunately, for now the build process must be done in a certain order and this appears to be
    * the busiest intersection of all the system components.
    * @param device 
@@ -38,7 +37,7 @@ export class QuadPipeline implements types.Pipeline {
     moduleNeedCompile: Record<string, boolean>,
     files: Record<string, types.File>,
     processedFiles: Record<string, types.ValidationResult>,
-    resolve: (path?: string, logger?: Logger) => types.Resource | undefined,
+    resolve: (path?: string, logger?: Logger) => types.ResourceInstance | undefined,
     logger?: Logger
   ): Promise<boolean> => {
 
@@ -110,20 +109,6 @@ export class QuadPipeline implements types.Pipeline {
         return false
       }
 
-      // const split = bindPath.split('::')
-      // const [region] = split.splice(0, 1)
-
-      // if (region === 'bus') {
-      //   let [channelName, resourceName] = split
-      //   if (!channelName || !resourceName) {
-      //     logger?.err(`System::build_modules[${filename}]`, 'Invalid resource path: ' + bindPath)
-      //     return false
-      //   }
-      // } else {
-      //   logger?.err(`System::build_modules[${filename}]`, 'Cannot handle non bus resources at the moment.')
-      //   return false
-      // }
-
       const { binding, group } = globalVariable.binding
       if (binding === 999 || group === 999) {
         remaining.push(globalVariable)
@@ -180,11 +165,11 @@ export class QuadPipeline implements types.Pipeline {
         label: `${filename}[${group_idx}]`,
         entries: bindGroupLayoutEntries
       })
-      // let err = await device.popErrorScope()
-      // if (err) {
-      //   logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group layout: ' + err.message)
-      //   return false
-      // }
+      let err1 = await device.popErrorScope()
+      if (err1) {
+        logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group layout: ' + err.message)
+        return false
+      }
       bindGroupLayouts.push(bindGroupLayout)
 
 
@@ -194,11 +179,11 @@ export class QuadPipeline implements types.Pipeline {
         layout: bindGroupLayout,
         entries: bindGroupEntries
       })
-      // let err = await device.popErrorScope()
-      // if (err) {
-      //   logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group: ' + err.message)
-      //   return false
-      // }
+      let err2 = await device.popErrorScope()
+      if (err2) {
+        logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group: ' + err.message)
+        return false
+      }
       bindGroups.push(bindGroup)
 
     }

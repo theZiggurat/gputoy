@@ -71,10 +71,10 @@ export const getTypeDecl = (type: NagaType, ext: ExtensionShader, inline?: boole
   }
   if ('Vector' in inner) {
     const { kind, size, width } = inner.Vector
-    const num = vectorSizeMap[size]
+    const num = VECTOR_SIZE_MAP[size]
     return ext === 'wgsl' ?
       `vec${num}<${scalarTypeMap[kind]['wgsl']}>` :
-      `${glslVectorPrefixMap[kind]}vec${num}`
+      `${GLSL_VECTOR_PREFIX_MAP[kind]}vec${num}`
   }
   return ""
 }
@@ -238,11 +238,16 @@ const scalarTypeMap: Record<NagaScalarKind, ShaderMapping> = {
   'Sint': { wgsl: 'i32', glsl: 'int' },
   'Uint': { wgsl: 'u32', glsl: 'uint' }
 }
-const vectorSizeMap: Record<NagaVectorSize, number> = {
-  'Bi': 2, 'Tri': 3, 'Quad': 4
+const VECTOR_SIZE_MAP: Record<NagaVectorSize, number> = {
+  'Bi': 2,
+  'Tri': 3,
+  'Quad': 4
 }
-const glslVectorPrefixMap: Record<NagaScalarKind, string> = {
-  'Bool': 'b', 'Float': '', 'Sint': 'i', 'Uint': 'u'
+const GLSL_VECTOR_PREFIX_MAP: Record<NagaScalarKind, string> = {
+  'Bool': 'b',
+  'Float': '',
+  'Sint': 'i',
+  'Uint': 'u'
 }
 export const NAGA_SCALAR_KIND_VARIANTS = [
   'Sint',

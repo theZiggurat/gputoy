@@ -9,7 +9,7 @@ export const projectQuery = {
     title: true,
     description: true,
     type: true,
-    params: true,
+    resources: true,
     graph: true,
     layout: true,
     config: true,
@@ -50,7 +50,7 @@ export const projectQueryMin = {
     title: true,
     description: true,
     files: true,
-    params: true,
+    resources: true,
     graph: true,
     createdAt: true,
     author: {
@@ -141,5 +141,5 @@ export const defaultProject: ProjectQuery = {
   config: {},
   published: false,
   tags: [],
-  params: []
+  resources: {}
 }

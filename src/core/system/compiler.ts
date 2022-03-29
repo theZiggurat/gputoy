@@ -3,7 +3,7 @@ import init, {
   introspect
 } from '../../../pkg/naga_compiler'
 import { Logger } from 'core/recoil/atoms/console'
-import { getStructDecl, File, Model, ExtensionShader, Module, PreProcessResult, NagaType, Namespace, Dependency, getTypeDecl, getStructFromModel, ValidationResult } from '@core/types'
+import { getStructDecl, File, Model, ExtensionShader, Namespace, Dependency, getStructFromModel, ValidationResult } from '@core/types'
 
 const REGEX_SYNCS = /@sync\s+var\s*<?([\w+\s*,\s*]*)>?\s+(\w*)\s*:\s*(\w+)\s*<?([\w+\s*,\s*]*)>?\s*/gm
 const REGEX_ENTRY = /@stage\((\w+)\)[^{]*/gm

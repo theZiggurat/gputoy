@@ -285,11 +285,29 @@ export class ViewportIO implements types.IO {
    * 
    * @returns Name => resource map for this viewport
    */
-  getResources = (): Record<string, types.Resource> => {
+  getResourceInstances = (): Record<string, types.ResourceInstance> => {
     return {
       "texture": this.texture,
       "mouse": this.mousebuffer,
       "res": this.resbuffer
+    }
+  }
+
+  getResources = (): Record<string, types.Resource> => {
+    return {
+      "texture": {
+        id: this.label + '_texture',
+        type: 'texture',
+        args: {
+          dim: '2d',
+          width: this.res[0],
+          height: this.res[1],
+          depthOrArrayLayers: 1,
+          format: this.texture.format,
+          sampleCount: 1,
+          usage: GPUTextureUsage.RENDER_ATTACHMENT
+        }
+      }
     }
   }
 

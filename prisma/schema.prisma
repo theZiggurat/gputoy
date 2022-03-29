@@ -22,7 +22,7 @@ model Project {
   author       User?            @relation(fields: [authorId], references: [id])
   authorId     String?
   files        Json?
-  params       Json?
+  resources    Json?
   graph        Json?
   layout       Json?
   config       Json?
