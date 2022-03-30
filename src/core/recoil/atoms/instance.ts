@@ -19,19 +19,7 @@ export const panelInstanceAtom = atomFamily<types.InstanceState, types.InstanceS
     return selector.index !== undefined && selector.index >= 0 ?
       descriptors[selector.index].defaultInstanceProps
       : { split: 50 }
-  },
-  effects_UNSTABLE: sel => [
-    // ({ trigger, onSet, getLoadable, getPromise }) => {
-    //   onSet((newVal, oldVal) => {
-    //     console.log('SET INSTANCE STATE', sel, newVal, oldVal)
-    //   })
-    // },
-    // ({ trigger, onSet, getLoadable, getPromise }) => {
-    //   onSet((newVal, oldVal) => {
-    //     console.log('SET INSTANCE STATE', sel, newVal, oldVal)
-    //   })
-    // }
-  ]
+  }
 })
 
 export const panelInstanceListAtom = atom<types.InstanceSelector[]>({
@@ -58,7 +46,7 @@ export const withEditorLayout = selector<types.EditorLayout>({
     Object.entries(state.instances ?? {}).forEach(([id, instanceState]) => {
       let index = instanceState.index
       list.push({ id, index })
-      set(panelInstanceAtom({ id, index }), instanceState)
+      set(panelInstanceAtom({ id, index }), old => ({ ...old, ...instanceState }))
     })
     set(panelInstanceListAtom, list)
     set(layoutAtom, state.layout)

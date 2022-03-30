@@ -32,8 +32,12 @@ export interface ViewportInstanceState {
 	showInfo: boolean
 }
 
-export interface ResourceInstanceState {
+export interface SummaryInstanceState {
+	panelOpenState: boolean[]
+}
 
+export interface ResourceInstanceState {
+	openResource?: string
 }
 
 export interface PanelDescriptor {
@@ -98,7 +102,9 @@ export default [
 		name: 'Summary',
 		icon: <MdSummarize />,
 		component: SummaryPanel,
-		defaultInstanceProps: {}
+		defaultInstanceProps: {
+			panelOpenState: [true, true, true, false]
+		}
 	},
 	{
 		index: 6,

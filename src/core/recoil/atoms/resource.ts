@@ -42,3 +42,17 @@ export const withResourceJSON = selector<ResourceJSON>({
     }
   }
 })
+
+export const withAddResource = selector<Resource>({
+  key: 'withAddResource',
+  get: ({ }) => ({} as Resource),
+  set: ({ set, reset }, resource) => {
+    if (resource instanceof DefaultValue) {
+
+    } else {
+      set(resourceAtom(resource.id), resource)
+      // TODO: be more precautious about ids that will be pushed to recoil system
+      set(resourceKeysAtom, old => [...old, resource.id])
+    }
+  }
+})

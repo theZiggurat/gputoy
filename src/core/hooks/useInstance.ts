@@ -28,7 +28,6 @@ export const useInstances = () => {
 const useInstance = <T>(props: any): [T, SetterOrUpdater<T>] => {
 
   const [state, setState] = useRecoilState<T>(panelInstanceAtom({ id: props.instanceID, index: props.panelIndex }))
-  //console.log('USING', props.instanceID, props.panelIndex, state)
   return [state, setState]
 }
 

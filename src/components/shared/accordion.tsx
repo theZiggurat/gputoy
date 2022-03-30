@@ -5,7 +5,8 @@ import { MdArrowRight } from "react-icons/md"
 
 type AccordionProps = {
   title: string,
-  initOpen?: boolean
+  open: boolean
+  onToggleOpen: () => void
   children: ReactElement<any>[] | ReactElement<any>,
   first?: boolean
   last?: boolean
@@ -13,23 +14,18 @@ type AccordionProps = {
 }
 const Accordion = (props: AccordionProps) => {
 
-  const { title, children, initOpen, first, last, rightSide, ...rest } = props
-  const [isOpen, setOpen] = useState(initOpen ?? false)
-
-  const onHandleClick = () => {
-    setOpen(o => !o)
-  }
+  const { title, open, onToggleOpen, children, first, last, rightSide, ...rest } = props
 
   return (
     <Flex flexDir="column">
       <Flex
-        onClick={onHandleClick}
+        onClick={onToggleOpen}
         cursor="pointer"
         flex="0"
         flexDir="row"
         justifyContent="space-between"
         alignItems="center"
-        borderBottom={isOpen ? "1px" : props.last ? '1px' : '0px'}
+        borderBottom={open ? "1px" : props.last ? '1px' : '0px'}
         borderTop={first ? "0px" : "1px"}
         borderColor={themed('border')}
         bg={themed('a1')}
@@ -44,7 +40,7 @@ const Accordion = (props: AccordionProps) => {
         <Box>
           <Icon
             as={MdArrowRight}
-            transform={isOpen ? "rotate(90deg)" : ""}
+            transform={open ? "rotate(90deg)" : ""}
             transition="transform 0.15s ease"
             mr="0.5rem"
           />
@@ -61,7 +57,7 @@ const Accordion = (props: AccordionProps) => {
           props.rightSide
         }
       </Flex>
-      {isOpen &&
+      {open &&
         <Box {...rest}>
           {children}
         </Box>
