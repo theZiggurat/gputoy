@@ -91,6 +91,7 @@ const EditorContent = (props: {
 					scrollbar: {
 						verticalScrollbarSize: 10,
 					},
+					lineNumbers: 'on',
 					suggest: {
 						preview: true,
 						snippetsPreventQuickSuggestions: false,
@@ -142,6 +143,8 @@ const EditorPanel = (props: PanelInProps) => {
 	}
 
 	useTaskReciever(props.instanceID, {
+		// recieves add to workspace command from other components
+		// arg: string fileId
 		"addToWorkspace": task => {
 			if (typeof task.args === 'string') {
 				addFileToWorkspace(task.args, true)

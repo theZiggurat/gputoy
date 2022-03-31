@@ -7,9 +7,8 @@ export const resourceAtom = atomFamily<types.Resource, string>({
   default: (key: string) => ({
     id: key,
     type: 'buffer',
-    args: {
-
-    }
+    name: '',
+    args: types.defaultBufferArgs
   }),
 })
 

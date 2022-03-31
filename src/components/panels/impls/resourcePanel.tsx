@@ -1,24 +1,19 @@
-import { Box, chakra, Flex, IconButton, Input } from "@chakra-ui/react";
-import { RowButton } from "@components/shared/rowButton";
-import { resourceAtom, resourceKeysAtom } from "@core/recoil/atoms/resource";
-import { fontMono } from "@theme/theme";
-import { nanoid } from "nanoid";
-import { MdAdd } from "react-icons/md";
-import { useRecoilState } from "recoil";
-import { themed } from "@theme/theme";
+import { chakra, Flex, Input } from "@chakra-ui/react"
+import { resourceAtom } from "@core/recoil/atoms/resource"
+import { fontMono } from "@theme/theme"
+import { useRecoilState } from "recoil"
+import { themed } from "@theme/theme"
 import * as types from '@core/types'
-import { Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent, PanelInProps } from "../panel";
-import useInstance, { useInstances } from "@core/hooks/useInstance";
-import { ResourceInstanceState } from "../descriptors";
-import { useTaskReciever } from "@core/hooks/useTask";
+import { Panel, PanelBar, PanelBarEnd, PanelBarMiddle, PanelContent, PanelInProps } from "../panel"
+import useInstance from "@core/hooks/useInstance"
+import { ResourceInstanceState } from "../descriptors"
+import { useTaskReciever } from "@core/hooks/useTask"
+import BufferInfo from "@components/create/resources/bufferInfo"
+import TextureInfo from "@components/create/resources/textureInfo"
 
-type ResourceEntryProps = {
+const ResourcePanelContent = (props: {
   resourceKey: string
-}
-
-
-
-const ResourceEntry = (props: ResourceEntryProps) => {
+}) => {
 
   const optionStyle = {
     backgroundColor: themed('a1'),
@@ -32,60 +27,90 @@ const ResourceEntry = (props: ResourceEntryProps) => {
     }
   }
 
-  const { resourceKey } = props
-  const [{ name, type, args, frozen }, setResource] = useRecoilState(resourceAtom(resourceKey))
-
-  return <Flex
-    borderBottom="2px"
-    borderColor={themed("borderLight")}
-  >
-    <Input
-      value={name}
-      fontSize="0.75rem"
-      bg="none"
-      _hover={{ bg: 'none' }}
-      placeholder="Resource Name"
-      onChange={s => setResource(old => ({ ...old, name: s.target.value }))}
-      borderRadius="0px"
-      fontFamily={fontMono}
-      spellCheck={false}
-      color={themed('textMid')}
-      paddingInlineEnd="0"
-    />
-    <chakra.select
-      color={themed('textMidLight')}
-      fontSize="0.75rem"
-      fontWeight="bold"
-      value={type}
-      onChange={s => setResource(old => ({ ...old, type: s.target.value as types.ResourceType }))}
-
-      sx={bgProps}
-      px="0.25rem"
-      borderX="1px"
-      borderColor={themed('borderLight')}
-    >
-      <option value="buffer" style={optionStyle}>Buffer</option>
-      <option value="texture" style={optionStyle}>Texture</option>
-      <option value="sampler" style={optionStyle}>Sampler</option>
-    </chakra.select>
-  </Flex>
-}
-
-const ResourcePanelContent = (props: {
-  resourceKey: string
-}) => {
-
   const [resource, setResource] = useRecoilState(resourceAtom(props.resourceKey))
+  const { name, type, args } = resource
+
+  const onArgChange = (args: types.ResourceArgs) => {
+    setResource(old => ({ ...old, args }))
+  }
 
   return <Flex
     w="100%"
-    fontSize="xxx-large"
-    fontWeight="black"
+    h="100%"
 
   >
-    {resource.name} <br />
-    {resource.type}
-  </Flex>
+    <Flex
+      flex="0 0 auto"
+      flexDir="column"
+      h="100%"
+      w="fit-content"
+      borderRight="1px"
+      borderColor={themed('borderLight')}
+    >
+      <Flex
+        borderBottom="1px"
+        borderColor={themed('borderLight')}
+        bg={themed('a3')}
+        flex="0 0 auto"
+        alignItems="center"
+      >
+        <Input
+          value={name}
+          fontSize="0.75rem"
+          bg="none"
+          _hover={{ bg: 'none' }}
+          placeholder="Resource Name"
+          onChange={s => setResource(old => ({ ...old, name: s.target.value }))}
+          borderRadius="0px"
+          fontFamily={fontMono}
+          spellCheck={false}
+          color={themed('textMidLight')}
+          paddingInlineEnd="0"
+          my="auto"
+          fontWeight="bold"
+          transform="translate(0, 1.5px)"
+        />
+        <chakra.select
+          color={themed('textMidLight')}
+          fontSize="0.75rem"
+          value={type}
+          onChange={s => setResource(old => ({
+            ...old,
+            type: s.target.value as types.ResourceType,
+            args: types.resourceTypeToDefaultArgs[s.target.value as types.ResourceType]
+          }))}
+          sx={bgProps}
+          paddingStart="0.5rem"
+          paddingEnd="0.5rem"
+          mr="0.5rem"
+        >
+          <option value="buffer" style={optionStyle}>Buffer</option>
+          <option value="texture" style={optionStyle}>Texture</option>
+          <option value="sampler" style={optionStyle}>Sampler</option>
+        </chakra.select>
+      </Flex>
+      {
+        type === 'buffer' &&
+        <BufferInfo args={args as types.BufferArgs} onChange={onArgChange} />
+      }
+      {
+        type === 'texture' &&
+        <TextureInfo args={args as types.TextureArgs} onChange={onArgChange} />
+      }
+      {/* {
+        type === 'sampler' &&
+        <SamplerInfo args={args as types.SamplerArgs} onChange={onArgChange} />
+      } 
+      */}
+
+    </Flex>
+    <Flex
+      flex="1 1 auto"
+      h="100%"
+    >
+
+    </Flex>
+  </Flex >
 }
 
 const ResourcePanel = (props: PanelInProps) => {

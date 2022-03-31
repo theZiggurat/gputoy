@@ -159,6 +159,9 @@ const theme = extendTheme({
         underline: {
           border: '0px',
           bg: 'green'
+        },
+        empty: {
+          bg: 'none'
         }
       },
       defaultProps: {

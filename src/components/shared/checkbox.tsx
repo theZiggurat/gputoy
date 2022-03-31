@@ -5,6 +5,7 @@ type CheckboxProps = {
   title: string,
   checked?: boolean
   onCheck: (val: boolean) => void
+  hint?: string
 }
 
 const Checkbox = (props: FlexProps & CheckboxProps) => {
@@ -20,6 +21,7 @@ const Checkbox = (props: FlexProps & CheckboxProps) => {
       cursor="pointer"
       height="min-content"
       alignItems="center"
+      title={props.hint}
       {...flexProps}
     >
       <Box
