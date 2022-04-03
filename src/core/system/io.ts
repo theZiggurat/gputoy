@@ -22,6 +22,8 @@ export class ViewportIO implements types.IO {
   m2: number = 0
   m3: number = 0
 
+  resizeObserver!: ResizeObserver
+
   res: number[] = [0, 0]
 
   needUpdate = true
@@ -60,7 +62,8 @@ export class ViewportIO implements types.IO {
       logger?.err(`System::IO::Viewport[${canvasId}]`, 'Element not found: ' + canvasId)
       return false
     }
-    canvasElem.addEventListener('resize', this.onResize)
+    this.resizeObserver = new ResizeObserver(this.onResize)
+    this.resizeObserver.observe(canvasElem)
     this.canvasElem = canvasElem
     this.onResize()
 
@@ -137,6 +140,7 @@ export class ViewportIO implements types.IO {
     this.texture.destroy()
     this.mousebuffer.destroy()
     this.resbuffer.destroy()
+    this.resizeObserver.disconnect()
     this.mouseElem.removeEventListener('mousemove', this.onMouseMove)
     this.mouseElem.removeEventListener('mousedown', this.onMouseDown)
     this.mouseElem.removeEventListener('mouseup', this.onMouseUp)
@@ -312,6 +316,7 @@ export class ViewportIO implements types.IO {
   }
 
   onBeginDispatch = (queue: GPUQueue) => {
+    console.log(this.res)
     if (this.needUpdate) {
       this.mousebuffer.write(
         [

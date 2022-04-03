@@ -72,3 +72,7 @@ select:focus {
   border: none;
   outline: none;
 }
+
+input {
+  padding-inline-end: 0px !important;
+}

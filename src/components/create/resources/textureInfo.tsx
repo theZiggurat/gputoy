@@ -1,11 +1,11 @@
-import { chakra, Flex, Input, InputGroup, InputRightAddon, InputRightElement, Text, Select } from "@chakra-ui/react";
+import { chakra, Flex, Input, InputGroup, InputRightElement } from "@chakra-ui/react";
 import Checkbox from "@components/shared/checkbox";
 import Label from "@components/shared/label";
 import * as types from '@core/types'
-import { fontMono, themed } from '@theme/theme'
+import { themed } from '@theme/theme'
 
 
-const BufferInfo = (props: {
+const TextureInfo = (props: {
   args: types.TextureArgs,
   onChange: (args: types.TextureArgs) => void
 }) => {
@@ -226,4 +226,4 @@ const BufferInfo = (props: {
   </Flex>
 }
 
-export default BufferInfo
+export default TextureInfo

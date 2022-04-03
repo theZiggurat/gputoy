@@ -40,6 +40,19 @@ const EditorContent = (props: {
 
 	const onMonacoBeforeMount = (monaco: Monaco) => {
 		monaco.languages.register(languageExtensionPoint)
+		monaco.languages.registerHoverProvider('wgsl', {
+			provideHover: (model, position) => {
+				console.log(model.getWordAtPosition(position)?.word)
+				return {
+					contents: [
+						{
+							supportHtml: true,
+							value: '<span style="color:#ff0000;">yes</span>'
+						}
+					]
+				}
+			}
+		})
 		monaco.languages.onLanguage(languageID, () => {
 			monaco.languages.setMonarchTokensProvider(languageID, monarchLanguage)
 			monaco.languages.setLanguageConfiguration(languageID, conf)
@@ -91,7 +104,6 @@ const EditorContent = (props: {
 					scrollbar: {
 						verticalScrollbarSize: 10,
 					},
-					lineNumbers: 'on',
 					suggest: {
 						preview: true,
 						snippetsPreventQuickSuggestions: false,
