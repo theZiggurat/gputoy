@@ -316,7 +316,6 @@ export class ViewportIO implements types.IO {
   }
 
   onBeginDispatch = (queue: GPUQueue) => {
-    console.log(this.res)
     if (this.needUpdate) {
       this.mousebuffer.write(
         [

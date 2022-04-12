@@ -22,6 +22,7 @@ import { useFile } from '@core/hooks/useFiles';
 import { isData, isText } from '@core/types';
 import EditorPanelBar from '@components/create/editor/editorPanelBar';
 import setJSONSchema from 'monaco/jsonSchema';
+import { wgslHovers } from 'monaco/hovers';
 
 
 
@@ -40,23 +41,12 @@ const EditorContent = (props: {
 
 	const onMonacoBeforeMount = (monaco: Monaco) => {
 		monaco.languages.register(languageExtensionPoint)
-		monaco.languages.registerHoverProvider('wgsl', {
-			provideHover: (model, position) => {
-				console.log(model.getWordAtPosition(position)?.word)
-				return {
-					contents: [
-						{
-							supportHtml: true,
-							value: '<span style="color:#ff0000;">yes</span>'
-						}
-					]
-				}
-			}
-		})
+		monaco.languages.registerHoverProvider('wgsl', wgslHovers)
+		monaco.languages.registerCompletionItemProvider(languageID, completions)
+
 		monaco.languages.onLanguage(languageID, () => {
 			monaco.languages.setMonarchTokensProvider(languageID, monarchLanguage)
 			monaco.languages.setLanguageConfiguration(languageID, conf)
-			monaco.languages.registerCompletionItemProvider(languageID, completions)
 		})
 		monaco.editor.defineTheme('dark', darktheme)
 		monaco.editor.defineTheme('light', lighttheme)

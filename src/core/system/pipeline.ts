@@ -200,7 +200,7 @@ export class QuadPipeline implements types.Pipeline {
       )
     }
     if (!compiledModule) {
-      logger?.fatal(`Pipeline::build[${filename}]`, 'Project failed compilation for above reasons: ' + filename)
+      logger?.fatal(`Pipeline::build[${filename}]`, 'Project failed compilation for above reasons')
       return false
     }
 

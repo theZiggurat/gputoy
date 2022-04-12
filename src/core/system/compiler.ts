@@ -200,7 +200,8 @@ class Compiler {
   compile = async (
     device: GPUDevice,
     file: File,
-    source: string
+    source: string,
+    logger?: Logger
   ): Promise<GPUShaderModule | null> => {
 
     const module = device.createShaderModule({
@@ -208,10 +209,11 @@ class Compiler {
       code: source,
     })
 
+    console.log(await module.compilationInfo())
     if (!module.compilationInfo) return module
     const compilationInfo = await module.compilationInfo()
     for (const message of compilationInfo.messages) {
-      return null
+      logger?.err(`Compiler::compile[${file.filename}]`, message.message)
     }
 
 
