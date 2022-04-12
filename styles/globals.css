@@ -60,3 +60,19 @@ a {
 		background-position: 0% 0%;
 	}
 }
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-indent: 1px;
+  text-overflow: '';
+}
+
+select:focus {
+  border: none;
+  outline: none;
+}
+
+input {
+  padding-inline-end: 0px !important;
+}

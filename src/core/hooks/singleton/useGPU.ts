@@ -1,6 +1,6 @@
 import { useToast } from "@chakra-ui/toast"
 import GPU from "@core/system/gpu"
-import { gpuStatusAtom } from "core/recoil/atoms/gpu"
+import { gpuLimitsAtom, gpuStatusAtom } from "core/recoil/atoms/gpu"
 import { useEffect } from "react"
 import { useSetRecoilState } from "recoil"
 import useLogger from "../useLogger"
@@ -8,12 +8,17 @@ import useLogger from "../useLogger"
 const useGPU = () => {
   const logger = useLogger()
   const setGPUStatus = useSetRecoilState(gpuStatusAtom)
+  const setLimits = useSetRecoilState(gpuLimitsAtom)
   const toast = useToast()
 
   useEffect(() => {
     const init = async () => {
       const result = await GPU.init(logger)
       setGPUStatus(result)
+      let limits = GPU.device?.limits
+      setLimits(old => {
+        return limits
+      })
 
 
       if (result == 'error') {
@@ -35,15 +40,6 @@ const useGPU = () => {
           duration: null,
         })
       }
-
-      // if (result == 'ok') {
-      //   toast({
-      //     title: 'GPU Initialized',
-      //     status: 'success',
-      //     duration: 1500,
-      //     isClosable: true,
-      //   })
-      // }
     }
     init()
   }, [])

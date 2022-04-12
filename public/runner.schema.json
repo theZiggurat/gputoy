@@ -39,7 +39,7 @@
       "title": "Bind Group",
       "description": "Binds resources to shader stages",
       "additionalProperties": {
-        "type": "string"
+        "$ref": "#/definitions/resource_path"
       }
     },
     "runs": {
@@ -347,6 +347,12 @@
       "required": [
         "src"
       ]
+    },
+    "resource_path": {
+      "title": "Resource Path",
+      "description": "Path to some GPU resource.\n\tExamples:\n\t'bus::view::texture' points to the viewport texture at IO channel 'view'\n\t'res::buffer1' points to a resource within the resource panel named 'buffer1'\nLastly, system has a buffer resource for frame data at 'sys::frame'",
+      "type": "string",
+      "pattern": "(res|bus|sys)::[\\w]+(::[\\w]+)?"
     }
   }
 }

@@ -22,6 +22,8 @@ export class ViewportIO implements types.IO {
   m2: number = 0
   m3: number = 0
 
+  resizeObserver!: ResizeObserver
+
   res: number[] = [0, 0]
 
   needUpdate = true
@@ -60,7 +62,8 @@ export class ViewportIO implements types.IO {
       logger?.err(`System::IO::Viewport[${canvasId}]`, 'Element not found: ' + canvasId)
       return false
     }
-    canvasElem.addEventListener('resize', this.onResize)
+    this.resizeObserver = new ResizeObserver(this.onResize)
+    this.resizeObserver.observe(canvasElem)
     this.canvasElem = canvasElem
     this.onResize()
 
@@ -137,6 +140,7 @@ export class ViewportIO implements types.IO {
     this.texture.destroy()
     this.mousebuffer.destroy()
     this.resbuffer.destroy()
+    this.resizeObserver.disconnect()
     this.mouseElem.removeEventListener('mousemove', this.onMouseMove)
     this.mouseElem.removeEventListener('mousedown', this.onMouseDown)
     this.mouseElem.removeEventListener('mouseup', this.onMouseUp)
@@ -285,11 +289,29 @@ export class ViewportIO implements types.IO {
    * 
    * @returns Name => resource map for this viewport
    */
-  getResources = (): Record<string, types.Resource> => {
+  getResourceInstances = (): Record<string, types.ResourceInstance> => {
     return {
       "texture": this.texture,
       "mouse": this.mousebuffer,
       "res": this.resbuffer
+    }
+  }
+
+  getResources = (): Record<string, types.Resource> => {
+    return {
+      "texture": {
+        id: this.label + '_texture',
+        type: 'texture',
+        args: {
+          dim: '2d',
+          width: this.res[0],
+          height: this.res[1],
+          depthOrArrayLayers: 1,
+          format: this.texture.format,
+          sampleCount: 1,
+          usage: GPUTextureUsage.RENDER_ATTACHMENT
+        }
+      }
     }
   }
 

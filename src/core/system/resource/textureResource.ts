@@ -9,7 +9,7 @@ type TextureInit = {
   format?: GPUTextureFormat
   usage?: GPUTextureUsageFlags
 }
-export default class TextureResource implements types.Resource {
+export default class TextureResource implements types.ResourceInstance {
 
   label: string
   sampleType: GPUTextureSampleType = 'float'

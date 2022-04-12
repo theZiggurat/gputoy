@@ -1,7 +1,5 @@
 import { Logger } from '@core/recoil/atoms/console'
 import * as types from '@core/types'
-import { NagaType } from '@core/types'
-
 
 type BufferInit = {
   label: string,
@@ -18,7 +16,7 @@ type BufferInit = {
 }
 
 
-export default class BufferResource implements types.Resource {
+export default class BufferResource implements types.ResourceInstance {
 
   label: string
   buffer: GPUBuffer
@@ -44,10 +42,8 @@ export default class BufferResource implements types.Resource {
     this.optimizedMemLayout = optimizedMemLayout
   }
 
-
-
   destroy = (logger?: Logger) => {
-    logger?.debug(`Resource::Texture[${this.label}]`, `Destroying`)
+    logger?.debug(`Resource::Buffer[${this.label}]`, `Destroying`)
     this.buffer.destroy()
   }
 
@@ -55,7 +51,7 @@ export default class BufferResource implements types.Resource {
     bufferInit: BufferInit,
     device: GPUDevice,
     logger?: Logger
-  ): Promise<types.Resource | undefined> => {
+  ): Promise<types.ResourceInstance | undefined> => {
 
     const { label, layout, initialValue, size, bufferUsageFlags, bufferBindingType } = bufferInit
     const { span } = layout
@@ -71,11 +67,11 @@ export default class BufferResource implements types.Resource {
       mappedAtCreation: shouldMap
     })
 
-    // let bufferCreationError = await device.popErrorScope()
-    // if (bufferCreationError) {
-    //   logger?.err('Resource::Buffer', `Could not create buffer [${label ?? 'unknown'}]. Reason: ${bufferCreationError}`)
-    //   return undefined
-    // }
+    let bufferCreationError = await device.popErrorScope()
+    if (bufferCreationError) {
+      logger?.err(`Resource::Buffer[${label}]`, `Could not create buffer [${label ?? 'unknown'}]. Reason: ${bufferCreationError}`)
+      return undefined
+    }
 
     let ret = new BufferResource(label, buffer, bufferBindingType, bufferUsageFlags, layout, optimizedMemLayout)
     if (shouldMap) {
@@ -85,7 +81,7 @@ export default class BufferResource implements types.Resource {
       buffer.unmap()
       let bufferMapError = await device.popErrorScope()
       if (bufferMapError) {
-        logger?.err('Resource::Buffer', `Could not create buffer [${label ?? 'unknown'}]. Reason: ${bufferMapError}`)
+        logger?.err(`Resource::Buffer[${label}]`, `Could not create buffer [${label ?? 'unknown'}]. Reason: ${bufferMapError}`)
         return undefined
       }
     }

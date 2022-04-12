@@ -181,6 +181,8 @@ const DirectoryList = (props: {
       <Box height="0.5rem" />
     </>
   }
+  // directory
+  // recursively render child files/directories
   if (fileMetadata.extension === '_DIR') {
     return <Flex flexDir="column">
       <Flex
@@ -240,6 +242,7 @@ const DirectoryList = (props: {
       </Flex>
     </Flex>
   }
+  // where the user enters the neame of a new file or directory they just created
   if (fileMetadata.extension === '_UNCREATED' || fileMetadata.extension === '_DIR_UNCREATED') {
     return <Flex
       w="100%"
@@ -258,6 +261,7 @@ const DirectoryList = (props: {
       />
     </Flex>
   }
+  // file entry
   if (fileMetadata.extension !== '_DELETED') {
     return <Flex
       w="100%"
@@ -274,10 +278,12 @@ const DirectoryList = (props: {
       <Flex
         alignItems="center"
         gridGap="0.5rem"
-
       >
         <FileIcon extension={fileMetadata.extension} size={16} />
-        <Text fontSize="13px" color={themed('textMidLight')} fontWeight="light" userSelect="none"
+        <Text
+          fontSize="13px"
+          color={themed('textMidLight')}
+          userSelect="none"
           _groupHover={{
             color: themed('textHigh')
           }}

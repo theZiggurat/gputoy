@@ -38,6 +38,7 @@ const SummaryInfo = () => {
       titleComponent = <Input
         value={title}
         bg="transparent"
+        minW="min-content"
         onChange={setTitle}
         placeholder="Project Title"
         pl="0"

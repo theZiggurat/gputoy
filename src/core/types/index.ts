@@ -1,14 +1,13 @@
 import { Logger } from "@core/recoil/atoms/console"
 import { Namespace, ValidationResult } from "./shaderTypes"
 
-
 export * from './shaderTypes'
 export * from './fileTypes'
 export * from './ioTypes'
 export * from './graphTypes'
 export * from './prismaTypes'
 export * from './pipelineTypes'
-
+export * from './resourceTypes'
 
 export type SystemValidationState = 'unvalidated' | 'validating' | 'validated' | 'failed'
 export type SystemBuildState = 'unbuilt' | 'building' | 'built' | 'failed'
@@ -50,13 +49,6 @@ export type AttachResult = {
   targetTexture: GPUTexture,
   presentationSize: number[],
   preferredFormat: GPUTextureFormat,
-}
-
-export interface Resource {
-  label: string
-  getBindGroupEntry: (binding: number) => GPUBindGroupEntry
-  getBindGroupLayoutEntry: (binding: number, visibility: number) => GPUBindGroupLayoutEntry
-  destroy: () => void
 }
 
 /**

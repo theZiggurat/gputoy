@@ -1,5 +1,6 @@
-import { Resource, Model, Namespace } from "."
+import { ResourceInstance, Model, Namespace } from "."
 import { Logger } from "@core/recoil/atoms/console"
+import { Resource } from "./resourceTypes"
 
 export type IOType = 'viewport' | 'file'
 export type IOArgs = ViewportIOArgs | KeyboardIOArgs | FileIOArgs | StateIOArgs
@@ -88,9 +89,16 @@ export interface IO {
   getNamespace: () => Namespace
 
   /**
-   * Gets gpu resources associated with this io
+   * Get resource descriptors associated with this io
    * 
-   * resource name => resource map
+   * resource name => resource descriptor
    */
   getResources: () => Record<string, Resource>
+
+  /**
+   * Gets gpu resources associated with this io
+   * 
+   * resource name => resource instance
+   */
+  getResourceInstances: () => Record<string, ResourceInstance>
 }

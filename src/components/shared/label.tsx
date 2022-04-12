@@ -16,7 +16,7 @@ const Label = (props: LabelProps & FlexProps) => {
   >
     <chakra.span
       fontWeight="semibold"
-      color={themed('textMid')}
+      color={themed('textMidLight')}
       fontSize={props["fontSize"] ?? "xs"}
     >
       {text}

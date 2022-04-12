@@ -12,6 +12,8 @@ use console_error_panic_hook;
 use std::panic;
 use std::sync::Mutex;
 
+///
+///
 lazy_static! {
     static ref MODULE_INFO: Mutex<String> = Mutex::new(String::new());
     static ref IR: Mutex<String> = Mutex::new(String::new());

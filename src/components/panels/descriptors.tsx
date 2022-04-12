@@ -10,6 +10,8 @@ import EditorPanel from "./impls/editorPanel"
 import ParamPanel from "./impls/paramPanel"
 import SummaryPanel from "./impls/summaryPanel"
 import ViewportPanel from "./impls/viewPanel"
+import { VscLayers } from "react-icons/vsc"
+import ResourcePanel from "./impls/resourcePanel"
 
 
 
@@ -28,6 +30,14 @@ export interface EditorInstanceState {
 }
 export interface ViewportInstanceState {
 	showInfo: boolean
+}
+
+export interface SummaryInstanceState {
+	panelOpenState: boolean[]
+}
+
+export interface ResourceInstanceState {
+	openResource?: string
 }
 
 export interface PanelDescriptor {
@@ -92,6 +102,15 @@ export default [
 		name: 'Summary',
 		icon: <MdSummarize />,
 		component: SummaryPanel,
+		defaultInstanceProps: {
+			panelOpenState: [true, true, true, false]
+		}
+	},
+	{
+		index: 6,
+		name: 'Resources',
+		icon: <VscLayers />,
+		component: ResourcePanel,
 		defaultInstanceProps: {}
 	}
 ] as PanelDescriptor[]

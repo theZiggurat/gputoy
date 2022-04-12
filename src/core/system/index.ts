@@ -66,7 +66,7 @@ class System {
   moduleNeedCompile: Record<types.FileId, boolean> = {}
 
 
-  resources: Record<string, types.Resource> = {}
+  resources: Record<string, types.ResourceInstance> = {}
 
   currentRunnerFileId: string = ""
   runner: any
@@ -101,7 +101,7 @@ class System {
 
   frameStateBuffer!: BufferResource
 
-  resolveResource = (path?: string, logger?: Logger): types.Resource | undefined => {
+  resolveResource = (path?: string, logger?: Logger): types.ResourceInstance | undefined => {
     if (!path) return undefined
     const split = path.split('::')
     const [domain, name, key] = split
@@ -109,7 +109,7 @@ class System {
       logger?.err('System::resolve', 'Invalid path: ' + path)
       return undefined
     }
-    if (domain === 'system') {
+    if (domain === 'sys') {
       if (name !== 'frame') {
         logger?.err('System::resolve', 'Resource does not belong to system: ' + name)
         return undefined
@@ -122,11 +122,14 @@ class System {
         logger?.err('System::resolve', 'IO Channel not found: ' + name)
         return undefined
       }
-      let resource = channel.getResources()[key ?? '_']
+      let resource = channel.getResourceInstances()[key ?? '_']
       if (!resource) {
         logger?.err('System::resolve', 'Resource does not exist in io: ' + key)
       }
       return resource
+    }
+    if (domain === 'res') {
+
     }
 
     return undefined

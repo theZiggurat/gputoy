@@ -30,7 +30,7 @@ const completions: monaco.languages.CompletionItemProvider = {
   }
 }
 
-const includedSuggestions = [
+const includedSuggestions: Partial<monaco.languages.CompletionItem>[] = [
   {
     "detail": "f32",
     "documentation": "Running time in seconds",
@@ -82,7 +82,7 @@ const includedSuggestions = [
   },
 ]
 
-const keywordSnippets = [
+const keywordSnippets: Partial<monaco.languages.CompletionItem>[] = [
   {
     "detail": "Snippet",
     "documentation": "If block",
@@ -101,10 +101,23 @@ const keywordSnippets = [
   },
 ]
 
-const keywordSuggestions = [
+const keywordSuggestions: Partial<monaco.languages.CompletionItem>[] = [
   'bitcast', 'break', 'case', 'continue', 'continuing', 'default', 'discard', 'else', 'enable', 'fallthrough', 'fn',
   'for', 'if', 'let', 'loop', 'private', 'read', 'read_write', 'return', 'storage', 'struct', 'switch', 'type',
   'uniform', 'var', 'workgroup', 'write', 'stage', 'workgroup_size', 'group', 'binding', 'block'
-].map(w => { return { "label": w, "insertText": w, "kind": 17 } })
+].map(w => { return { "label": w, "insertText": w, "kind": 17 } }).concat([
+  {
+    'insertText': 'let',
+    'label': 'let',
+    'kind': 17,
+    'documentation': 'A let declaration specifies a name for a value. Once the value for a let-declaration is computed, it is immutable. When an identifier use resolves to a let-declaration, the identifier denotes that value.'
+  },
+  {
+    'insertText': 'var',
+    'label': 'var',
+    'kind': 17,
+    'documentation': 'A variable is a named reference to memory that can contain a value of a particular storable type.'
+  }
+])
 
 export default completions
