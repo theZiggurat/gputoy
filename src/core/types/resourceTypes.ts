@@ -73,8 +73,10 @@ export const TEXTURE_FORMAT_FAMILIES: Record<TextureFormatType, readonly GPUText
 
 export const resourceTypeToDefaultArgs: Record<ResourceType, ResourceArgs> = {
   'buffer': {
+    bindingType: 'uniform',
+    usageFlags: 0x0044,
     length: 1,
-    bindingType: 'storage'
+
   },
   'texture': {
     dim: '2d',
@@ -87,18 +89,29 @@ export const resourceTypeToDefaultArgs: Record<ResourceType, ResourceArgs> = {
     usage: 0x04
   },
   'sampler': {
-
+    addressModeU: 'clamp-to-edge',
+    addressModeV: 'clamp-to-edge',
+    addressModeW: 'clamp-to-edge',
+    magFilter: 'nearest',
+    minFilter: 'nearest',
+    mipmapFilter: 'nearest',
+    lodMinClamp: 0,
+    lodMaxClamp: 32,
+    maxAnisotropy: 1
   }
-}
+} as const
 
 
 /**
  * https://www.w3.org/TR/webgpu/#dom-gpudevice-createbuffer
  */
 export type BufferArgs = {
-  length: number
+  length: any
   modelName?: string
-  bindingType: GPUBufferBindingType
+  bindingType: GPUBufferBindingType,
+  usageFlags: GPUBufferUsageFlags,
+  size?: number
+  initialValue?: number[][]
 }
 
 /**
@@ -117,9 +130,7 @@ export type TextureArgs = {
 /**
  * https://www.w3.org/TR/webgpu/#dom-gpudevice-createsampler
  */
-export type SamplerArgs = {
-  desc: GPUSamplerDescriptor
-}
+export type SamplerArgs = GPUSamplerDescriptor
 
 export interface ResourceInstance {
   label: string

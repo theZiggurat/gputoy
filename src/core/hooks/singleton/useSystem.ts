@@ -14,6 +14,7 @@ import * as types from "@core/types"
 import System from "@core/system"
 import { withProjectIO } from "@core/recoil/atoms/io"
 import { systemBuildStateAtom, systemFrameStateAtom, systemValidationStateAtom, withSystemPrebuildResult } from "@core/recoil/atoms/system"
+import { withResourceJSON } from "@core/recoil/atoms/resource"
 
 
 
@@ -31,6 +32,8 @@ const useProjectManager = () => {
   const { _smPlay, _smPause, _smStop, _smStep } = _useSystemFrameState()
 
   const files = useRecoilValue(withProjectFilesJSON)
+
+  const resources = useRecoilValue(withResourceJSON)
 
   const setClearConsole = useClearConsole()
 
@@ -138,11 +141,6 @@ const useProjectManager = () => {
 
   }, 500), [])
 
-  useEffect(() => {
-    processFileDelta(files)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [files])
-
 
   // TODO find better solution than brute forcing diff
   // very unoptimized, but it shouldn't run much at all. basically only on
@@ -188,8 +186,56 @@ const useProjectManager = () => {
     let preres = await System.instance().build(logger)
     setBuildState(preres ? 'built' : 'failed')
 
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+
+  const processResourceDelta = useCallback(async (currentResources: Record<string, types.Resource>) => {
+    const prevResources = System.instance().resources
+
+    let prevKeys = Object.keys(prevResources)
+
+    // skip delta calculations
+    if (prevKeys.length === 0) {
+      System.instance().pushResourceDelta(currentResources, [], [], logger)
+      return
+    }
+
+    let resourceKeys = Object.keys(currentResources)
+    let diff: Record<string, types.Resource> = {}
+    let removed: string[] = []
+    let updated: string[] = []
+    for (const resourceKey of uniq([...prevKeys, ...resourceKeys])) {
+      const prevResource = prevResources[resourceKey]
+      const currentResource = currentResources[resourceKey]
+
+      if (prevResource && currentResource) {
+        if (!isEqual(prevResource, currentResource)) {
+          diff[resourceKey] = currentResource
+        } else {
+          updated.push(resourceKey)
+        }
+      } else if (prevResource && !currentResource) {
+        removed.push(resourceKey)
+      } else if (!prevResource && currentResource) {
+        diff[resourceKey] = currentResource
+      }
+    }
+
+    console.log("resource diff", diff, updated, removed)
+    System.instance().pushResourceDelta(diff, updated, removed, logger)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    processResourceDelta(resources)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resources])
+
+  useEffect(() => {
+    processFileDelta(files)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [files])
 
   useEffect(() => {
     processIODelta(ioChannels)

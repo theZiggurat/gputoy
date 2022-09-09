@@ -104,6 +104,7 @@ const EditorContent = (props: {
 						cursorMoveOnType: true
 					},
 					mouseWheelZoom: true,
+					lineNumbers: 'relative'
 				}}
 			/>
 		}

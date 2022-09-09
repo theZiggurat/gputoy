@@ -94,12 +94,18 @@ export class ViewportIO implements types.IO {
       return false
     }
 
-    const mousebuffer = await BufferResource.build({
-      bufferBindingType: 'uniform',
-      bufferUsageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      label: `${this.label}::mouse`,
-      layout: fullStructMouse,
-    }, GPU.device, logger) as BufferResource
+    const mousebufferArgs = {
+      bindingType: 'uniform',
+      usageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    } as const
+
+    const mousebuffer = await BufferResource.build(
+      `${this.label}::mouse`,
+      mousebufferArgs,
+      types.getStructFromModel(this.getNamespace().exported, "Mouse")!,
+      GPU.device,
+      logger
+    ) as BufferResource
 
 
     // res buffer
@@ -109,12 +115,18 @@ export class ViewportIO implements types.IO {
       return false
     }
 
-    const resbuffer = await BufferResource.build({
-      bufferBindingType: 'uniform',
-      bufferUsageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      label: `${this.label}::res`,
-      layout: fullStructRes,
-    }, GPU.device, logger) as BufferResource
+    const resbufferArgs = {
+      bindingType: 'uniform',
+      usageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    } as const
+
+    const resbuffer = await BufferResource.build(
+      `${this.label}::res`,
+      resbufferArgs,
+      types.getStructFromModel(this.getNamespace().exported, "Res")!,
+      GPU.device,
+      logger
+    ) as BufferResource
 
 
     if (!mousebuffer || !resbuffer) {

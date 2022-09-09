@@ -4,7 +4,7 @@ import { ExtensionShader } from "."
  * TODO: add mat4, vec4f, vec4i, and rgba
  */
 export type ConstructableType = 'int' | 'float' | 'color' | 'vec3f' | 'vec2f' | 'vec3i' | 'vec2i'
-export const typeInfo = {
+export const SHADER_TYPE_META = {
   'int': { size: 4, align: 4, order: 6, glsl: 'int', wgsl: 'i32', writeType: 'int' },
   'float': { size: 4, align: 4, order: 3, glsl: 'float', wgsl: 'f32', writeType: 'float' },
   'color': { size: 12, align: 16, order: 1, glsl: 'vec3', wgsl: 'vec3<f32>', writeType: 'float' },
@@ -12,7 +12,7 @@ export const typeInfo = {
   'vec3i': { size: 12, align: 16, order: 4, glsl: 'ivec3', wgsl: 'vec3<i32>', writeType: 'int' },
   'vec2f': { size: 8, align: 8, order: 2, glsl: 'vec2', wgsl: 'vec2<f32>', writeType: 'float' },
   'vec2i': { size: 8, align: 8, order: 5, glsl: 'ivec2', wgsl: 'vec2<i32>', writeType: 'int' },
-}
+} as const
 
 export type Model = {
   name: string,
@@ -41,6 +41,15 @@ export const getStructFromModel = (model: Model, structName: string): NagaTypeSt
   }
 }
 
+export const getStructFromNamespaces = (namespaces: Record<string, Namespace>, structName: string): NagaTypeStructFull | null => {
+  let model = null
+  for (const namespace of Object.values(namespaces)) {
+    model = getStructFromModel(namespace.exported, structName)
+    if (model) break
+  }
+  return model
+}
+
 export const getStructDecl = (struct: NagaTypeStructFull, ext: ExtensionShader): string => {
   let decl = []
   decl.push(`struct ${struct.name} {`)
@@ -50,7 +59,7 @@ export const getStructDecl = (struct: NagaTypeStructFull, ext: ExtensionShader):
 
       const parsedBinding = bindingToString(binding)
       const innerType = getTypeDecl(ty, ext)
-      return `\t${parsedBinding} ${name}: ${innerType};`
+      return `\t${parsedBinding} ${name}: ${innerType},`
     }).join('\n'))
   } else {
     decl.push(struct.members.map(e => {
@@ -94,24 +103,37 @@ export const bindingToString = (binding: NagaBinding | null): string => {
 }
 
 export type NagaStructMemoryLayout = {
+  // Indexed type enum of member
+  // 1: Sint
+  // 2: Uint
+  // 3: Float
+  // 4: Bool
   scalarTypes: number[]
+  // Offset of each member in bytes
   byteOffsets: number[]
+  // Size of each member in bytes
+  memberSizes: number[]
+  // Total size of struct in bytes
+  byteSize: number
 }
 export const getMemoryLayout = (type: NagaTypeStructFull): NagaStructMemoryLayout => {
   const { members } = type
   let scalarTypes: number[] = []
   let byteOffsets: number[] = []
+  let memberSizes: number[] = []
   members.forEach((member, idx) => {
     const inner = member.ty.inner
     if ('Scalar' in inner) {
       scalarTypes[idx] = NAGA_SCALAR_KIND_VARIANTS.indexOf(inner.Scalar.kind)
+      memberSizes[idx] = inner.Scalar.width
     }
     else if ('Vector' in inner) {
       scalarTypes[idx] = NAGA_SCALAR_KIND_VARIANTS.indexOf(inner.Vector.kind)
+      memberSizes[idx] = inner.Vector.width
     }
     byteOffsets[idx] = member.offset as number
   })
-  return { scalarTypes, byteOffsets }
+  return { scalarTypes, byteOffsets, memberSizes, byteSize: memberSizes.reduce((prev, curr) => prev + curr) }
 }
 
 export type Dependency = {

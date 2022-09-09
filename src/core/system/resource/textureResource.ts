@@ -28,12 +28,14 @@ export default class TextureResource implements types.ResourceInstance {
   }
 
   public static build = async (
-    textureInit: TextureInit,
+    label: string,
+    args: types.TextureArgs,
     device: GPUDevice,
+    file?: types.File,
     logger?: Logger
   ): Promise<TextureResource | undefined> => {
 
-    const { file, width, height, format, usage, label } = textureInit
+    const { width, height, format, usage } = args
     let textureDescriptor = {
       size: { width, height },
       format,

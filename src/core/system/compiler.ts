@@ -1,7 +1,6 @@
 import init, {
-  get_errors,
   introspect
-} from '../../../pkg/naga_compiler'
+} from '../../../pkg/naga_compiler.js'
 import { Logger } from 'core/recoil/atoms/console'
 import { getStructDecl, File, Model, ExtensionShader, Namespace, Dependency, getStructFromModel, ValidationResult } from '@core/types'
 
@@ -48,16 +47,21 @@ class Compiler {
       .filter(m => !!m)
       .join('\n')
 
-    // just a quirk that the naga parser needs an entry point to parse while a wgsl does not
+    // just a quirk that the naga parser needs a glsl entry point to start
     if (file.extension === 'glsl') {
       matches = matches.concat('\nvoid main(){}')
     }
 
-    const { types } = JSON.parse(introspect(matches, file.extension, "fragment") ?? "{}")
-    if (!types) {
-      logger?.err(`Compiler::find_models[${file.filename}]`, `Validation of model failed due to: \n`.concat(get_errors()))
-      return undefined
+    let res = null
+    try {
+      res = introspect(matches, file.extension, "fragment")
+    } catch (e) {
+      console.warn('Error when introspecting', e)
+      logger?.err(`Compiler::find_models[${file.filename}]`, `Validation of model failed due to: \n` + e)
+      return
     }
+
+    const { types } = JSON.parse(res ?? "{}")
     let namedTypes: Record<string, number> = {}
     let indexedTypes = []
 
@@ -141,8 +145,10 @@ class Compiler {
     // fails validate if declaration not found in namespace
     const localNamespace = globalNamespace[file.id]
     for (const dep of localNamespace.imported) {
+
       let fileModel!: Model
       let foundModel = false
+
       for (const fileId of Object.keys(globalNamespace)) {
         if (fileId === file.id) continue
 
@@ -177,24 +183,27 @@ class Compiler {
       }
     }
 
-    // now processedShader has all dependent types baked in
-    // ready for naga validation
-    const nagaModule = JSON.parse(introspect(processedShader, file.extension, "") ?? "{}")
+    try {
+      const res = introspect(processedShader, file.extension, "")
+      // now processedShader has all dependent types baked in
+      // ready for naga validation
+      const nagaModule = JSON.parse(res ?? "{}")
 
-    if (!nagaModule.types) {
-      const errors = get_errors()
-      logger?.err(`Compiler::Preprocessor[${file.filename}]`, 'Pre-processing failed due to: \n'.concat(errors))
       return {
         fileId: file.id,
-        errors: errors,
+        processedShader,
+        nagaModule
+      }
+    } catch (e) {
+      let errs = e as string
+      logger?.err(`Compiler::Preprocessor[${file.filename}]`, 'Pre-processing failed due to: \n'.concat(errs))
+      return {
+        fileId: file.id,
+        errors: errs
       }
     }
 
-    return {
-      fileId: file.id,
-      processedShader,
-      nagaModule
-    }
+
   }
 
   compile = async (

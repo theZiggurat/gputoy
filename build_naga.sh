@@ -1,0 +1,1 @@
+wasm-pack build ./naga-compiler/ --out-dir ../pkg --target web

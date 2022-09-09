@@ -1,21 +1,6 @@
 import { Logger } from '@core/recoil/atoms/console'
 import * as types from '@core/types'
 
-type BufferInit = {
-  label: string,
-  layout: types.NagaTypeStructFull
-
-  // uniform, storage, read-only storage
-  bufferBindingType: GPUBufferBindingType
-
-  // flags how the buffer will be used
-  bufferUsageFlags: GPUBufferUsageFlags
-
-  size?: number
-  initialValue?: number[][]
-}
-
-
 export default class BufferResource implements types.ResourceInstance {
 
   label: string
@@ -48,12 +33,14 @@ export default class BufferResource implements types.ResourceInstance {
   }
 
   public static build = async (
-    bufferInit: BufferInit,
+    label: string,
+    bufferInit: types.BufferArgs,
+    layout: types.NagaTypeStructFull,
     device: GPUDevice,
     logger?: Logger
   ): Promise<types.ResourceInstance | undefined> => {
 
-    const { label, layout, initialValue, size, bufferUsageFlags, bufferBindingType } = bufferInit
+    const { initialValue, size, usageFlags, bindingType, modelName, length } = bufferInit
     const { span } = layout
     const optimizedMemLayout = types.getMemoryLayout(layout)
 
@@ -63,7 +50,7 @@ export default class BufferResource implements types.ResourceInstance {
     let buffer = device.createBuffer({
       label,
       size: span,
-      usage: bufferUsageFlags,
+      usage: usageFlags,
       mappedAtCreation: shouldMap
     })
 
@@ -73,7 +60,7 @@ export default class BufferResource implements types.ResourceInstance {
       return undefined
     }
 
-    let ret = new BufferResource(label, buffer, bufferBindingType, bufferUsageFlags, layout, optimizedMemLayout)
+    let ret = new BufferResource(label, buffer, bindingType, usageFlags, layout, optimizedMemLayout)
     if (shouldMap) {
       device.pushErrorScope('validation')
       const byteBuf = buffer.getMappedRange()
@@ -140,7 +127,7 @@ export default class BufferResource implements types.ResourceInstance {
         case 2: floatView.set(buf[i], byteOffsets[entryIndex] / 4); break
         case 3: {
           if (this.bufferUsageFlags & GPUBufferUsage.UNIFORM) {
-            logger?.err(`Resource::Buffer[${this.label}]`, 'Uniform buffer must be host-sharable type (int, uint, float) and their composites.')
+            logger?.err(`Resource::Buffer[${this.label}]`, 'Uniform buffer must be host-sharable type (int, uint, float) and their composites (array, matrix, struct, vector).')
             continue
           }
           byteView.set(buf[i], byteOffsets[entryIndex])

@@ -1,6 +1,6 @@
 import { Logger } from 'core/recoil/atoms/console'
 import * as types from '@core/types'
-import { typeInfo } from '@core/types'
+import { SHADER_TYPE_META } from '@core/types'
 
 class Params {
 
@@ -82,11 +82,11 @@ class Params {
     if (namedParams.length > 0) {
       namedParams.forEach((p, idx) => {
         this.byteOffsets[idx] = idx == 0 ? 0 :
-          roundUp(typeInfo[p.paramType].align, this.byteOffsets[idx - 1] + typeInfo[namedParams[idx - 1].paramType].size)
-        align = Math.max(align, typeInfo[p.paramType].align)
+          roundUp(SHADER_TYPE_META[p.paramType].align, this.byteOffsets[idx - 1] + SHADER_TYPE_META[namedParams[idx - 1].paramType].size)
+        align = Math.max(align, SHADER_TYPE_META[p.paramType].align)
       })
       let lastMemberType = namedParams[namedParams.length - 1].paramType
-      this.sizeByte = roundUp(align, this.byteOffsets[namedParams.length - 1] + typeInfo[lastMemberType].size)
+      this.sizeByte = roundUp(align, this.byteOffsets[namedParams.length - 1] + SHADER_TYPE_META[lastMemberType].size)
     }
 
     if (this.sizeByte == 0) return
@@ -97,7 +97,7 @@ class Params {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
     logger?.debug(`Params`, `Buffer \`${this.name}\` created with size of ${this.sizeByte} bytes and config: \n`.concat(
-      namedParams.map((p: types.ParamDesc, idx: number) => `${this.byteOffsets[idx]}\t${p.paramName}\t\t${typeInfo[p.paramType].size} bytes -- ${typeInfo[p.paramType].align} align`).join('\n')
+      namedParams.map((p: types.ParamDesc, idx: number) => `${this.byteOffsets[idx]}\t${p.paramName}\t\t${SHADER_TYPE_META[p.paramType].size} bytes -- ${SHADER_TYPE_META[p.paramType].align} align`).join('\n')
     ))
 
     this.bindGroupLayout = device.createBindGroupLayout({
@@ -137,7 +137,7 @@ class Params {
     let intView = new Int32Array(byteBuffer, 0, this.sizeByte / 4)
 
     namedParams.forEach((p, idx) => {
-      if (typeInfo[p.paramType].writeType == 'int')
+      if (SHADER_TYPE_META[p.paramType].writeType == 'int')
         intView.set(p.param, this.byteOffsets[idx] / 4)
       else
         floatView.set(p.param, this.byteOffsets[idx] / 4)
@@ -162,11 +162,11 @@ class Params {
     if (lang == 'wgsl') {
       //unidecl.push('[[block]]')
       unidecl.push(`struct ${this.name} {`)
-      namedParams.forEach(p => unidecl.push(`\t${p.paramName}: ${typeInfo[p.paramType].wgsl};`))
+      namedParams.forEach(p => unidecl.push(`\t${p.paramName}: ${SHADER_TYPE_META[p.paramType].wgsl};`))
       unidecl.push(`};\n@group(${this.group}) @binding(${this.binding}) var<uniform> ${this.prefix}: ${this.name};\n`)
     } else {
       unidecl.push(`layout(binding = ${this.binding}, set = ${this.group}) uniform ${this.name} {`)
-      namedParams.forEach(p => unidecl.push(`\t${typeInfo[p.paramType].glsl} ${p.paramName};`))
+      namedParams.forEach(p => unidecl.push(`\t${SHADER_TYPE_META[p.paramType].glsl} ${p.paramName};`))
       unidecl.push(`} ${this.prefix};\n`)
     }
     return unidecl.join('\n')

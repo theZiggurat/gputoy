@@ -58,3 +58,15 @@ export const withSystemModels = selector<types.Model[]>({
       .filter(model => !!model) as types.Model[]
   }
 })
+
+export const withSystemNamespace = selector<Record<string, types.Namespace>>({
+  key: 'sys_namespaces',
+  get: ({ get }) => {
+    const ret: Record<string, types.Namespace> = {}
+    get(systemNamespaceListAtom).forEach(namespaceId => {
+      const namespace = get(systemNamespaceResultAtom(namespaceId))
+      if (namespace) ret[namespaceId] = namespace
+    })
+    return ret
+  }
+})

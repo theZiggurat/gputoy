@@ -4,37 +4,22 @@
 * @param {string} src
 * @param {string} lang
 * @param {string} stage
-* @returns {string | undefined}
+* @returns {string}
 */
-export function introspect(src: string, lang: string, stage: string): string | undefined;
+export function introspect(src: string, lang: string, stage: string): string;
 /**
 * @param {string} src
 * @param {string} stage
 * @returns {string | undefined}
 */
-export function compile_glsl(src: string, stage: string): string | undefined;
-/**
-* @returns {string}
-*/
-export function get_module_info(): string;
-/**
-* @returns {string}
-*/
-export function get_ir(): string;
-/**
-* @returns {string}
-*/
-export function get_errors(): string;
+export function transpile_glsl_to_wgsl(src: string, stage: string): string | undefined;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly introspect: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly compile_glsl: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly get_module_info: (a: number) => void;
-  readonly get_ir: (a: number) => void;
-  readonly get_errors: (a: number) => void;
+  readonly transpile_glsl_to_wgsl: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly __wbindgen_free: (a: number, b: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;

@@ -104,6 +104,7 @@ export class QuadPipeline implements types.Pipeline {
         continue
       }
       const resource = resolve(bindPath, logger)
+      console.log("Naga module: ", nagaModule)
       if (!resource) {
         logger?.err(`Pipeline::build[${filename}]`, 'Resource at path not found: ' + bindPath)
         return false
@@ -167,7 +168,7 @@ export class QuadPipeline implements types.Pipeline {
       })
       let err1 = await device.popErrorScope()
       if (err1) {
-        logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group layout: ' + err.message)
+        logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group layout: ' + err1.message)
         return false
       }
       bindGroupLayouts.push(bindGroupLayout)
@@ -181,7 +182,7 @@ export class QuadPipeline implements types.Pipeline {
       })
       let err2 = await device.popErrorScope()
       if (err2) {
-        logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group: ' + err.message)
+        logger?.fatal(`System::build_modules[${filename}]`, 'Error when contructing bind group: ' + err2.message)
         return false
       }
       bindGroups.push(bindGroup)
@@ -204,7 +205,6 @@ export class QuadPipeline implements types.Pipeline {
       return false
     }
 
-    // MUTATING INPUT STATE HERE
     modules[fileId] = compiledModule
     moduleNeedCompile[fileId] = false
 
@@ -354,11 +354,11 @@ export class QuadPipeline implements types.Pipeline {
     return device.createShaderModule({
       code: `
         struct FragIn {
-          @builtin(position) position: vec4<f32>;
-          @location(0) uv: vec2<f32>;
+          @builtin(position) position: vec4<f32>,
+          @location(0) uv: vec2<f32>,
         };
 
-        @stage(vertex)
+        @vertex
         fn main(@builtin(vertex_index) v_index: u32) -> FragIn {
           var pos = array<vec2<f32>, 6>(
             vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),

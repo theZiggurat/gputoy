@@ -1,13 +1,15 @@
 import { Logger } from '@core/recoil/atoms/console'
 import * as types from '@core/types'
-import { IOChannel } from '@core/types'
-import { intersection, isEqual } from 'lodash'
+import { BufferArgs, IOChannel } from '@core/types'
+import { intersection, isEqual, overArgs } from 'lodash'
 import { uniq } from 'lodash/fp'
 import Compiler from './compiler'
 import GPU from './gpu'
 import { ViewportIO } from './io'
 import { QuadPipeline } from './pipeline'
 import BufferResource from './resource/bufferResource'
+import SamplerResource from './resource/samplerResource'
+import TextureResource from './resource/textureResource'
 
 class System {
 
@@ -28,8 +30,8 @@ class System {
   }
 
   _destroy = () => {
-    Object.values(this.resources).forEach(r => r.destroy())
-    this.resources = {}
+    Object.values(this.resourceInstances).forEach(r => r.destroy())
+    this.resourceInstances = {}
     Object.values(this.modules).forEach(r => { })
     this.modules = {}
   }
@@ -66,7 +68,9 @@ class System {
   moduleNeedCompile: Record<types.FileId, boolean> = {}
 
 
-  resources: Record<string, types.ResourceInstance> = {}
+  resources: Record<string, types.Resource> = {}
+  resourceInstances: Record<string, types.ResourceInstance> = {}
+  resourceNeedBuild: Record<string, boolean> = {}
 
   currentRunnerFileId: string = ""
   runner: any
@@ -101,7 +105,17 @@ class System {
 
   frameStateBuffer!: BufferResource
 
+  /**
+   * Return resource instance from resource path. Returns `undeifned` if resource doesn't exist at path.
+   * @param path Path of resource ex. "res::mybuffer", "sys::frame", "bus::viewport::mouse"
+   * @param logger Logger object
+   * @returns Success or fail
+   */
   resolveResource = (path?: string, logger?: Logger): types.ResourceInstance | undefined => {
+
+    console.log("Resources: ", this.resources)
+    console.log("Resource Instances: ", this.resourceInstances)
+
     if (!path) return undefined
     const split = path.split('::')
     const [domain, name, key] = split
@@ -130,11 +144,24 @@ class System {
     }
     if (domain === 'res') {
 
+      let resourceKey = Object.values(this.resources).find(res => {
+        console.log("comparing", name, res.name)
+        return res.name === name
+      })?.id ?? ""
+      console.log("trying to find resource at id ", resourceKey)
+      return this.resourceInstances[resourceKey]
     }
 
     return undefined
   }
 
+  /**
+   * Shallow validation of project. Does not commit to building gpu resources.
+   *  * Uses naga to introspect shaders to gain type info and entry points.
+   *  * 
+   * @param logger Logger object
+   * @returns Prebuild result for frontend to use
+   */
   prebuild = async (logger?: Logger): Promise<types.SystemPrebuildResult | undefined> => {
     if (this.isValidated) {
       return {
@@ -169,8 +196,11 @@ class System {
     }
   }
 
-
-
+  /**
+   * 
+   * @param logger Logger object
+   * @returns Success or fail
+   */
   build = async (logger?: Logger): Promise<boolean> => {
 
     if (!this.isValidated) {
@@ -182,17 +212,27 @@ class System {
       return true
     }
 
-    let framebuf = await BufferResource.build({
-      bufferBindingType: 'uniform',
-      bufferUsageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      label: 'sys_framestate_buffer',
-      layout: types.getStructFromModel(frameStateNamespace.exported, 'Frame')!,
-    }, GPU.device, logger)
+    let framebuf = await BufferResource.build(
+      'sys_framestate_buffer',
+      {
+        bindingType: 'uniform',
+        usageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      },
+      types.getStructFromModel(frameStateNamespace.exported, 'Frame')!,
+      GPU.device,
+      logger
+    )
     if (!framebuf) {
       logger?.err('System::prebuild', 'Failed to build frame state buffer')
       return false
     }
     this.frameStateBuffer = framebuf as BufferResource
+
+    logger?.debug('System::prebuild', 'BUILD_RESOURCES')
+    if (!(await this.buildResources(logger))) {
+      return false
+    }
+    logger?.debug('System::prebuild', 'BUILD_RESOURCES -- COMPLETE')
 
     logger?.debug('System::prebuild', 'BUILD_IO')
     if (!(await this.buildIo(logger))) {
@@ -210,6 +250,11 @@ class System {
     return true
   }
 
+  /**
+   * 
+   * @param logger Logger object
+   * @returns Success or fail
+   */
   checkRunner = (logger?: Logger): boolean => {
     if (this.runner && !this.runnerNeedValidation) {
       return true
@@ -337,6 +382,7 @@ class System {
 
       const file = this.files[fileId]
       const model = Compiler.instance().findModel(file, logger)
+      logger?.trace('System::build_namespaces', 'Here')
       if (!model) {
         logger?.err('System::build_namespaces', `Failed to make model in ${file.filename}.${file.extension}.`)
         continue
@@ -362,6 +408,72 @@ class System {
     return true
   }
 
+  buildResources = async (logger?: Logger): Promise<boolean> => {
+
+    const resourcesToBuild = Object.keys(this.resources)
+      .filter(f => this.resourceNeedBuild[f])
+      .map(f => this.resources[f])
+
+    for (const resource of resourcesToBuild) {
+      logger?.trace(`System::build_resources[${resource.name}]`, `Building ${resource.type} with args: ${resource.args}`)
+      switch (resource.type) {
+        case 'buffer': {
+          let args = resource.args as BufferArgs
+          let layout = types.getStructFromNamespaces(this.namespace, args.modelName ?? "_")
+          if (!layout) {
+            logger?.err(`System::build_resources[${resource.name}]`, `Failed to locate layout information for struct: ${args.modelName ?? 'Unknown'}`)
+            continue
+          }
+          let buffer = await BufferResource.build(
+            `res::${resource.name}`,
+            args,
+            layout,
+            GPU.device,
+            logger
+          )
+
+          if (buffer === undefined) {
+            logger?.err(`System::build_resources[${resource.name}]`, "Failed to build buffer resource")
+            continue
+          }
+
+          break
+        }
+        case 'texture': {
+          let texture = await TextureResource.build(
+            resource.name,
+            resource.args as types.TextureArgs,
+            GPU.device,
+            undefined,
+            logger
+          )
+          if (texture === undefined) {
+            logger?.err(`System::build_resources[${resource.name}]`, "Failed to build texture resource")
+            continue
+          }
+          this.resourceInstances[resource.id] = texture
+          break
+        }
+        case 'sampler': {
+          let sampler = await SamplerResource.build(
+            resource.name,
+            resource.args as types.SamplerArgs,
+            GPU.device,
+            logger
+          )
+          if (sampler === undefined) {
+            logger?.err(`System::build_resources[${resource.name}]`, "Failed to build sampler resource")
+            continue
+          }
+          this.resourceInstances[resource.id] = sampler
+          break
+        }
+      }
+    }
+
+    return true
+  }
+
 
   /**
    * 
@@ -381,6 +493,7 @@ class System {
       logger?.trace(`System::validate[${fileId}]`, `Validation started for ${file.filename}.${file.extension}`)
 
       const validationResult = Compiler.instance().validate(file, this.namespace, logger)
+      console.log('Validation result', validationResult)
       this.processedFiles[fileId] = validationResult
 
       // keep mark on file as dirty
@@ -444,6 +557,37 @@ class System {
     this.pipelines = pipelines
 
     return true
+  }
+
+
+  pushResourceDelta = (delta: Record<string, types.Resource>, rebuild: string[], removed: string[], logger?: Logger) => {
+    // update the dictionary of availible io channels
+    this.resources = { ...this.resources, ...delta }
+    for (const key of Object.keys(delta)) this.resourceNeedBuild[key] = true
+
+    for (const removedKey of removed) {
+      let resourceInstance = this.resourceInstances[removedKey]
+      if (resourceInstance) {
+        resourceInstance.destroy()
+        delete this.resourceInstances[removedKey]
+      }
+      delete this.resources[removedKey]
+      delete this.resourceNeedBuild[removedKey]
+      logger?.debug('System::push_resource_delta', `Resource destroyed. key = ${removedKey}`)
+    }
+
+    for (const rebuildKey of rebuild) {
+      let resourceInstance = this.resourceInstances[rebuildKey]
+      if (resourceInstance) {
+        resourceInstance.destroy()
+        delete this.resourceInstances[rebuildKey]
+      }
+      this.resourceNeedBuild[rebuildKey] = true
+    }
+
+    if (Object.keys(delta).length > 0 || removed.length > 0 || rebuild.length > 0) {
+      this.isBuilt = false
+    }
   }
 
 
