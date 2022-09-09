@@ -1,84 +1,81 @@
-import { Logger } from '@core/recoil/atoms/console'
-import * as types from '@core/types'
-import { BufferArgs, IOChannel } from '@core/types'
-import { intersection, isEqual, overArgs } from 'lodash'
-import { uniq } from 'lodash/fp'
-import Compiler from './compiler'
-import GPU from './gpu'
-import { ViewportIO } from './io'
-import { QuadPipeline } from './pipeline'
-import BufferResource from './resource/bufferResource'
-import SamplerResource from './resource/samplerResource'
-import TextureResource from './resource/textureResource'
+import { Logger } from "@core/recoil/atoms/console";
+import * as types from "@core/types";
+import { BufferArgs, IOChannel } from "@core/types";
+import { intersection, isEqual } from "lodash";
+import { uniq } from "lodash/fp";
+import Compiler from "./compiler";
+import GPU from "./gpu";
+import { ViewportIO } from "./io";
+import { QuadPipeline } from "./pipeline";
+import BufferResource from "./resource/bufferResource";
+import SamplerResource from "./resource/samplerResource";
+import TextureResource from "./resource/textureResource";
 
 class System {
-
-
-  private static _instance?: System
+  private static _instance?: System;
 
   static instance = (): System => {
     if (System._instance === undefined) {
-      System._instance = new System()
+      System._instance = new System();
     }
 
-    return System._instance
-  }
+    return System._instance;
+  };
 
   static destroy = () => {
-    this._instance?._destroy()
-    this._instance = undefined
-  }
+    this._instance?._destroy();
+    this._instance = undefined;
+  };
 
   _destroy = () => {
-    Object.values(this.resourceInstances).forEach(r => r.destroy())
-    this.resourceInstances = {}
-    Object.values(this.modules).forEach(r => { })
-    this.modules = {}
-  }
+    Object.values(this.resourceInstances).forEach((r) => r.destroy());
+    this.resourceInstances = {};
+    Object.values(this.modules).forEach((r) => {});
+    this.modules = {};
+  };
 
   reset = () => {
-    this._destroy()
-  }
+    this._destroy();
+  };
 
-  resizeNeeded: boolean = false
-  resizeSize: number[] = [0, 0]
+  resizeNeeded: boolean = false;
+  resizeSize: number[] = [0, 0];
 
-  isValidated: boolean = false
-  isBuilt: boolean = false
+  isValidated: boolean = false;
+  isBuilt: boolean = false;
 
   // file id => file
-  files: Record<types.FileId, types.File> = {}
+  files: Record<types.FileId, types.File> = {};
 
   // file id => process result
-  processedFiles: Record<types.FileId, types.ValidationResult> = {}
+  processedFiles: Record<types.FileId, types.ValidationResult> = {};
   // file id => boolean
-  fileNeedPreprocess: Record<types.FileId, boolean> = {}
+  fileNeedPreprocess: Record<types.FileId, boolean> = {};
 
   // file id | io id => namespace
   namespace: Record<types.FileId, types.Namespace> = {
     "Pipeline::Quad[static]": QuadPipeline.getNamespace(),
-    "System::Frame": frameStateNamespace
-  }
+    "System::Frame": frameStateNamespace,
+  };
   // file id | io id => boolean
-  namespaceNeedsRebuild: Record<types.FileId, boolean> = {}
+  namespaceNeedsRebuild: Record<types.FileId, boolean> = {};
 
   // file id => compiled shader module
-  modules: Record<string, GPUShaderModule> = {}
+  modules: Record<string, GPUShaderModule> = {};
   // file id => boolean
-  moduleNeedCompile: Record<types.FileId, boolean> = {}
+  moduleNeedCompile: Record<types.FileId, boolean> = {};
 
+  resources: Record<string, types.Resource> = {};
+  resourceInstances: Record<string, types.ResourceInstance> = {};
+  resourceNeedBuild: Record<string, boolean> = {};
 
-  resources: Record<string, types.Resource> = {}
-  resourceInstances: Record<string, types.ResourceInstance> = {}
-  resourceNeedBuild: Record<string, boolean> = {}
-
-  currentRunnerFileId: string = ""
-  runner: any
-  runnerNeedValidation: boolean = false
+  currentRunnerFileId: string = "";
+  runner: any;
+  runnerNeedValidation: boolean = false;
 
   // channelId => channel
   // all available io channels fed in from react world using pushIODelta().
-  availChannels: Record<types.ChannelId, types.IOChannel> = {}
+  availChannels: Record<types.ChannelId, types.IOChannel> = {};
 
   /**
       Table to track which io's need to be built before any utilization by the system
@@ -86,24 +83,23 @@ class System {
         -   unset by successful buildIO() calls if the given IO is needed within the project configuration.
             i.e. within the channel lock or found as a candidate
    */
-  ioNeedBuild: Record<types.ChannelId, boolean> = {}
+  ioNeedBuild: Record<types.ChannelId, boolean> = {};
 
-  ioNeedBuildNamespace: Record<types.ChannelId, boolean> = {}
+  ioNeedBuildNamespace: Record<types.ChannelId, boolean> = {};
 
   // channelId => io
   // instances of IO class
   // subset of availChannels with resources ready to be used
-  activeChannels: Record<types.ChannelId, types.IO> = {}
+  activeChannels: Record<types.ChannelId, types.IO> = {};
 
   // graph.ioNodes.key => channelId
   // ioNodes without a channel lock will search for the
   // best candidate in availChannels
-  channelLock: Record<types.ChannelNodeId, types.ChannelId> = {}
+  channelLock: Record<types.ChannelNodeId, types.ChannelId> = {};
 
+  pipelines: types.Pipeline[] = [];
 
-  pipelines: types.Pipeline[] = []
-
-  frameStateBuffer!: BufferResource
+  frameStateBuffer!: BufferResource;
 
   /**
    * Return resource instance from resource path. Returns `undeifned` if resource doesn't exist at path.
@@ -111,318 +107,377 @@ class System {
    * @param logger Logger object
    * @returns Success or fail
    */
-  resolveResource = (path?: string, logger?: Logger): types.ResourceInstance | undefined => {
+  resolveResource = (
+    path?: string,
+    logger?: Logger
+  ): types.ResourceInstance | undefined => {
+    console.log("Resources: ", this.resources);
+    console.log("Resource Instances: ", this.resourceInstances);
 
-    console.log("Resources: ", this.resources)
-    console.log("Resource Instances: ", this.resourceInstances)
-
-    if (!path) return undefined
-    const split = path.split('::')
-    const [domain, name, key] = split
+    if (!path) return undefined;
+    const split = path.split("::");
+    const [domain, name, key] = split;
     if (!domain || !name) {
-      logger?.err('System::resolve', 'Invalid path: ' + path)
-      return undefined
+      logger?.err("System::resolve", "Invalid path: " + path);
+      return undefined;
     }
-    if (domain === 'sys') {
-      if (name !== 'frame') {
-        logger?.err('System::resolve', 'Resource does not belong to system: ' + name)
-        return undefined
+    if (domain === "sys") {
+      if (name !== "frame") {
+        logger?.err(
+          "System::resolve",
+          "Resource does not belong to system: " + name
+        );
+        return undefined;
       }
-      return this.frameStateBuffer
+      return this.frameStateBuffer;
     }
-    if (domain === 'bus') {
-      let channel = this.activeChannels[this.channelLock[name]]
+    if (domain === "bus") {
+      let channel = this.activeChannels[this.channelLock[name]];
       if (!channel) {
-        logger?.err('System::resolve', 'IO Channel not found: ' + name)
-        return undefined
+        logger?.err("System::resolve", "IO Channel not found: " + name);
+        return undefined;
       }
-      let resource = channel.getResourceInstances()[key ?? '_']
+      let resource = channel.getResourceInstances()[key ?? "_"];
       if (!resource) {
-        logger?.err('System::resolve', 'Resource does not exist in io: ' + key)
+        logger?.err("System::resolve", "Resource does not exist in io: " + key);
       }
-      return resource
+      return resource;
     }
-    if (domain === 'res') {
-
-      let resourceKey = Object.values(this.resources).find(res => {
-        console.log("comparing", name, res.name)
-        return res.name === name
-      })?.id ?? ""
-      console.log("trying to find resource at id ", resourceKey)
-      return this.resourceInstances[resourceKey]
+    if (domain === "res") {
+      let resourceKey =
+        Object.values(this.resources).find((res) => {
+          console.log("comparing", name, res.name);
+          return res.name === name;
+        })?.id ?? "";
+      console.log("trying to find resource at id ", resourceKey);
+      return this.resourceInstances[resourceKey];
     }
 
-    return undefined
-  }
+    return undefined;
+  };
 
   /**
    * Shallow validation of project. Does not commit to building gpu resources.
    *  * Uses naga to introspect shaders to gain type info and entry points.
-   *  * 
+   *  *
    * @param logger Logger object
    * @returns Prebuild result for frontend to use
    */
-  prebuild = async (logger?: Logger): Promise<types.SystemPrebuildResult | undefined> => {
+  prebuild = async (
+    logger?: Logger
+  ): Promise<types.SystemPrebuildResult | undefined> => {
     if (this.isValidated) {
       return {
         namespace: this.namespace,
-        validations: this.processedFiles
-      }
+        validations: this.processedFiles,
+      };
     }
 
-    logger?.trace('System::prebuild', 'Build initiated')
-    logger?.debug('System::prebuild', 'CHECK_RUN')
+    logger?.trace("System::prebuild", "Build initiated");
+    logger?.debug("System::prebuild", "CHECK_RUN");
     if (!this.checkRunner(logger)) {
-      return
+      return;
     }
-    logger?.debug('System::prebuild', 'CHECK_RUN -- COMPLETE')
+    logger?.debug("System::prebuild", "CHECK_RUN -- COMPLETE");
 
-    logger?.debug('System::prebuild', 'BUILD_NAMESPACE')
+    logger?.debug("System::prebuild", "BUILD_NAMESPACE");
     if (!(await this.buildNamespaces(logger))) {
-      return
+      return;
     }
-    logger?.debug('System::prebuild', 'BUILD_NAMESPACE -- COMPLETE')
+    logger?.debug("System::prebuild", "BUILD_NAMESPACE -- COMPLETE");
 
-    logger?.debug('System::prebuild', 'VALIDATE')
+    logger?.debug("System::prebuild", "VALIDATE");
     if (!(await this.validate(logger))) {
-      return
+      return;
     }
-    logger?.debug('System::prebuild', 'VALIDATE -- COMPLETE')
+    logger?.debug("System::prebuild", "VALIDATE -- COMPLETE");
 
-    this.isValidated = true
+    this.isValidated = true;
     return {
       namespace: this.namespace,
-      validations: this.processedFiles
-    }
-  }
+      validations: this.processedFiles,
+    };
+  };
 
   /**
-   * 
+   *
    * @param logger Logger object
    * @returns Success or fail
    */
   build = async (logger?: Logger): Promise<boolean> => {
-
     if (!this.isValidated) {
-      logger?.err('System::build', 'Cannot build, validation failed in previous step.')
-      return false
+      logger?.err(
+        "System::build",
+        "Cannot build, validation failed in previous step."
+      );
+      return false;
     }
 
     if (this.isBuilt) {
-      return true
+      return true;
     }
 
     let framebuf = await BufferResource.build(
-      'sys_framestate_buffer',
+      "sys_framestate_buffer",
       {
-        bindingType: 'uniform',
+        bindingType: "uniform",
         usageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       },
-      types.getStructFromModel(frameStateNamespace.exported, 'Frame')!,
+      types.getStructFromModel(frameStateNamespace.exported, "Frame")!,
       GPU.device,
       logger
-    )
+    );
     if (!framebuf) {
-      logger?.err('System::prebuild', 'Failed to build frame state buffer')
-      return false
+      logger?.err("System::prebuild", "Failed to build frame state buffer");
+      return false;
     }
-    this.frameStateBuffer = framebuf as BufferResource
+    this.frameStateBuffer = framebuf as BufferResource;
 
-    logger?.debug('System::prebuild', 'BUILD_RESOURCES')
+    logger?.debug("System::prebuild", "BUILD_RESOURCES");
     if (!(await this.buildResources(logger))) {
-      return false
+      return false;
     }
-    logger?.debug('System::prebuild', 'BUILD_RESOURCES -- COMPLETE')
+    logger?.debug("System::prebuild", "BUILD_RESOURCES -- COMPLETE");
 
-    logger?.debug('System::prebuild', 'BUILD_IO')
+    logger?.debug("System::prebuild", "BUILD_IO");
     if (!(await this.buildIo(logger))) {
-      return false
+      return false;
     }
-    logger?.debug('System::prebuild', 'BUILD_IO -- COMPLETE')
+    logger?.debug("System::prebuild", "BUILD_IO -- COMPLETE");
 
-    logger?.debug('System::build', 'BUILD_MODULES')
+    logger?.debug("System::build", "BUILD_MODULES");
     if (!(await this.buildModules(logger))) {
-      return false
+      return false;
     }
-    logger?.debug('System::build', 'BUILD_MODULES -- COMPLETE')
+    logger?.debug("System::build", "BUILD_MODULES -- COMPLETE");
 
-    this.isBuilt = true
-    return true
-  }
+    this.isBuilt = true;
+    return true;
+  };
 
   /**
-   * 
+   *
    * @param logger Logger object
    * @returns Success or fail
    */
   checkRunner = (logger?: Logger): boolean => {
     if (this.runner && !this.runnerNeedValidation) {
-      return true
+      return true;
     }
-    let jsonFile = this.currentRunnerFileId ? this.files[this.currentRunnerFileId] : undefined
+    let jsonFile = this.currentRunnerFileId
+      ? this.files[this.currentRunnerFileId]
+      : undefined;
     if (!jsonFile) {
-      jsonFile = Object.values(this.files).find(f => f.extension === 'json' && f.metadata['valid'])
+      jsonFile = Object.values(this.files).find(
+        (f) => f.extension === "json" && f.metadata["valid"]
+      );
       if (!jsonFile) {
-        logger?.err("System::check_runner", 'No valid json files to create runner from.')
-        return false
+        logger?.err(
+          "System::check_runner",
+          "No valid json files to create runner from."
+        );
+        return false;
       }
-      logger?.log("System::check_runner", `Runner not set, defaulting to ${jsonFile?.filename}.json`)
-      this.currentRunnerFileId = jsonFile.id
+      logger?.log(
+        "System::check_runner",
+        `Runner not set, defaulting to ${jsonFile?.filename}.json`
+      );
+      this.currentRunnerFileId = jsonFile.id;
     }
 
     try {
-      this.runner = JSON.parse(jsonFile.data)
+      this.runner = JSON.parse(jsonFile.data);
     } catch (err) {
-      logger?.err('System::check_runner', 'Exception thrown when parsing json: '.concat(err.toString()))
-      return false
+      logger?.err(
+        "System::check_runner",
+        "Exception thrown when parsing json: ".concat(err.toString())
+      );
+      return false;
     }
-    return true
-  }
-
+    return true;
+  };
 
   /**
-   * 
-   * @param logger 
-   * @returns 
+   *
+   * @param logger
+   * @returns
    */
   buildIo = async (logger?: Logger): Promise<boolean> => {
-
-    const bus = this.runner.bus
+    const bus = this.runner.bus;
 
     for (const [ioName, io] of Object.entries(bus)) {
-
-      let channelId = this.channelLock[ioName]
-      let foundChannel!: IOChannel
+      let channelId = this.channelLock[ioName];
+      let foundChannel!: IOChannel;
       if (channelId) {
         if (this.ioNeedBuild[channelId] === false) {
-          logger?.trace(`System::build_io[${ioName}]`, `Skipping rebuild io at channel: ${channelId}`)
-          continue
+          logger?.trace(
+            `System::build_io[${ioName}]`,
+            `Skipping rebuild io at channel: ${channelId}`
+          );
+          continue;
         }
-        logger?.trace(`System::build_io[${ioName}]`, `Rebuilding io at channel: ${channelId}`)
-        foundChannel = this.availChannels[channelId]
+        logger?.trace(
+          `System::build_io[${ioName}]`,
+          `Rebuilding io at channel: ${channelId}`
+        );
+        foundChannel = this.availChannels[channelId];
       }
 
       if (!foundChannel) {
         let candidates = Object.values(this.availChannels)
-          .filter(ch => ch.ioType === io.type)
-          .filter(ch => !this.activeChannels[ch.id])
+          .filter((ch) => ch.ioType === io.type)
+          .filter((ch) => !this.activeChannels[ch.id]);
 
         if (candidates.length === 0) {
-          logger?.err(`System::build_io[${ioName}]`, 'No IO channel availible for building')
-          return false
+          logger?.err(
+            `System::build_io[${ioName}]`,
+            "No IO channel availible for building"
+          );
+          return false;
         }
 
         // TODO: make args
-        const args = {}
+        const args = {};
 
         // find one with the same arguments, or default to the first one availible
-        foundChannel = candidates.find(ch => isEqual(ch.args, args)) ?? candidates[0]
+        foundChannel =
+          candidates.find((ch) => isEqual(ch.args, args)) ?? candidates[0];
       }
 
-      let newIO: types.IO | undefined = undefined
+      let newIO: types.IO | undefined = undefined;
       switch (foundChannel.ioType) {
-        case 'viewport': {
-
-          newIO = new ViewportIO()
-          if (!(await newIO.build(foundChannel.args, foundChannel.label, logger))) {
-
-            logger?.err(`System::build_io::viewport[${foundChannel.id}]`, `IO build failed`)
-            return false
+        case "viewport": {
+          newIO = new ViewportIO();
+          if (
+            !(await newIO.build(foundChannel.args, foundChannel.label, logger))
+          ) {
+            logger?.err(
+              `System::build_io::viewport[${foundChannel.id}]`,
+              `IO build failed`
+            );
+            return false;
           }
 
-          break
+          break;
         }
         default: {
-          logger?.err('System::build_io', `Unknown io type: ${foundChannel.ioType}`)
-          return false
+          logger?.err(
+            "System::build_io",
+            `Unknown io type: ${foundChannel.ioType}`
+          );
+          return false;
         }
       }
 
       if (newIO) {
-        this.activeChannels[foundChannel.id] = newIO
-        this.channelLock[ioName] = foundChannel.id
-        this.ioNeedBuild[foundChannel.id] = false
-        this.ioNeedBuildNamespace[foundChannel.id] = true
+        this.activeChannels[foundChannel.id] = newIO;
+        this.channelLock[ioName] = foundChannel.id;
+        this.ioNeedBuild[foundChannel.id] = false;
+        this.ioNeedBuildNamespace[foundChannel.id] = true;
       }
-
     }
-    return true
-  }
+    return true;
+  };
 
   /**
-   * 
-   * @param logger 
-   * @returns 
+   *
+   * @param logger
+   * @returns
    */
   buildNamespaces = async (logger?: Logger): Promise<boolean> => {
+    let namespaces: Record<string, types.Namespace> = {};
 
-    let namespaces: Record<string, types.Namespace> = {}
-
-    const ioToBuildNamespace = Object.keys(this.availChannels)
-      .filter(ch => this.namespaceNeedsRebuild[ch] ?? true)
+    const ioToBuildNamespace = Object.keys(this.availChannels).filter(
+      (ch) => this.namespaceNeedsRebuild[ch] ?? true
+    );
 
     for (const ch of ioToBuildNamespace) {
-      const io = this.availChannels[ch]
-      const type = io.ioType
+      const io = this.availChannels[ch];
+      const type = io.ioType;
       switch (type) {
-        case 'viewport': {
-          namespaces['viewport'] = new ViewportIO().getNamespace()
-          break
+        case "viewport": {
+          namespaces["viewport"] = new ViewportIO().getNamespace();
+          break;
         }
       }
-      this.ioNeedBuildNamespace[ch] = false
-      logger?.debug('System::build_namespaces', `Namespace rebuilt for bus::${io.label}`)
+      this.ioNeedBuildNamespace[ch] = false;
+      logger?.debug(
+        "System::build_namespaces",
+        `Namespace rebuilt for bus::${io.label}`
+      );
     }
 
     const filesToRebuildNamespace = Object.values(this.files)
-      .filter(f => types.isShader(f.extension) && (this.namespaceNeedsRebuild[f.id] ?? true))
-      .map(f => f.id)
+      .filter(
+        (f) =>
+          types.isShader(f.extension) &&
+          (this.namespaceNeedsRebuild[f.id] ?? true)
+      )
+      .map((f) => f.id);
 
     for (const fileId of filesToRebuildNamespace) {
-
-      const file = this.files[fileId]
-      const model = Compiler.instance().findModel(file, logger)
-      logger?.trace('System::build_namespaces', 'Here')
+      const file = this.files[fileId];
+      const model = Compiler.instance().findModel(file, logger);
+      logger?.trace("System::build_namespaces", "Here");
       if (!model) {
-        logger?.err('System::build_namespaces', `Failed to make model in ${file.filename}.${file.extension}.`)
-        continue
+        logger?.err(
+          "System::build_namespaces",
+          `Failed to make model in ${file.filename}.${file.extension}.`
+        );
+        continue;
       }
 
-      const deps = Compiler.instance().findDeps(file, logger)
+      const deps = Compiler.instance().findDeps(file, logger);
       if (!deps) {
-        logger?.err('System::build_namespaces', `Failed to find dependencies in ${file.filename}.${file.extension}.`)
-        continue
+        logger?.err(
+          "System::build_namespaces",
+          `Failed to find dependencies in ${file.filename}.${file.extension}.`
+        );
+        continue;
       }
 
       namespaces[fileId] = {
         exported: model,
-        imported: deps
-      }
+        imported: deps,
+      };
 
-      this.namespaceNeedsRebuild[fileId] = false
-      this.fileNeedPreprocess[fileId] = true
-      logger?.debug('System::build_namespaces', `Namespace rebuilt for file: ${file.filename}.${file.extension}`)
+      this.namespaceNeedsRebuild[fileId] = false;
+      this.fileNeedPreprocess[fileId] = true;
+      logger?.debug(
+        "System::build_namespaces",
+        `Namespace rebuilt for file: ${file.filename}.${file.extension}`
+      );
     }
 
-    this.namespace = { ...this.namespace, ...namespaces }
-    return true
-  }
+    this.namespace = { ...this.namespace, ...namespaces };
+    return true;
+  };
 
   buildResources = async (logger?: Logger): Promise<boolean> => {
-
     const resourcesToBuild = Object.keys(this.resources)
-      .filter(f => this.resourceNeedBuild[f])
-      .map(f => this.resources[f])
+      .filter((f) => this.resourceNeedBuild[f])
+      .map((f) => this.resources[f]);
 
     for (const resource of resourcesToBuild) {
-      logger?.trace(`System::build_resources[${resource.name}]`, `Building ${resource.type} with args: ${resource.args}`)
+      logger?.trace(
+        `System::build_resources[${resource.name}]`,
+        `Building ${resource.type} with args: ${resource.args}`
+      );
       switch (resource.type) {
-        case 'buffer': {
-          let args = resource.args as BufferArgs
-          let layout = types.getStructFromNamespaces(this.namespace, args.modelName ?? "_")
+        case "buffer": {
+          let args = resource.args as BufferArgs;
+          let layout = types.getStructFromNamespaces(
+            this.namespace,
+            args.modelName ?? "_"
+          );
           if (!layout) {
-            logger?.err(`System::build_resources[${resource.name}]`, `Failed to locate layout information for struct: ${args.modelName ?? 'Unknown'}`)
-            continue
+            logger?.err(
+              `System::build_resources[${resource.name}]`,
+              `Failed to locate layout information for struct: ${
+                args.modelName ?? "Unknown"
+              }`
+            );
+            continue;
           }
           let buffer = await BufferResource.build(
             `res::${resource.name}`,
@@ -430,106 +485,131 @@ class System {
             layout,
             GPU.device,
             logger
-          )
+          );
 
           if (buffer === undefined) {
-            logger?.err(`System::build_resources[${resource.name}]`, "Failed to build buffer resource")
-            continue
+            logger?.err(
+              `System::build_resources[${resource.name}]`,
+              "Failed to build buffer resource"
+            );
+            continue;
           }
 
-          break
+          break;
         }
-        case 'texture': {
+        case "texture": {
           let texture = await TextureResource.build(
             resource.name,
             resource.args as types.TextureArgs,
             GPU.device,
             undefined,
             logger
-          )
+          );
           if (texture === undefined) {
-            logger?.err(`System::build_resources[${resource.name}]`, "Failed to build texture resource")
-            continue
+            logger?.err(
+              `System::build_resources[${resource.name}]`,
+              "Failed to build texture resource"
+            );
+            continue;
           }
-          this.resourceInstances[resource.id] = texture
-          break
+          this.resourceInstances[resource.id] = texture;
+          break;
         }
-        case 'sampler': {
+        case "sampler": {
           let sampler = await SamplerResource.build(
             resource.name,
             resource.args as types.SamplerArgs,
             GPU.device,
             logger
-          )
+          );
           if (sampler === undefined) {
-            logger?.err(`System::build_resources[${resource.name}]`, "Failed to build sampler resource")
-            continue
+            logger?.err(
+              `System::build_resources[${resource.name}]`,
+              "Failed to build sampler resource"
+            );
+            continue;
           }
-          this.resourceInstances[resource.id] = sampler
-          break
+          this.resourceInstances[resource.id] = sampler;
+          break;
         }
       }
     }
 
-    return true
-  }
-
+    return true;
+  };
 
   /**
-   * 
-   * @param logger 
-   * @param stopOnError 
-   * @returns 
+   *
+   * @param logger
+   * @param stopOnError
+   * @returns
    */
-  validate = async (logger?: Logger, stopOnError?: boolean): Promise<boolean> => {
-
+  validate = async (
+    logger?: Logger,
+    stopOnError?: boolean
+  ): Promise<boolean> => {
     const filesToPreprocess = Object.values(this.files)
-      .filter(f => types.isShader(f.extension) && (this.fileNeedPreprocess[f.id] ?? true))
-      .map(f => f.id)
+      .filter(
+        (f) =>
+          types.isShader(f.extension) && (this.fileNeedPreprocess[f.id] ?? true)
+      )
+      .map((f) => f.id);
 
-    let passedValidation = true
+    let passedValidation = true;
     for (const fileId of filesToPreprocess) {
-      const file = this.files[fileId]
-      logger?.trace(`System::validate[${fileId}]`, `Validation started for ${file.filename}.${file.extension}`)
+      const file = this.files[fileId];
+      logger?.trace(
+        `System::validate[${fileId}]`,
+        `Validation started for ${file.filename}.${file.extension}`
+      );
 
-      const validationResult = Compiler.instance().validate(file, this.namespace, logger)
-      console.log('Validation result', validationResult)
-      this.processedFiles[fileId] = validationResult
+      const validationResult = Compiler.instance().validate(
+        file,
+        this.namespace,
+        logger
+      );
+      console.log("Validation result", validationResult);
+      this.processedFiles[fileId] = validationResult;
 
       // keep mark on file as dirty
       // fail validation for entire run
-      if ('errors' in validationResult) {
-        logger?.err(`System::validate[${fileId}]`, `Validation failed for ${file.filename}.${file.extension} due to above error`)
+      if ("errors" in validationResult) {
+        logger?.err(
+          `System::validate[${fileId}]`,
+          `Validation failed for ${file.filename}.${file.extension} due to above error`
+        );
 
-        if (!stopOnError) return false
-        passedValidation = false
-        continue
+        if (!stopOnError) return false;
+        passedValidation = false;
+        continue;
       }
 
       // mark file as clean
-      this.fileNeedPreprocess[fileId] = false
-      this.moduleNeedCompile[fileId] = true
-      logger?.trace(`System::validate[${fileId}]`, `Validation complete for ${file.filename}.${file.extension}`)
+      this.fileNeedPreprocess[fileId] = false;
+      this.moduleNeedCompile[fileId] = true;
+      logger?.trace(
+        `System::validate[${fileId}]`,
+        `Validation complete for ${file.filename}.${file.extension}`
+      );
     }
 
-    this.isValidated = passedValidation
-    return passedValidation
-  }
+    this.isValidated = passedValidation;
+    return passedValidation;
+  };
 
   /**
-   * 
-   * @param logger 
-   * @returns 
+   *
+   * @param logger
+   * @returns
    */
   buildModules = async (logger?: Logger): Promise<boolean> => {
+    const { bus, runs } = this.runner;
 
-    const { bus, runs } = this.runner
-
-    let pipelines: types.Pipeline[] = []
+    let pipelines: types.Pipeline[] = [];
     for (const run of runs) {
       switch (run.type) {
-        case 'quad': {
-          const quadPipeline = new QuadPipeline()
+        case "quad": {
+          const quadPipeline = new QuadPipeline();
           let success = await quadPipeline.build(
             GPU.device,
             run,
@@ -539,102 +619,124 @@ class System {
             this.processedFiles,
             this.resolveResource,
             logger
-          )
+          );
           if (!success) {
-            return false
+            return false;
           }
-          pipelines.push(quadPipeline)
-          break
+          pipelines.push(quadPipeline);
+          break;
         }
-        case 'render': {
-          break
+        case "render": {
+          break;
         }
-        case 'compute': {
-          break
+        case "compute": {
+          break;
         }
       }
     }
-    this.pipelines = pipelines
+    this.pipelines = pipelines;
 
-    return true
-  }
+    return true;
+  };
 
-
-  pushResourceDelta = (delta: Record<string, types.Resource>, rebuild: string[], removed: string[], logger?: Logger) => {
+  pushResourceDelta = (
+    delta: Record<string, types.Resource>,
+    rebuild: string[],
+    removed: string[],
+    logger?: Logger
+  ) => {
     // update the dictionary of availible io channels
-    this.resources = { ...this.resources, ...delta }
-    for (const key of Object.keys(delta)) this.resourceNeedBuild[key] = true
+    this.resources = { ...this.resources, ...delta };
+    for (const key of Object.keys(delta)) this.resourceNeedBuild[key] = true;
 
     for (const removedKey of removed) {
-      let resourceInstance = this.resourceInstances[removedKey]
+      let resourceInstance = this.resourceInstances[removedKey];
       if (resourceInstance) {
-        resourceInstance.destroy()
-        delete this.resourceInstances[removedKey]
+        resourceInstance.destroy();
+        delete this.resourceInstances[removedKey];
       }
-      delete this.resources[removedKey]
-      delete this.resourceNeedBuild[removedKey]
-      logger?.debug('System::push_resource_delta', `Resource destroyed. key = ${removedKey}`)
+      delete this.resources[removedKey];
+      delete this.resourceNeedBuild[removedKey];
+      logger?.debug(
+        "System::push_resource_delta",
+        `Resource destroyed. key = ${removedKey}`
+      );
     }
 
     for (const rebuildKey of rebuild) {
-      let resourceInstance = this.resourceInstances[rebuildKey]
+      let resourceInstance = this.resourceInstances[rebuildKey];
       if (resourceInstance) {
-        resourceInstance.destroy()
-        delete this.resourceInstances[rebuildKey]
+        resourceInstance.destroy();
+        delete this.resourceInstances[rebuildKey];
       }
-      this.resourceNeedBuild[rebuildKey] = true
+      this.resourceNeedBuild[rebuildKey] = true;
     }
 
-    if (Object.keys(delta).length > 0 || removed.length > 0 || rebuild.length > 0) {
-      this.isBuilt = false
+    if (
+      Object.keys(delta).length > 0 ||
+      removed.length > 0 ||
+      rebuild.length > 0
+    ) {
+      this.isBuilt = false;
     }
-  }
-
+  };
 
   /**
-   * 
-   * @param delta 
-   * @param removed 
-   * @param logger 
+   *
+   * @param delta
+   * @param removed
+   * @param logger
    */
-  pushFileDelta = (delta: Record<string, types.File>, removed: string[], logger?: Logger) => {
+  pushFileDelta = (
+    delta: Record<string, types.File>,
+    removed: string[],
+    logger?: Logger
+  ) => {
     // overwrite/append file deltas, and set the delta'd files as dirty
-    this.files = { ...this.files, ...delta }
-    Object.keys(delta).forEach(fileId => {
-      const file = this.files[fileId]
+    this.files = { ...this.files, ...delta };
+    Object.keys(delta).forEach((fileId) => {
+      const file = this.files[fileId];
       if (types.isShader(file.extension))
-        this.namespaceNeedsRebuild[fileId] = true
-      else if (file.extension === 'json' && fileId === this.currentRunnerFileId) {
-        this.runnerNeedValidation = true
+        this.namespaceNeedsRebuild[fileId] = true;
+      else if (
+        file.extension === "json" &&
+        fileId === this.currentRunnerFileId
+      ) {
+        this.runnerNeedValidation = true;
       }
-    })
+    });
 
-    let namespaceEntriesToRemove = []
+    let namespaceEntriesToRemove = [];
 
     // delete removed files
     for (const fileId of removed) {
-      delete this.files[fileId]
-      delete this.fileNeedPreprocess[fileId]
-      delete this.moduleNeedCompile[fileId]
-      delete this.namespaceNeedsRebuild[fileId]
+      delete this.files[fileId];
+      delete this.fileNeedPreprocess[fileId];
+      delete this.moduleNeedCompile[fileId];
+      delete this.namespaceNeedsRebuild[fileId];
 
-      let namespace = this.namespace[fileId]
+      let namespace = this.namespace[fileId];
       if (namespace) {
-        namespaceEntriesToRemove.push(Object.keys(namespace.exported))
+        namespaceEntriesToRemove.push(Object.keys(namespace.exported));
       }
-      delete this.namespace[fileId]
-      logger?.debug('System::push_file_delta', `file deleted: ${fileId}`)
+      delete this.namespace[fileId];
+      logger?.debug("System::push_file_delta", `file deleted: ${fileId}`);
     }
 
-    namespaceEntriesToRemove = uniq(namespaceEntriesToRemove.flat())
+    namespaceEntriesToRemove = uniq(namespaceEntriesToRemove.flat());
 
-    // any namespaces containing imports with these names will 
+    // any namespaces containing imports with these names will
     // be set dirty
     for (const fileId of Object.keys(this.files)) {
-      let namespace = this.namespace[fileId]
+      let namespace = this.namespace[fileId];
       if (namespace) {
-        if (intersection(namespaceEntriesToRemove, namespace.imported.map(dep => dep.identifier)).length > 0) {
-          this.namespaceNeedsRebuild[fileId] = true
+        if (
+          intersection(
+            namespaceEntriesToRemove,
+            namespace.imported.map((dep) => dep.identifier)
+          ).length > 0
+        ) {
+          this.namespaceNeedsRebuild[fileId] = true;
         }
       }
     }
@@ -643,141 +745,151 @@ class System {
 
     // if there was any change, signal a rebuild is needed
     if (Object.keys(delta).length > 0 || removed.length > 0) {
-      this.isBuilt = false
-      this.isValidated = false
+      this.isBuilt = false;
+      this.isValidated = false;
     }
-  }
+  };
 
-  pushIoDelta = (delta: Record<string, types.IOChannel>, rebuild: string[], removed: string[], logger?: Logger) => {
+  pushIoDelta = (
+    delta: Record<string, types.IOChannel>,
+    rebuild: string[],
+    removed: string[],
+    logger?: Logger
+  ) => {
     // update the dictionary of availible io channels
-    this.availChannels = { ...this.availChannels, ...delta }
-    for (const key of Object.keys(delta)) this.ioNeedBuild[key] = true
+    this.availChannels = { ...this.availChannels, ...delta };
+    for (const key of Object.keys(delta)) this.ioNeedBuild[key] = true;
 
     for (const removedKey of removed) {
-      let io = this.activeChannels[removedKey]
+      let io = this.activeChannels[removedKey];
       if (io) {
-        io.destroy()
-        delete this.activeChannels[removedKey]
+        io.destroy();
+        delete this.activeChannels[removedKey];
       }
-      delete this.availChannels[removedKey]
-      delete this.ioNeedBuild[removedKey]
+      delete this.availChannels[removedKey];
+      delete this.ioNeedBuild[removedKey];
       for (const channelName of Object.keys(this.runner?.bus ?? {})) {
         if (this.channelLock[channelName] === removedKey) {
-          delete this.channelLock[channelName]
+          delete this.channelLock[channelName];
         }
       }
-      logger?.debug('System::push_io_delta', `IO destroyed. key = ${removedKey}`)
+      logger?.debug(
+        "System::push_io_delta",
+        `IO destroyed. key = ${removedKey}`
+      );
     }
 
     for (const rebuildKey of rebuild) {
-      let io = this.activeChannels[rebuildKey]
+      let io = this.activeChannels[rebuildKey];
       if (io) {
-        io.destroy()
-        delete this.activeChannels[rebuildKey]
+        io.destroy();
+        delete this.activeChannels[rebuildKey];
       }
-      this.ioNeedBuild[rebuildKey] = true
+      this.ioNeedBuild[rebuildKey] = true;
     }
 
-    if (Object.keys(delta).length > 0 || removed.length > 0 || rebuild.length > 0) {
-      this.isBuilt = false
+    if (
+      Object.keys(delta).length > 0 ||
+      removed.length > 0 ||
+      rebuild.length > 0
+    ) {
+      this.isBuilt = false;
     }
-  }
-
+  };
 
   /**
-   * 
-   * @param frameState 
-   * @param logger 
-   * @returns 
+   *
+   * @param frameState
+   * @param logger
+   * @returns
    */
   dispatch = (frameState: types.SystemFrameState, logger?: Logger): boolean => {
+    const queue = GPU.device.queue;
 
-    const queue = GPU.device.queue
-
-    const { dt, frameNum, runDuration } = frameState
-    let buf = [[runDuration], [dt], [frameNum]]
-    this.frameStateBuffer.write(buf, queue)
+    const { dt, frameNum, runDuration } = frameState;
+    let buf = [[runDuration], [dt], [frameNum]];
+    this.frameStateBuffer.write(buf, queue);
 
     if (!this.isValidated || !this.isBuilt) {
-      logger?.trace('System::dispatch', 'Forced to rebuild during dispatch.')
-      return false
+      logger?.trace("System::dispatch", "Forced to rebuild during dispatch.");
+      return false;
     }
 
     for (const activeChannel of Object.values(this.activeChannels)) {
-      activeChannel.onBeginDispatch(queue)
+      activeChannel.onBeginDispatch(queue);
     }
-    const commandEncoder = GPU.device.createCommandEncoder()
+    const commandEncoder = GPU.device.createCommandEncoder();
     for (const pipeline of this.pipelines) {
-      pipeline.dispatch(commandEncoder, logger)
+      pipeline.dispatch(commandEncoder, logger);
     }
     for (const activeChannel of Object.values(this.activeChannels)) {
-      activeChannel.onEndDispatch(queue)
+      activeChannel.onEndDispatch(queue);
     }
 
-    queue.submit([commandEncoder.finish()])
+    queue.submit([commandEncoder.finish()]);
 
-    return true
-  }
+    return true;
+  };
 }
 
 const frameStateNamespace: types.Namespace = {
   exported: {
-    name: 'Frame State',
-    definingFileId: 'system',
+    name: "Frame State",
+    definingFileId: "system",
     dependentFileIds: [],
     indexedTypes: [
       {
-        "name": null,
-        "inner": {
-          "Scalar": {
-            "kind": "Float",
-            "width": 4
-          }
-        }
+        name: null,
+        inner: {
+          Scalar: {
+            kind: "Float",
+            width: 4,
+          },
+        },
       },
       {
-        "name": null,
-        "inner": {
-          "Scalar": {
-            "kind": "Sint",
-            "width": 4
-          }
-        }
+        name: null,
+        inner: {
+          Scalar: {
+            kind: "Sint",
+            width: 4,
+          },
+        },
       },
       {
-        "name": "Frame",
-        "inner": {
-          "Struct": {
-            "members": [
+        name: "Frame",
+        inner: {
+          Struct: {
+            members: [
               {
-                "name": "time",
-                "ty": 1,
-                "binding": null,
-                "offset": 0
+                name: "time",
+                ty: 1,
+                binding: null,
+                offset: 0,
               },
               {
-                "name": "dt",
-                "ty": 1,
-                "binding": null,
-                "offset": 4
+                name: "dt",
+                ty: 1,
+                binding: null,
+                offset: 4,
               },
               {
-                "name": "index",
-                "ty": 2,
-                "binding": null,
-                "offset": 8
-              }
+                name: "index",
+                ty: 2,
+                binding: null,
+                offset: 8,
+              },
             ],
-            "span": 12
-          }
-        }
-      }
+            span: 12,
+          },
+        },
+      },
     ],
     namedTypes: {
-      'Frame': 3
-    }
+      Frame: 3,
+    },
   },
-  imported: []
-}
+  imported: [],
+};
 
-export default System
+export default System;

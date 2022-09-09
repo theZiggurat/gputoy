@@ -1,18 +1,17 @@
 import {
-  Button, ButtonProps, IconButton,
-  IconButtonProps, useColorModeValue
-} from '@chakra-ui/react'
-import { themed } from '@theme/theme';
-import React from 'react'
+    Button, IconButton,
+    IconButtonProps
+} from "@chakra-ui/react";
+import { themed } from "@theme/theme";
 
 declare type OmittedProps = "aria-label";
 interface RowButtonProps extends Omit<IconButtonProps, OmittedProps> {
-  first?: boolean,
-  last?: boolean,
-  purpose: string,
+  first?: boolean;
+  last?: boolean;
+  purpose: string;
 }
 export const RowButton = (props: RowButtonProps) => {
-  const { first, last, purpose, ...iconButtonProps } = props
+  const { first, last, purpose, ...iconButtonProps } = props;
   return (
     <IconButton
       size="xs"
@@ -23,19 +22,19 @@ export const RowButton = (props: RowButtonProps) => {
       borderLeft={first ? "" : "0"}
       {...iconButtonProps}
     />
-  )
-}
+  );
+};
 
 interface RowToggleButtonProps {
-  text: string
-  first?: boolean
-  last?: boolean
-  toggled?: boolean
-  onClick: () => void
+  text: string;
+  first?: boolean;
+  last?: boolean;
+  toggled?: boolean;
+  onClick: () => void;
 }
 export const RowToggleButton = (props: RowToggleButtonProps) => {
-  const { first, last, toggled, text, onClick } = props
-  const color = toggled ? themed('buttonHovered') : themed('button')
+  const { first, last, toggled, text, onClick } = props;
+  const color = toggled ? themed("buttonHovered") : themed("button");
 
   return (
     <Button
@@ -50,5 +49,5 @@ export const RowToggleButton = (props: RowToggleButtonProps) => {
     >
       {text}
     </Button>
-  )
-}
+  );
+};

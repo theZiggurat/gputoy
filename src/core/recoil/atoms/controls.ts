@@ -1,15 +1,15 @@
-import * as types from 'core/types'
-import { atom } from 'recoil'
+import * as types from "core/types";
+import { atom } from "recoil";
 
 export enum ProjectControl {
   PLAY,
   PAUSE,
-  STOP
+  STOP,
 }
 export const projectControlAtom = atom<ProjectControl>({
-  key: 'projectControl',
-  default: ProjectControl.STOP
-})
+  key: "projectControl",
+  default: ProjectControl.STOP,
+});
 
 export const projectStatusDefault = {
   lastStartTime: 0,
@@ -19,4 +19,4 @@ export const projectStatusDefault = {
   runDuration: 0,
   prevDuration: 0,
   running: false,
-}
+};

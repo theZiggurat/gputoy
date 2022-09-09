@@ -1,40 +1,37 @@
-export type ResourceType = 'buffer' | 'texture' | 'sampler'
-export type ResourceArgs = BufferArgs | TextureArgs | SamplerArgs
+export type ResourceType = "buffer" | "texture" | "sampler";
+export type ResourceArgs = BufferArgs | TextureArgs | SamplerArgs;
 
-export type TextureDim = '1d' | '2d' | '3d'
-
+export type TextureDim = "1d" | "2d" | "3d";
 
 /**
- * Splitting texture formats into types for UX convienence. 
+ * Splitting texture formats into types for UX convienence.
  * https://www.w3.org/TR/webgpu/#enumdef-gputextureformat
  */
 export const TEXTURE_FORMAT_TYPES = [
-  '8bit',
-  '16bit',
-  '32bit',
-  '64bit',
-  '128bit',
-  'depth/stencil'
-] as const
-export type TextureFormatType = typeof TEXTURE_FORMAT_TYPES[number]
+  "8bit",
+  "16bit",
+  "32bit",
+  "64bit",
+  "128bit",
+  "depth/stencil",
+] as const;
+export type TextureFormatType = typeof TEXTURE_FORMAT_TYPES[number];
 
-export const TEXTURE_FORMAT_FAMILIES: Record<TextureFormatType, readonly GPUTextureFormat[]> = {
-  '8bit': [
-    "r8unorm",
-    "r8snorm",
-    "r8uint",
-    "r8sint"
-  ],
-  '16bit': [
+export const TEXTURE_FORMAT_FAMILIES: Record<
+  TextureFormatType,
+  readonly GPUTextureFormat[]
+> = {
+  "8bit": ["r8unorm", "r8snorm", "r8uint", "r8sint"],
+  "16bit": [
     "r16uint",
     "r16sint",
     "r16float",
     "rg8unorm",
     "rg8snorm",
     "rg8uint",
-    "rg8sint"
+    "rg8sint",
   ],
-  '32bit': [
+  "32bit": [
     "r32uint",
     "r32sint",
     "r32float",
@@ -47,105 +44,101 @@ export const TEXTURE_FORMAT_FAMILIES: Record<TextureFormatType, readonly GPUText
     "rgba8uint",
     "rgba8sint",
     "bgra8unorm",
-    "bgra8unorm-srgb"
+    "bgra8unorm-srgb",
   ],
-  '64bit': [
+  "64bit": [
     "rg32uint",
     "rg32sint",
     "rg32float",
     "rgba16uint",
     "rgba16sint",
-    "rgba16float"
+    "rgba16float",
   ],
-  '128bit': [
-    "rgba32uint",
-    "rgba32sint",
-    "rgba32float"
-  ],
-  'depth/stencil': [
+  "128bit": ["rgba32uint", "rgba32sint", "rgba32float"],
+  "depth/stencil": [
     "stencil8",
     "depth16unorm",
     "depth24plus",
     "depth24plus-stencil8",
-    "depth32float"
-  ]
-} as const
+    "depth32float",
+  ],
+} as const;
 
 export const resourceTypeToDefaultArgs: Record<ResourceType, ResourceArgs> = {
-  'buffer': {
-    bindingType: 'uniform',
+  buffer: {
+    bindingType: "uniform",
     usageFlags: 0x0044,
     length: 1,
-
   },
-  'texture': {
-    dim: '2d',
+  texture: {
+    dim: "2d",
     width: 1024,
     height: 1024,
     depthOrArrayLayers: 1,
-    formatType: '32bit',
-    format: 'bgra8unorm',
+    formatType: "32bit",
+    format: "bgra8unorm",
     sampleCount: 1,
-    usage: 0x04
+    usage: 0x04,
   },
-  'sampler': {
-    addressModeU: 'clamp-to-edge',
-    addressModeV: 'clamp-to-edge',
-    addressModeW: 'clamp-to-edge',
-    magFilter: 'nearest',
-    minFilter: 'nearest',
-    mipmapFilter: 'nearest',
+  sampler: {
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "nearest",
+    minFilter: "nearest",
+    mipmapFilter: "nearest",
     lodMinClamp: 0,
     lodMaxClamp: 32,
-    maxAnisotropy: 1
-  }
-} as const
-
+    maxAnisotropy: 1,
+  },
+} as const;
 
 /**
  * https://www.w3.org/TR/webgpu/#dom-gpudevice-createbuffer
  */
 export type BufferArgs = {
-  length: any
-  modelName?: string
-  bindingType: GPUBufferBindingType,
-  usageFlags: GPUBufferUsageFlags,
-  size?: number
-  initialValue?: number[][]
-}
+  length: any;
+  modelName?: string;
+  bindingType: GPUBufferBindingType;
+  usageFlags: GPUBufferUsageFlags;
+  size?: number;
+  initialValue?: number[][];
+};
 
 /**
  * https://www.w3.org/TR/webgpu/#dom-gpudevice-createtexture
  */
 export type TextureArgs = {
-  dim: TextureDim
-  width: number
-  height: number
-  depthOrArrayLayers: number
-  formatType: TextureFormatType
-  format: GPUTextureFormat
-  sampleCount: number
-  usage: GPUTextureUsageFlags
-}
+  dim: TextureDim;
+  width: number;
+  height: number;
+  depthOrArrayLayers: number;
+  formatType: TextureFormatType;
+  format: GPUTextureFormat;
+  sampleCount: number;
+  usage: GPUTextureUsageFlags;
+};
 /**
  * https://www.w3.org/TR/webgpu/#dom-gpudevice-createsampler
  */
-export type SamplerArgs = GPUSamplerDescriptor
+export type SamplerArgs = GPUSamplerDescriptor;
 
 export interface ResourceInstance {
-  label: string
-  getBindGroupEntry: (binding: number) => GPUBindGroupEntry
-  getBindGroupLayoutEntry: (binding: number, visibility: number) => GPUBindGroupLayoutEntry
-  destroy: () => void
+  label: string;
+  getBindGroupEntry: (binding: number) => GPUBindGroupEntry;
+  getBindGroupLayoutEntry: (
+    binding: number,
+    visibility: number
+  ) => GPUBindGroupLayoutEntry;
+  destroy: () => void;
 }
 
 export type Resource = {
-  id: string
-  name: string
-  type: ResourceType
-  args: ResourceArgs
-  frozen?: boolean
-}
+  id: string;
+  name: string;
+  type: ResourceType;
+  args: ResourceArgs;
+  frozen?: boolean;
+};
 
-export type ResourceJSON = Record<string, Resource>
-
+export type ResourceJSON = Record<string, Resource>;

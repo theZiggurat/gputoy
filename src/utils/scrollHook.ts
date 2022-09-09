@@ -1,25 +1,26 @@
-import { useRef, useEffect, MutableRefObject } from "react";
+import { MutableRefObject, useEffect, useRef } from "react";
 
-const useHorizontalScroll = (prevent: boolean = false): MutableRefObject<HTMLDivElement | undefined> => {
-  const elRef = useRef<HTMLDivElement>()
+const useHorizontalScroll = (
+  prevent: boolean = false
+): MutableRefObject<HTMLDivElement | undefined> => {
+  const elRef = useRef<HTMLDivElement>();
 
   useEffect(() => {
-
-    const el = elRef.current
+    const el = elRef.current;
     if (el) {
       const onWheel = (e: WheelEvent) => {
         if (!e || prevent) return;
-        e.preventDefault()
+        e.preventDefault();
         el.scrollTo({
           left: el.scrollLeft + e.deltaY,
           behavior: "smooth",
-        })
+        });
       };
-      el.addEventListener("wheel", onWheel, { passive: true })
-      return () => el.removeEventListener("wheel", onWheel)
+      el.addEventListener("wheel", onWheel, { passive: true });
+      return () => el.removeEventListener("wheel", onWheel);
     }
-  }, [prevent])
-  return elRef
-}
+  }, [prevent]);
+  return elRef;
+};
 
-export default useHorizontalScroll
+export default useHorizontalScroll;

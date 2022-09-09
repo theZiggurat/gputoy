@@ -1,17 +1,17 @@
 import {
-  Box,
-  Button, chakra, Flex, FlexProps, Heading, HeadingProps, Link, Stack, Text, TextProps, useColorModeValue
+    Box,
+    Button, chakra, Flex, FlexProps, Heading, HeadingProps, Link, Stack, Text, TextProps, useColorModeValue
 } from '@chakra-ui/react'
 import Footer from '@components/index/footer'
+import Scaffold from '@components/shared/scaffold'
+import { gpuStatusAtom } from '@core/recoil/atoms/gpu'
 import "@fontsource/jetbrains-mono"
 import Head from 'next/head'
-import React, { ReactNode, useEffect, useState } from 'react'
-import { themed } from 'theme/theme'
-import Scaffold from '@components/shared/scaffold'
-import { IoCode, IoWarning } from 'react-icons/io5'
+import { ReactNode, useEffect, useState } from 'react'
 import { FaGithub } from 'react-icons/fa'
-import { gpuStatusAtom } from '@core/recoil/atoms/gpu'
+import { IoCode, IoWarning } from 'react-icons/io5'
 import { useRecoilValue } from 'recoil'
+import { themed } from 'theme/theme'
 
 const Section = (props: FlexProps) => (
   <Flex flexDir="column" minH="100vh" alignItems="center" {...props}>

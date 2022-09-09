@@ -1,10 +1,10 @@
-import React from "react"
-import Dropdown, { DropdownDivider, DropdownItem, DropdownSubDropdown } from "../dropdown"
-
+import Dropdown, {
+    DropdownDivider,
+    DropdownItem
+} from "../dropdown";
 
 const SettingsDropdown = () => {
-
-  const _ = useDropdown()
+  const _ = useDropdown();
 
   return (
     <Dropdown text="Settings">
@@ -20,11 +20,9 @@ const SettingsDropdown = () => {
       <DropdownItem text="Fork" rightText="Ctrl+" />
       <DropdownItem text="Publish" rightText="Ctrl+S" />
     </Dropdown>
-  )
-}
+  );
+};
 
-const useDropdown = () => {
+const useDropdown = () => {};
 
-}
-
-export default SettingsDropdown
+export default SettingsDropdown;

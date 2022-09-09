@@ -1,76 +1,96 @@
 import {
-  Box, Button, Divider, Flex, IconButton, Popover, PopoverContent, PopoverTrigger, Portal, Text
-} from '@chakra-ui/react'
-import { withFocusPriority } from '@core/recoil/atoms/instance'
-import useInstance, { useInstances } from '@core/hooks/useInstance'
-import { PanelProps } from '@core/hooks/singleton/usePanels'
-import React, { forwardRef, LegacyRef, ReactElement, ReactNode, useEffect } from 'react'
-import { VscClose, VscSplitHorizontal, VscSplitVertical } from 'react-icons/vsc'
-import SplitPane from 'react-split-pane'
-import { useSetRecoilState } from 'recoil'
-import { themed } from '../../theme/theme'
-import useHorizontalScroll from '../../utils/scrollHook'
-import { RowButton } from '../shared/rowButton'
-import { PanelDescriptor } from './descriptors'
-
+    Box,
+    Button,
+    Divider,
+    Flex,
+    IconButton,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+    Portal,
+    Text
+} from "@chakra-ui/react";
+import { PanelProps } from "@core/hooks/singleton/usePanels";
+import useInstance, { useInstances } from "@core/hooks/useInstance";
+import { withFocusPriority } from "@core/recoil/atoms/instance";
+import React, {
+    forwardRef,
+    LegacyRef,
+    ReactElement,
+    ReactNode
+} from "react";
+import {
+    VscClose,
+    VscSplitHorizontal,
+    VscSplitVertical
+} from "react-icons/vsc";
+import SplitPane from "react-split-pane";
+import { useSetRecoilState } from "recoil";
+import { themed } from "../../theme/theme";
+import useHorizontalScroll from "../../utils/scrollHook";
+import { RowButton } from "../shared/rowButton";
+import { PanelDescriptor } from "./descriptors";
 
 // --------- CUSTOM PANEL INTERFACES  --------------
 
 export interface DynamicPanelProps {
-  instanceID: number
+  instanceID: number;
 }
 
 // --------- PANEL --------------
 
 export interface PanelInProps {
-  instanceID: string,
-  panelIndex?: number,
-  panelDesc?: PanelDescriptor[],
-  children: ReactElement[],
-  path?: string,
-  onSplitPanel?: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
-  onCombinePanel?: (path: string) => void,
-  onSwitchPanel?: (path: string, panelIndex: number) => void,
+  instanceID: string;
+  panelIndex?: number;
+  panelDesc?: PanelDescriptor[];
+  children: ReactElement[];
+  path?: string;
+  onSplitPanel?: (
+    path: string,
+    dir: "vertical" | "horizontal",
+    idx: number
+  ) => void;
+  onCombinePanel?: (path: string) => void;
+  onSwitchPanel?: (path: string, panelIndex: number) => void;
 }
 
 export const Panel = (props: PanelInProps) => {
-
-  const [barLocation, setBarLocation] = React.useState('bottom')
-  const [instanceState, setInstance] = useInstance(props)
+  const [barLocation, setBarLocation] = React.useState("bottom");
+  const [instanceState, setInstance] = useInstance(props);
 
   // on mount, set the instance to pre-existing values or default
   //useEffect(() => setInstance(instanceState), [])
 
   const onChangeLocation = () => {
-    setBarLocation(barLocation == 'top' ? 'bottom' : 'top')
-  }
+    setBarLocation(barLocation == "top" ? "bottom" : "top");
+  };
 
-  const { children, ...paneProps } = props
-  const bounds = React.useRef<HTMLDivElement>()
+  const { children, ...paneProps } = props;
+  const bounds = React.useRef<HTMLDivElement>();
 
-  const setFocusPriority = useSetRecoilState(withFocusPriority)
+  const setFocusPriority = useSetRecoilState(withFocusPriority);
   const onHandleClick = () => {
     setFocusPriority({
       id: props.instanceID,
-      index: props.panelIndex
-    })
-  }
+      index: props.panelIndex,
+    });
+  };
 
   return (
     <Flex
       height="100%"
       width="100%"
-      flexDir={barLocation == 'top' ? 'column-reverse' : 'column'}
+      flexDir={barLocation == "top" ? "column-reverse" : "column"}
       pos="relative"
       flexBasis="fill"
       {...paneProps}
       ref={bounds as LegacyRef<HTMLDivElement>}
       onClick={onHandleClick}
     >
-      {
-        React.Children.map(props.children, (elem: ReactElement<any>, idx: number) => {
-          if (idx === 0)
-            return elem
+      {React.Children.map(
+        props.children,
+        (elem: ReactElement<any>, idx: number) => {
+          if (idx === 0) return elem;
           else
             return React.cloneElement(elem, {
               location: barLocation,
@@ -82,57 +102,61 @@ export const Panel = (props: PanelInProps) => {
               panelDesc: props.panelDesc,
               panelIndex: props.panelIndex,
               clippingBoundary: bounds.current,
-              instanceID: props.instanceID
-            })
-        })}
+              instanceID: props.instanceID,
+            });
+        }
+      )}
     </Flex>
-  )
-}
+  );
+};
 
 // --------- PANEL CONTENT --------------
 
 interface PanelContentProps {
-  children: ReactNode,
-  noBg?: boolean
+  children: ReactNode;
+  noBg?: boolean;
 }
 const _PanelContent = (props: PanelContentProps & any, ref) => {
-  const { children, noBg, ...contentProps } = props
+  const { children, noBg, ...contentProps } = props;
   return (
     <Box
       flex="1 1 auto"
       overflowY="auto"
       overflowX="clip"
-      bg={noBg ? '' : themed('p')}
+      bg={noBg ? "" : themed("p")}
       ref={ref}
       {...contentProps}
     >
       {props.children}
     </Box>
-  )
-}
+  );
+};
 
-export const PanelContent = forwardRef(_PanelContent)
+export const PanelContent = forwardRef(_PanelContent);
 
 // --------- PANEL BAR --------------
 
-type BarLocation = 'top' | 'bottom'
+type BarLocation = "top" | "bottom";
 interface PanelBarProps {
-  children?: ReactElement<any>[],
-  location?: BarLocation,
-  onChangeLocation?: () => void,
-  path?: string,
-  onSplitPanel?: (path: string, dir: 'vertical' | 'horizontal', idx: number) => void,
-  onCombinePanel?: (path: string) => void,
-  onSwitchPanel?: (path: string, panelIndex: number) => void,
-  panelIndex?: number,
-  panelDesc?: PanelDescriptor[],
-  clippingBoundary?: HTMLDivElement
-  preventScroll?: boolean,
-  instanceID?: string,
+  children?: ReactElement<any>[];
+  location?: BarLocation;
+  onChangeLocation?: () => void;
+  path?: string;
+  onSplitPanel?: (
+    path: string,
+    dir: "vertical" | "horizontal",
+    idx: number
+  ) => void;
+  onCombinePanel?: (path: string) => void;
+  onSwitchPanel?: (path: string, panelIndex: number) => void;
+  panelIndex?: number;
+  panelDesc?: PanelDescriptor[];
+  clippingBoundary?: HTMLDivElement;
+  preventScroll?: boolean;
+  instanceID?: string;
 }
 export const PanelBar = (props: PanelBarProps) => {
-
-  const instances = useInstances()
+  const instances = useInstances();
 
   const {
     children,
@@ -146,18 +170,20 @@ export const PanelBar = (props: PanelBarProps) => {
     panelIndex,
     preventScroll,
     ...barProps
-  } = props
+  } = props;
 
-  const scrollRef = useHorizontalScroll(Boolean(preventScroll))
-  const onHandleSplitVertical = (idx: number) => onSplitPanel!(path!, 'horizontal', idx)
-  const onHandleSplitHorizontal = (idx: number) => onSplitPanel!(path!, 'vertical', idx)
-  const onHandleCombine = () => onCombinePanel!(path!)
-  const onHandleSwitch = (index: number) => onSwitchPanel!(path!, index)
+  const scrollRef = useHorizontalScroll(Boolean(preventScroll));
+  const onHandleSplitVertical = (idx: number) =>
+    onSplitPanel!(path!, "horizontal", idx);
+  const onHandleSplitHorizontal = (idx: number) =>
+    onSplitPanel!(path!, "vertical", idx);
+  const onHandleCombine = () => onCombinePanel!(path!);
+  const onHandleSwitch = (index: number) => onSwitchPanel!(path!, index);
 
   return (
     <Flex
       maxH={10}
-      backgroundColor={themed('a2')}
+      backgroundColor={themed("a2")}
       direction="row"
       alignItems="center"
       flex="0 0 auto"
@@ -170,16 +196,16 @@ export const PanelBar = (props: PanelBarProps) => {
       <Flex dir="row" flex="1 0 auto">
         <Popover
           isLazy
-          placement='top-start'
+          placement="top-start"
           gutter={0}
           boundary={props.clippingBoundary}
           modifiers={[
             {
-              name: 'preventOverflow',
+              name: "preventOverflow",
               options: {
                 tether: false,
-              }
-            }
+              },
+            },
           ]}
         >
           <PopoverTrigger>
@@ -193,26 +219,34 @@ export const PanelBar = (props: PanelBarProps) => {
           <Portal>
             <PopoverContent
               width="fit-content"
-              backgroundColor={themed('a2')}
+              backgroundColor={themed("a2")}
               borderColor="transparent"
             >
               <Flex direction="column">
-                {
-                  panelDesc &&
-                  panelDesc.map((desc, idx) =>
-                    idx !== 0 &&
-                    <PanelSelectorButton
-                      icon={desc.icon}
-                      title={desc.name}
-                      key={desc.name}
-                      onSwitch={() => onHandleSwitch(desc.index)}
-                      onHandleSplitHorizontal={() => onHandleSplitHorizontal(idx)}
-                      onHandleSplitVertical={() => onHandleSplitVertical(idx)}
-                      last={idx == props.panelDesc!.length - 1}
-                      first={idx == 1}
-                      disabled={instances.map(sel => sel.index).includes(idx) && desc.single}
-                    />)
-                }
+                {panelDesc &&
+                  panelDesc.map(
+                    (desc, idx) =>
+                      idx !== 0 && (
+                        <PanelSelectorButton
+                          icon={desc.icon}
+                          title={desc.name}
+                          key={desc.name}
+                          onSwitch={() => onHandleSwitch(desc.index)}
+                          onHandleSplitHorizontal={() =>
+                            onHandleSplitHorizontal(idx)
+                          }
+                          onHandleSplitVertical={() =>
+                            onHandleSplitVertical(idx)
+                          }
+                          last={idx == props.panelDesc!.length - 1}
+                          first={idx == 1}
+                          disabled={
+                            instances.map((sel) => sel.index).includes(idx) &&
+                            desc.single
+                          }
+                        />
+                      )
+                  )}
               </Flex>
             </PopoverContent>
           </Portal>
@@ -221,52 +255,61 @@ export const PanelBar = (props: PanelBarProps) => {
           icon={<VscClose />}
           purpose="Close Panel"
           onClick={onHandleCombine}
-          disabled={props.path == ''}
+          disabled={props.path == ""}
           last
         />
       </Flex>
       {children}
     </Flex>
-  )
-
-}
+  );
+};
 
 // --------- PANEL BAR MIDDLE --------------
 
-export const PanelBarMiddle = (props: { children: ReactElement[] | ReactElement } | any) => {
-  const { children, ...flexprops } = props
+export const PanelBarMiddle = (
+  props: { children: ReactElement[] | ReactElement } | any
+) => {
+  const { children, ...flexprops } = props;
   return (
-    <Flex dir="row" flex="0 0 auto" justifyContent="center" {...flexprops} pr={1} pl={1}>
+    <Flex
+      dir="row"
+      flex="0 0 auto"
+      justifyContent="center"
+      {...flexprops}
+      pr={1}
+      pl={1}
+    >
       {props.children}
     </Flex>
-  )
-}
+  );
+};
 
 // --------- PANEL BAR END --------------
 
-export const PanelBarEnd = (props: { children: ReactElement[] | ReactElement } | any) => {
+export const PanelBarEnd = (
+  props: { children: ReactElement[] | ReactElement } | any
+) => {
   return (
     <Flex dir="row" flex="1 0 auto" justifyContent="end">
       {props.children}
     </Flex>
-  )
-}
+  );
+};
 
 // --------- PANEL BAR SELECTOR --------------
 
 interface PaneSelectorButtonProps {
-  icon: React.ReactElement,
-  title: string,
-  onHandleSplitHorizontal: () => void,
-  onHandleSplitVertical: () => void,
-  onSwitch: () => void,
-  last: boolean,
-  first: boolean,
-  disabled?: boolean
+  icon: React.ReactElement;
+  title: string;
+  onHandleSplitHorizontal: () => void;
+  onHandleSplitVertical: () => void;
+  onSwitch: () => void;
+  last: boolean;
+  first: boolean;
+  disabled?: boolean;
 }
 
 const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
-
   return (
     <>
       <Flex justifyContent="end">
@@ -286,7 +329,9 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
           pl={3}
           disabled={props.disabled}
         >
-          <Text fontSize="xs" fontWeight="thin">{props.title}</Text>
+          <Text fontSize="xs" fontWeight="thin">
+            {props.title}
+          </Text>
         </Button>
         <IconButton
           size="sm"
@@ -313,24 +358,21 @@ const PanelSelectorButton = (props: PaneSelectorButtonProps) => {
       </Flex>
       {!props.last && <Divider />}
     </>
-  )
-}
+  );
+};
 
 // --------- PANEL HOOK --------------
 
-
-
 export interface PanelDescriptorProps {
-  descriptors: PanelDescriptor[]
+  descriptors: PanelDescriptor[];
 }
 
 export const Panels = (props: PanelProps & PanelDescriptorProps) => {
+  const { descriptors, ...panelProps } = props;
+  const { panelLayout, layoutSize, ...rest } = panelProps;
 
-  const { descriptors, ...panelProps } = props
-  const { panelLayout, layoutSize, ...rest } = panelProps
-
-  return _render(panelLayout, descriptors, rest as PanelProps, '', layoutSize)
-}
+  return _render(panelLayout, descriptors, rest as PanelProps, "", layoutSize);
+};
 
 const _render = (
   obj: any,
@@ -339,79 +381,90 @@ const _render = (
   path: string,
   localLayoutSize: number[]
 ): React.ReactElement<any> => {
+  const totalSize = localLayoutSize[obj["type"] == "vertical" ? 0 : 1];
 
-  const totalSize = localLayoutSize[obj['type'] == 'vertical' ? 0 : 1]
+  if (obj["instanceID"] === undefined)
+    return <div className="ERRORDIV_NOINSTANCE" />;
+  if (obj["type"] === undefined) return <div className="ERRORDIV_NOTYPE" />;
+  if (obj["type"] === "leaf" && obj["index"] === undefined)
+    return <div className="ERRORDIV_NOINDEX" />;
+  if (obj["index"] >= descriptors.length)
+    return <div className="ERRORDIV_OUTOFBOUNDS" />;
 
-  if (obj['instanceID'] === undefined)
-    return <div className="ERRORDIV_NOINSTANCE" />
-  if (obj['type'] === undefined)
-    return <div className="ERRORDIV_NOTYPE" />
-  if (obj['type'] === 'leaf' && obj['index'] === undefined)
-    return <div className="ERRORDIV_NOINDEX" />
-  if (obj['index'] >= descriptors.length)
-    return <div className="ERRORDIV_OUTOFBOUNDS" />
+  if (obj["type"] === "leaf")
+    return React.createElement(descriptors[obj["index"]].component, {
+      ...props,
+      panelDesc: descriptors,
+      path: path,
+      panelIndex: obj["index"],
+      instanceID: obj["instanceID"],
+      style:
+        path == ""
+          ? {
+              flex: "1 1 auto",
+              position: "relative",
+              maxHeight: "100%",
+              minHeight: "0%",
+            }
+          : {},
+    });
+  else if ("left" in obj && "right" in obj) {
+    return React.createElement(
+      SplitPane,
+      {
+        key: `${obj["instanceID"]}${props.windowGen}`,
+        split: obj["type"],
+        defaultSize: obj["size"] ? obj["size"] * totalSize : "50%",
+        minSize: 100,
+        maxSize: totalSize * 0.9,
+        onChange: (newSize: number) =>
+          props.onPanelSizeChange(path, newSize, totalSize),
+        style:
+          path == ""
+            ? {
+                flex: "1 1 auto",
+                position: "relative",
+              }
+            : {
+                overflow: "hidden",
+              },
+      },
+      [
+        _render(
+          obj["left"],
+          descriptors,
+          props,
+          path.concat("l"),
+          newLayoutSize(obj, localLayoutSize, true)
+        ),
+        _render(
+          obj["right"],
+          descriptors,
+          props,
+          path.concat("r"),
+          newLayoutSize(obj, localLayoutSize)
+        ),
+      ]
+    );
+  } else return <div className="ERRORDIV_NOCHILDREN" />;
+};
 
-  if (obj['type'] === 'leaf')
-    return (
-      React.createElement(
-        descriptors[obj['index']].component,
-        {
-          ...props,
-          panelDesc: descriptors,
-          path: path,
-          panelIndex: obj['index'],
-          instanceID: obj['instanceID'],
-          style: path == '' ? {
-            flex: '1 1 auto',
-            position: 'relative',
-            maxHeight: '100%',
-            minHeight: '0%'
-          } : {}
-        }
-      )
-    )
-  else if ('left' in obj && 'right' in obj) {
-    return (
-      React.createElement(
-        SplitPane,
-        {
-          key: `${obj['instanceID']}${props.windowGen}`,
-          split: obj['type'],
-          defaultSize: obj['size'] ? obj['size'] * totalSize : "50%",
-          minSize: 100,
-          maxSize: totalSize * 0.9,
-          onChange: (newSize: number) =>
-            props.onPanelSizeChange(path, newSize, totalSize),
-          style: path == '' ? {
-            flex: '1 1 auto',
-            position: 'relative'
-          } : {
-            overflow: "hidden"
-          }
-        },
-        [
-          _render(obj['left'], descriptors, props, path.concat('l'), newLayoutSize(obj, localLayoutSize, true)),
-          _render(obj['right'], descriptors, props, path.concat('r'), newLayoutSize(obj, localLayoutSize))
-        ]
-      )
-    )
-  }
-  else
-    return <div className="ERRORDIV_NOCHILDREN" />
-}
-
-const newLayoutSize = (obj: any, layoutSize: number[], left?: boolean): number[] => {
+const newLayoutSize = (
+  obj: any,
+  layoutSize: number[],
+  left?: boolean
+): number[] => {
   if (left) {
-    if (obj['type'] == 'vertical') {
-      return [layoutSize[0] * (obj['size'] ?? 0.5), layoutSize[1]]
+    if (obj["type"] == "vertical") {
+      return [layoutSize[0] * (obj["size"] ?? 0.5), layoutSize[1]];
     } else {
-      return [layoutSize[0], layoutSize[1] * (obj['size'] ?? 0.5)]
+      return [layoutSize[0], layoutSize[1] * (obj["size"] ?? 0.5)];
     }
   } else {
-    if (obj['type'] == 'vertical') {
-      return [layoutSize[0] * (1 - (obj['size'] ?? 0.5)), layoutSize[1]]
+    if (obj["type"] == "vertical") {
+      return [layoutSize[0] * (1 - (obj["size"] ?? 0.5)), layoutSize[1]];
     } else {
-      return [layoutSize[0], layoutSize[1] * (1 - (obj['size'] ?? 0.5))]
+      return [layoutSize[0], layoutSize[1] * (1 - (obj["size"] ?? 0.5))];
     }
   }
-}
+};

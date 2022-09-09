@@ -1,6 +1,6 @@
 export default {
-  fontMono: 'monospace'
-}
+  fontMono: "monospace",
+};
 
 export const darkEditor = {
   ".token.comment": { color: "#727072", fontStyle: "italic" },
@@ -26,8 +26,8 @@ export const darkEditor = {
   ".token.punctuation": { color: "#939293" },
   ".token.property": { color: "#FCFCFA" },
   ".token.important,\n.token.bold": { fontWeight: "bold" },
-  ".token.italic": { fontStyle: "italic" }
-}
+  ".token.italic": { fontStyle: "italic" },
+};
 
 export const lightEditor = {
   ".token.comment": { color: "#008000" },
@@ -50,8 +50,8 @@ export const lightEditor = {
   ".token.changed": { color: "#0451A5" },
   ".token.punctuation": { color: "#0451A5" },
   ".token.important,\n.token.bold": { fontWeight: "bold" },
-  ".token.italic": { fontStyle: "italic" }
-}
+  ".token.italic": { fontStyle: "italic" },
+};
 
 export const darkResizer = {
   ".Resizer": {
@@ -62,11 +62,11 @@ export const darkResizer = {
     boxSizing: "border-box",
     MozBackgroundClip: "padding",
     WebkitBackgroundClip: "padding",
-    backgroundClip: "padding-box"
+    backgroundClip: "padding-box",
   },
   ".Resizer:hover": {
     WebkitTransition: "all 2s ease",
-    transition: "all 2s ease"
+    transition: "all 2s ease",
   },
   ".Resizer.horizontal": {
     height: "11px",
@@ -74,26 +74,26 @@ export const darkResizer = {
     borderTop: "5px solid rgba(255, 255, 255, 0)",
     borderBottom: "5px solid rgba(255, 255, 255, 0)",
     cursor: "row-resize",
-    width: "100%"
+    width: "100%",
   },
   ".Resizer.horizontal:hover": {
     borderTop: "5px solid rgba(255, 255, 255, 0.2)",
-    borderBottom: "5px solid rgba(255, 255, 255, 0.2)"
+    borderBottom: "5px solid rgba(255, 255, 255, 0.2)",
   },
   ".Resizer.vertical": {
     width: "11px",
     margin: "0 -5px",
     borderLeft: "5px solid rgba(255, 255, 255, 0)",
     borderRight: "5px solid rgba(255, 255, 255, 0)",
-    cursor: "col-resize"
+    cursor: "col-resize",
   },
   ".Resizer.vertical:hover": {
     borderLeft: "5px solid rgba(255, 255, 255, 0.2)",
-    borderRight: "5px solid rgba(255, 255, 255, 0.2)"
+    borderRight: "5px solid rgba(255, 255, 255, 0.2)",
   },
   ".Resizer.disabled": { cursor: "auto" },
-  ".Resizer.disabled:hover": { borderColor: "transparent" }
-}
+  ".Resizer.disabled:hover": { borderColor: "transparent" },
+};
 
 export const lightResizer = {
   ".Resizer": {
@@ -104,11 +104,11 @@ export const lightResizer = {
     boxSizing: "border-box",
     MozBackgroundClip: "padding",
     WebkitBackgroundClip: "padding",
-    backgroundClip: "padding-box"
+    backgroundClip: "padding-box",
   },
   ".Resizer:hover": {
     WebkitTransition: "all 2s ease",
-    transition: "all 2s ease"
+    transition: "all 2s ease",
   },
   ".Resizer.horizontal": {
     height: "11px",
@@ -116,49 +116,49 @@ export const lightResizer = {
     borderTop: "5px solid rgba(0, 0, 0, 0)",
     borderBottom: "5px solid rgba(0, 0, 0, 0)",
     cursor: "row-resize",
-    width: "100%"
+    width: "100%",
   },
   ".Resizer.horizontal:hover": {
     borderTop: "5px solid rgba(0, 0, 0, 0.5)",
-    borderBottom: "5px solid rgba(0, 0, 0, 0.5)"
+    borderBottom: "5px solid rgba(0, 0, 0, 0.5)",
   },
   ".Resizer.vertical": {
     width: "11px",
     margin: "0 -5px",
     borderLeft: "5px solid rgba(0, 0, 0, 0)",
     borderRight: "5px solid rgba(0, 0, 0, 0)",
-    cursor: "col-resize"
+    cursor: "col-resize",
   },
   ".Resizer.vertical:hover": {
     borderLeft: "5px solid rgba(0, 0, 0, 0.5)",
-    borderRight: "5px solid rgba(0, 0, 0, 0.5)"
+    borderRight: "5px solid rgba(0, 0, 0, 0.5)",
   },
   ".Resizer.disabled": { cursor: "auto" },
-  ".Resizer.disabled:hover": { borderColor: "transparent" }
-}
+  ".Resizer.disabled:hover": { borderColor: "transparent" },
+};
 
 export const scrollbarLight = {
   "*:focus": { boxShadow: "0 0 0 0 rgba(0, 0, 0, 0) !important" },
   "::-webkit-scrollbar": { width: "8px" },
   "::-webkit-scrollbar-track": {
     background: "none",
-    borderLeft: "1px red solid"
+    borderLeft: "1px red solid",
   },
   "::-webkit-scrollbar-thumb": { background: "#888" },
-  "::-webkit-scrollbar-thumb:hover": { background: "#555" }
-}
+  "::-webkit-scrollbar-thumb:hover": { background: "#555" },
+};
 
 export const scrollbarDark = {
   "*:focus": { boxShadow: "0 0 0 0 rgba(0, 0, 0, 0) !important" },
   "::-webkit-scrollbar": { width: "8px" },
   "::-webkit-scrollbar-track": {
     background: "none",
-    borderLeft: "1px red solid"
+    borderLeft: "1px red solid",
   },
   "::-webkit-scrollbar-thumb": { background: "#888" },
-  "::-webkit-scrollbar-thumb:hover": { background: "#555" }
-}
+  "::-webkit-scrollbar-thumb:hover": { background: "#555" },
+};
 
 export const scrollbarHidden = {
-  "::-webkit-scrollbar": { display: 'none' },
-}
+  "::-webkit-scrollbar": { display: "none" },
+};

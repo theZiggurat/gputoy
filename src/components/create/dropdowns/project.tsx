@@ -1,11 +1,11 @@
-import usePanels from "@core/hooks/singleton/usePanels"
-import React from "react"
-import Dropdown, { DropdownDivider, DropdownItem, DropdownSubDropdown } from "../dropdown"
-
+import usePanels from "@core/hooks/singleton/usePanels";
+import Dropdown, {
+    DropdownDivider,
+    DropdownItem
+} from "../dropdown";
 
 const ProjectDropdown = () => {
-
-  const { toggleSummary } = useDropdown()
+  const { toggleSummary } = useDropdown();
 
   return (
     <Dropdown text="Project">
@@ -23,21 +23,19 @@ const ProjectDropdown = () => {
       <DropdownItem text="Publish" />
       <DropdownItem text="Fork" />
     </Dropdown>
-  )
-}
+  );
+};
 
 const useDropdown = () => {
-
-  const { addPanel } = usePanels({})
+  const { addPanel } = usePanels({});
 
   const toggleSummary = () => {
-    addPanel(5, 'left')
-  }
+    addPanel(5, "left");
+  };
 
   return {
-    toggleSummary
-  }
+    toggleSummary,
+  };
+};
 
-}
-
-export default ProjectDropdown
+export default ProjectDropdown;

@@ -3,14 +3,13 @@ import {
 	Box, Flex, Grid,
 	GridItem, Input, useColorModeValue
 } from '@chakra-ui/react'
-import { GetServerSideProps } from 'next'
-import Head from 'next/head'
-import React from 'react'
-import prisma from 'core/backend/prisma'
+import Footer from '@components/index/footer'
 import ProjectCard from '@components/shared/projectCard'
 import Scaffold from '@components/shared/scaffold'
 import { themed } from '@theme/theme'
-import Footer from '@components/index/footer'
+import prisma from 'core/backend/prisma'
+import { GetServerSideProps } from 'next'
+import Head from 'next/head'
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 	const projects = await prisma.project.findMany({

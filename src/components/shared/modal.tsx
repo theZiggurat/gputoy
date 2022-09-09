@@ -1,21 +1,19 @@
 import { Box, BoxProps, Portal } from "@chakra-ui/react";
-import React, { ReactElement, useContext, useState } from "react";
+import { ReactElement, useState } from "react";
 import { themed } from "theme/theme";
 
 type ModalProps = {
-  isOpen?: boolean,
-  onRequestClose: () => void
-  children: ReactElement,
-  bgTouchEvents?: boolean,
-  bgProps?: BoxProps
-}
+  isOpen?: boolean;
+  onRequestClose: () => void;
+  children: ReactElement;
+  bgTouchEvents?: boolean;
+  bgProps?: BoxProps;
+};
 
 export const Modal = (props: ModalProps) => {
-
   return (
-    <Portal >
-      {
-        props.isOpen &&
+    <Portal>
+      {props.isOpen && (
         <>
           <Box
             pos="absolute"
@@ -34,26 +32,26 @@ export const Modal = (props: ModalProps) => {
             height="fit-content"
             top="50%"
             left="50%"
-            bg={themed('a2')}
+            bg={themed("a2")}
             zIndex={5}
             transform="translate(-50%, -50%)"
             border="1px"
-            borderColor={themed('border')}
+            borderColor={themed("border")}
           >
             {props.children}
           </Box>
         </>
-      }
+      )}
     </Portal>
-  )
-}
+  );
+};
 
 export const useModal = (autoOpen?: boolean) => {
-  const [isOpen, setOpen] = useState(autoOpen ?? false)
+  const [isOpen, setOpen] = useState(autoOpen ?? false);
 
-  const closeModal = () => setOpen(false)
-  const openModal = () => setOpen(true)
-  const toggleModal = () => setOpen(o => !o)
+  const closeModal = () => setOpen(false);
+  const openModal = () => setOpen(true);
+  const toggleModal = () => setOpen((o) => !o);
 
-  return { isOpen, openModal, closeModal, toggleModal }
-}
+  return { isOpen, openModal, closeModal, toggleModal };
+};
