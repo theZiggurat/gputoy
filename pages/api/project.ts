@@ -1,9 +1,8 @@
+import { ProjectQuery } from '@core/types';
+import prisma from "core/backend/prisma";
+import { validateCreateProjectEntry } from 'core/backend/validators';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from "next-auth/client";
-import prisma from "core/backend/prisma";
-import { ProjectQuery } from '@core/types';
-import { validateCreateProjectEntry } from 'core/backend/validators';
-import { projectAuthorAtom } from 'core/recoil/atoms/project';
 
 export default function handler(
   req: NextApiRequest,

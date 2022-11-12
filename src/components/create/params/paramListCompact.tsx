@@ -1,16 +1,25 @@
-import React from "react"
-import ParamEntry from "./paramEntry"
+import React from "react";
+import ParamEntry from "./paramEntry";
 
 type ParamListCompactProps = {
-  keys: string[]
-  onChangeSelected: (k: string) => void
-  selectedParam: string | null,
-}
+  keys: string[];
+  onChangeSelected: (k: string) => void;
+  selectedParam: string | null;
+};
 
 const ParamListCompact = (props: ParamListCompactProps) => {
-  return <>
-    {props.keys.map(k => <ParamEntry key={k} paramKey={k} onSelect={props.onChangeSelected} flexDir="column" />)}
-  </>
-}
+  return (
+    <>
+      {props.keys.map((k) => (
+        <ParamEntry
+          key={k}
+          paramKey={k}
+          onSelect={props.onChangeSelected}
+          flexDir="column"
+        />
+      ))}
+    </>
+  );
+};
 
-export default ParamListCompact
+export default ParamListCompact;

@@ -1,5 +1,5 @@
-import { Monaco } from "@monaco-editor/react"
-import * as JSONSchema from '../../public/runner.schema.json'
+import { Monaco } from "@monaco-editor/react";
+import * as JSONSchema from "../../public/runner.schema.json";
 
 const setJSONSchema = (monaco: Monaco) => {
   monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
@@ -9,13 +9,12 @@ const setJSONSchema = (monaco: Monaco) => {
       {
         uri: "http://gputoy.io/runner.schema.json",
         fileMatch: ["*"],
-        schema: JSONSchema
-      }
+        schema: JSONSchema,
+      },
     ],
-    schemaValidation: 'warning',
-    comments: 'ignore'
+    schemaValidation: "warning",
+    comments: "ignore",
+  });
+};
 
-  })
-}
-
-export default setJSONSchema
+export default setJSONSchema;

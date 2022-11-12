@@ -1,229 +1,180 @@
-import { chakra, Flex, Input, InputGroup, InputRightElement } from "@chakra-ui/react";
+import { Flex, Input, NumberInput } from "@chakra-ui/react";
 import Checkbox from "@components/shared/checkbox";
 import Label from "@components/shared/label";
-import * as types from '@core/types'
-import { themed } from '@theme/theme'
-
+import {
+  withSystemModels,
+  withSystemNamespace
+} from "@core/recoil/atoms/system";
+import * as types from "@core/types";
+import { themed } from "@theme/theme";
+import { useMemo } from "react";
+import { useRecoilValue } from "recoil";
 
 const BufferInfo = (props: {
-  args: types.BufferArgs,
-  onChange: (args: types.BufferArgs) => void
+  args: types.BufferArgs;
+  onChange: (args: types.BufferArgs) => void;
 }) => {
+  const models = useRecoilValue(withSystemModels);
 
   const optionStyle = {
-    backgroundColor: themed('a1'),
-    border: "none"
-  }
+    backgroundColor: themed("a1"),
+    border: "none",
+  };
 
   const bgProps = {
-    bg: themed('a2'),
+    bg: themed("a2"),
     _hover: {
-      bg: themed('a1')
-    }
-  }
+      bg: themed("a1"),
+    },
+  };
 
   const labelProps = {
     borderY: "1px",
-    h: '2rem',
-    borderColor: themed('borderLight'),
+    h: "2rem",
+    borderColor: themed("borderLight"),
     px: "0.75rem",
     pt: "1px",
     alignItems: "center",
-    bg: themed('a2')
-  }
+    bg: themed("a2"),
+  };
 
   const inputProps = {
     bg: "none",
     border: "0px",
     borderBottom: "2px",
-    _hover: { bg: 'none' },
-    borderColor: themed('borderLight')
-  }
+    _hover: { bg: "none" },
+    borderColor: themed("borderLight"),
+  };
 
-  const { bindingType, length, modelName } = props.args
-
-  const toggleUsage = (bit: number, toggle: boolean) => {
+  const onChangeBindingType = (type: GPUBufferBindingType) => {
     props.onChange({
       ...props.args,
-      usage: toggle ? usage | bit : usage & ~bit
-    })
-  }
+      bindingType: type,
+    });
+  };
 
-  return <Flex
-    flex="1 1 auto"
-    h="100%"
-    overflowY="scroll"
-    bg={themed('a2')}
-    flexDir="column"
-    gridGap="4px"
-    py="4px"
-  >
-    <Label text="Dimension" {...labelProps} >
-      <chakra.select
-        color={themed('textMidLight')}
-        fontSize="0.75rem"
-        value={dim}
-        onChange={s => props.onChange({ ...props.args, dim: s.target.value as types.TextureDim })}
-        sx={bgProps}
-        paddingStart="0.5rem"
-        paddingEnd="0.5rem"
-        w="100px"
-      >
-        <option value="1d" style={optionStyle}>1D</option>
-        <option value="2d" style={optionStyle}>2D</option>
-        <option value="3d" style={optionStyle}>3D</option>
-      </chakra.select>
-    </Label>
+  const onToggleUsage = (flag: number) => {
+    props.onChange({
+      ...props.args,
+      usageFlags: usageFlags ^ flag,
+    });
+  };
 
+  const onModelNameChange = (ev) => {
+    props.onChange({
+      ...props.args,
+      modelName: ev.target.value,
+    });
+  };
 
-    <Label text="Width" {...labelProps}>
-      <InputGroup size="xs">
-        <Input
-          w="100px"
-          type="number"
-          value={width}
-          max={8192}
-          {...inputProps}
-        />
-        <InputRightElement color={themed('textLight')}>
-          px
-        </InputRightElement>
-      </InputGroup>
-    </Label>
+  const modelList = useMemo(
+    () =>
+      models
+        .map((m) => Object.keys(m.namedTypes))
+        .flat()
+        .map((s) => ({ value: s, label: s })),
+    [models]
+  );
 
+  const { bindingType, usageFlags, initialValue, size, modelName } = props.args;
 
-    {
-      dim !== '1d' &&
-      <Label text="Height" {...labelProps}>
-        <InputGroup size="xs">
-          <Input
-            w="100px"
-            type="number"
-            value={height}
-            onChange={s => props.onChange({ ...props.args, height: parseInt(s.target.value) })}
-            max={8192}
-            {...inputProps}
+  const namespaces = useRecoilValue(withSystemNamespace);
+  const model = !!modelName
+    ? types.getStructFromNamespaces(namespaces, modelName)
+    : null;
+  const mem_info = model ? types.getMemoryLayout(model) : null;
+  const numBytes = mem_info ? mem_info.byteSize * (size ?? 0) : 0;
+
+  return (
+    <Flex
+      flex="1 1 auto"
+      h="100%"
+      overflowY="scroll"
+      bg={themed("a2")}
+      flexDir="column"
+      gridGap="4px"
+      py="4px"
+    >
+      <Label text="Binding Type" {...labelProps} h="min-content">
+        <Flex flexDir="column" flexWrap="wrap" py="4px" gridGap="2px">
+          <Checkbox
+            title="Uniform"
+            checked={bindingType === "uniform"}
+            onCheck={(_) => onChangeBindingType("uniform")}
+            hint="If checked, this texture can be read from outside of a shader."
           />
-          <InputRightElement color={themed('textLight')}>
-            px
-          </InputRightElement>
-        </InputGroup>
-      </Label>
-    }
-
-
-    {
-      dim !== '1d' &&
-      <Label text={dim === '3d' ? 'Depth' : 'Array Layers'} {...labelProps}>
-        <InputGroup size="xs">
-          <Input
-            w="100px"
-            type="number"
-            value={depthOrArrayLayers}
-            max={4096}
-            {...inputProps}
+          <Checkbox
+            title="Storage"
+            checked={bindingType === "storage"}
+            onCheck={(_) => onChangeBindingType("storage")}
+            hint="If checked, this texture can be written to outside of a shader."
           />
-          {
-            dim === '3d' &&
-            <InputRightElement color={themed('textLight')}>
-              px
-            </InputRightElement>
-          }
-
-        </InputGroup>
+          <Checkbox
+            title="Read-only Storage"
+            checked={bindingType === "read-only-storage"}
+            onCheck={(_) => onChangeBindingType("read-only-storage")}
+            hint="If checked, this texture can be read from a shader using a sampler."
+          />
+        </Flex>
       </Label>
-    }
 
+      <Label text="Usage" {...labelProps} h="min-content">
+        <Flex flexDir="column" flexWrap="wrap" py="4px" gridGap="2px">
+          <Checkbox
+            title="COPY_SRC"
+            checked={!!(usageFlags & GPUBufferUsage.COPY_SRC)}
+            onCheck={(_) => onToggleUsage(GPUBufferUsage.COPY_SRC)}
+            hint="The buffer can be used as the source of a copy operation."
+          />
+          <Checkbox
+            title="COPY_DST"
+            checked={!!(usageFlags & GPUBufferUsage.COPY_DST)}
+            onCheck={(_) => onToggleUsage(GPUBufferUsage.COPY_DST)}
+            hint="The buffer can be used as the destination of a copy or write operation."
+          />
+          <Checkbox
+            title="INDEX"
+            checked={!!(usageFlags & GPUBufferUsage.INDEX)}
+            onCheck={(_) => onToggleUsage(GPUBufferUsage.INDEX)}
+            hint="The buffer can be used as an index buffer."
+          />
+          <Checkbox
+            title="VERTEX"
+            checked={!!(usageFlags & GPUBufferUsage.VERTEX)}
+            onCheck={(_) => onToggleUsage(GPUBufferUsage.VERTEX)}
+            hint="The buffer can be used as a vertex buffer."
+          />
+          <Checkbox
+            title="UNIFORM"
+            checked={!!(usageFlags & GPUBufferUsage.UNIFORM)}
+            onCheck={(_) => onToggleUsage(GPUBufferUsage.UNIFORM)}
+            hint="The buffer can be used as a uniform buffer."
+          />
+          <Checkbox
+            title="STORAGE"
+            checked={!!(usageFlags & GPUBufferUsage.STORAGE)}
+            onCheck={(_) => onToggleUsage(GPUBufferUsage.STORAGE)}
+            hint="The buffer can be used as a storage buffer. "
+          />
+        </Flex>
+      </Label>
 
-    <Label text="Usage" {...labelProps} height="min-content">
-      <Flex flexDir="column" flexWrap="wrap" py="4px" gridGap="2px">
-        <Checkbox
-          title="COPY_SRC"
-          checked={!!(usage & 0x1)}
-          onCheck={(val) => toggleUsage(0x1, val)}
-          hint="If checked, this texture can be read from outside of a shader."
-        />
-        <Checkbox
-          title="COPY_DST"
-          checked={!!(usage & 0x2)}
-          onCheck={(val) => toggleUsage(0x2, val)}
-          hint="If checked, this texture can be written to outside of a shader."
-        />
-        <Checkbox
-          title="TEXTURE_BINDING"
-          checked={!!(usage & 0x4)}
-          onCheck={(val) => toggleUsage(0x4, val)}
-          hint="If checked, this texture can be read from a shader using a sampler."
-        />
-        <Checkbox
-          title="STORAGE_BINDING"
-          checked={!!(usage & 0x8)}
-          onCheck={(val) => toggleUsage(0x8, val)}
-          hint="If checked, this texture can be read and written from a shader using texel coordinates."
-
-        />
-        <Checkbox
-          title="RENDER_ATTACHMENT"
-          checked={!!(usage & 0x10)}
-          onCheck={(val) => toggleUsage(0x10, val)}
-          hint="If checked, this texture can be a target for a vertex/fragment pipeline."
-        />
-      </Flex>
-    </Label>
-
-    <Label text="Format" {...labelProps}>
-      <chakra.select
-        color={themed('textMidLight')}
-        fontSize="0.75rem"
-        value={formatType}
-        onChange={s => props.onChange({ ...props.args, formatType: s.target.value as types.TextureFormatType })}
-        sx={bgProps}
-        paddingStart="0.5rem"
-        paddingEnd="0.5rem"
-        w="50px"
-      >
-        {
-          types.TEXTURE_FORMAT_TYPES.map(t =>
-            <option key={t} title={t} value={t} style={optionStyle}>{t}</option>
-          )
-        }
-      </chakra.select>
-      {
-        types.TEXTURE_FORMAT_FAMILIES[formatType] &&
-        <chakra.select
-          color={themed('textMidLight')}
-          fontSize="0.75rem"
-          value={format}
-          onChange={s => props.onChange({ ...props.args, format: s.target.value as GPUTextureFormat })}
-          sx={bgProps}
-          paddingStart="0.5rem"
-          paddingEnd="0.5rem"
-          w="50px"
-        >
-          {
-            types.TEXTURE_FORMAT_FAMILIES[formatType].map(t =>
-              <option key={t} title={t} value={t} style={optionStyle}>{t}</option>
-            )
-          }
-        </chakra.select>
-
-      }
-    </Label>
-    {
-      dim === '2d' &&
-      <Label text="Samples" {...labelProps}>
+      <Label text="Model" {...labelProps} justifyContent="space-between">
         <Input
-          w="100px"
-          type="number"
-          value={sampleCount}
-          onChange={s => props.onChange({ ...props.args, sampleCount: parseInt(s.target.value) })}
-          max={16}
+          marginStart="50%"
+          value={modelName}
+          onChange={onModelNameChange}
           {...inputProps}
         />
       </Label>
-    }
 
-  </Flex>
-}
+      <Label text="Size" {...labelProps}>
+        <NumberInput {...inputProps} />
+      </Label>
 
-export default BufferInfo
+      <Label text="Bytes">{numBytes}</Label>
+    </Flex>
+  );
+};
+
+export default BufferInfo;

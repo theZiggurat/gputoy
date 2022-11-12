@@ -1,19 +1,17 @@
-import { Box, Flex } from '@chakra-ui/layout';
-import React from 'react';
-import Draggable, { DraggableCore } from 'react-draggable'; // Both at the same time
-import ParamEntry from './paramEntry';
-import { ParamInterface } from './paramInterface';
+import { Flex } from "@chakra-ui/layout";
+import Draggable from "react-draggable"; // Both at the same time
+import { ParamInterface } from "./paramInterface";
 
 type ParamListGridProps = {
-  keys: string[]
-  onChangeSelected: (k: string) => void
-  selectedParam: string | null,
-}
+  keys: string[];
+  onChangeSelected: (k: string) => void;
+  selectedParam: string | null;
+};
 const ParamListGrid = (props: ParamListGridProps) => {
-
-  const error = false
-  return <Flex flexDir="row" height="100%">
-    {/* <Flex flexDir="column" flex="1 1 auto" overflow="scroll" height="100%" py="0.5rem">
+  const error = false;
+  return (
+    <Flex flexDir="row" height="100%">
+      {/* <Flex flexDir="column" flex="1 1 auto" overflow="scroll" height="100%" py="0.5rem">
       {
         props.keys.map(k => <ParamEntry
           key={k}
@@ -25,17 +23,15 @@ const ParamListGrid = (props: ParamListGridProps) => {
         />)
       }
     </Flex> */}
-    <Flex width="100%" height="100%">
-      {
-        props.keys.map(k => (
+      <Flex width="100%" height="100%">
+        {props.keys.map((k) => (
           <Draggable key={k} grid={[32, 32]}>
             <ParamInterface selectedParam={k} width={250} />
           </Draggable>
-        ))
-      }
+        ))}
+      </Flex>
     </Flex>
+  );
+};
 
-  </Flex>
-}
-
-export default ParamListGrid
+export default ParamListGrid;

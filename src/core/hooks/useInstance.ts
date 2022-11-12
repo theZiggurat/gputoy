@@ -1,14 +1,24 @@
-import { panelInstanceAtom, panelInstanceListAtom, withInstanceCleaner } from "core/recoil/atoms/instance"
-import { DefaultValue, SetterOrUpdater, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import {
+  panelInstanceAtom,
+  panelInstanceListAtom,
+  withInstanceCleaner,
+} from "core/recoil/atoms/instance";
+import {
+  DefaultValue,
+  SetterOrUpdater,
+  useRecoilState,
+  useRecoilValue,
+  useSetRecoilState,
+} from "recoil";
 
 /**
  * Setter for current panel instances
  * Used by panels component to garbage collect removed instances from local storage
- * @returns a setter 
+ * @returns a setter
  */
 export const useInstanceCleaner = () => {
-  return useSetRecoilState(withInstanceCleaner)
-}
+  return useSetRecoilState(withInstanceCleaner);
+};
 
 /**
  * Gives data about current panel instances
@@ -16,8 +26,8 @@ export const useInstanceCleaner = () => {
  * @returns list of current panel instances
  */
 export const useInstances = () => {
-  return useRecoilValue(panelInstanceListAtom)
-}
+  return useRecoilValue(panelInstanceListAtom);
+};
 
 /**
  * Returns panel instance state
@@ -26,9 +36,10 @@ export const useInstances = () => {
  * @returns instance state for panel
  */
 const useInstance = <T>(props: any): [T, SetterOrUpdater<T>] => {
+  const [state, setState] = useRecoilState<T>(
+    panelInstanceAtom({ id: props.instanceID, index: props.panelIndex })
+  );
+  return [state, setState];
+};
 
-  const [state, setState] = useRecoilState<T>(panelInstanceAtom({ id: props.instanceID, index: props.panelIndex }))
-  return [state, setState]
-}
-
-export default useInstance
+export default useInstance;

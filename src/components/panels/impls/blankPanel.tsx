@@ -1,17 +1,13 @@
-import React from "react"
-import { Panel, PanelBar, PanelContent } from "../panel"
+import React from "react";
+import { Panel, PanelBar, PanelContent } from "../panel";
 
 const BlankPanel = (props) => {
   return (
     <Panel {...props}>
-      <PanelContent>
-
-      </PanelContent>
-      <PanelBar>
-        
-      </PanelBar>
+      <PanelContent></PanelContent>
+      <PanelBar></PanelBar>
     </Panel>
-  )
-}
+  );
+};
 
-export default BlankPanel
+export default BlankPanel;

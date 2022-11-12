@@ -1,308 +1,363 @@
-import { useCallback, useEffect, useRef } from "react"
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import { useCallback, useEffect, useRef } from "react";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 
-import useLogger from "../useLogger"
-import useProjectControls from "../useProjectControls"
-import { useClearConsole } from "@core/hooks/useConsole"
-import { ProjectControl } from "@core/recoil/atoms/controls"
+import { useClearConsole } from "@core/hooks/useConsole";
+import { ProjectControl } from "@core/recoil/atoms/controls";
+import { withProjectFilesJSON } from "@core/recoil/atoms/files";
+import { withProjectIO } from "@core/recoil/atoms/io";
+import { currentProjectIdAtom } from "@core/recoil/atoms/project";
+import { withResourceJSON } from "@core/recoil/atoms/resource";
 import {
-  currentProjectIdAtom
-} from "@core/recoil/atoms/project"
-import { withProjectFilesJSON } from "@core/recoil/atoms/files"
-import { debounce, isEqual, union, uniq } from "lodash"
-import * as types from "@core/types"
-import System from "@core/system"
-import { withProjectIO } from "@core/recoil/atoms/io"
-import { systemBuildStateAtom, systemFrameStateAtom, systemValidationStateAtom, withSystemPrebuildResult } from "@core/recoil/atoms/system"
-
-
+  systemBuildStateAtom,
+  systemFrameStateAtom,
+  systemValidationStateAtom,
+  withSystemPrebuildResult
+} from "@core/recoil/atoms/system";
+import System from "@core/system";
+import * as types from "@core/types";
+import { debounce, isEqual, union, uniq } from "lodash";
+import useLogger from "../useLogger";
+import useProjectControls from "../useProjectControls";
 
 /**
  * Glue between the recoil/react world and System singleton class
  * Most dataflow is unidirectional from recoil world to System, but
- * System is also capable of writing to select atoms for build, 
- * validation, and resource info. 
+ * System is also capable of writing to select atoms for build,
+ * validation, and resource info.
  */
 const useProjectManager = () => {
+  const projectID = useRecoilValue(currentProjectIdAtom);
 
-  const projectID = useRecoilValue(currentProjectIdAtom)
+  const { controlStatus, play, pause, stop } = useProjectControls();
+  const { _smPlay, _smPause, _smStop, _smStep } = _useSystemFrameState();
 
-  const { controlStatus, play, pause, stop } = useProjectControls()
-  const { _smPlay, _smPause, _smStop, _smStep } = _useSystemFrameState()
+  const files = useRecoilValue(withProjectFilesJSON);
 
-  const files = useRecoilValue(withProjectFilesJSON)
+  const resources = useRecoilValue(withResourceJSON);
 
-  const setClearConsole = useClearConsole()
+  const setClearConsole = useClearConsole();
 
-  const logger = useLogger()
+  const logger = useLogger();
 
-  const isRunning = useRef(false)
-  const intervalHandle = useRef(0)
+  const isRunning = useRef(false);
+  const intervalHandle = useRef(0);
 
-  const ioChannels = useRecoilValue(withProjectIO)
+  const ioChannels = useRecoilValue(withProjectIO);
 
-  const [validationState, setValidationState] = useRecoilState(systemValidationStateAtom)
-  const [buildState, setBuildState] = useRecoilState(systemBuildStateAtom)
-  const setPrebuildResult = useSetRecoilState(withSystemPrebuildResult)
+  const [validationState, setValidationState] = useRecoilState(
+    systemValidationStateAtom
+  );
+  const [buildState, setBuildState] = useRecoilState(systemBuildStateAtom);
+  const setPrebuildResult = useSetRecoilState(withSystemPrebuildResult);
 
   const renderStep = useCallback((timestamp: DOMHighResTimeStamp) => {
     if (isRunning.current) {
-      intervalHandle.current = requestAnimationFrame(renderStep)
-      _smStep(timestamp)
+      intervalHandle.current = requestAnimationFrame(renderStep);
+      _smStep(timestamp);
     }
-  }, [])
+  }, []);
 
   /**
    * Handle play/pause/stop signals from the viewport panel
    */
   useEffect(() => {
-
     const onControlChange = async () => {
       if (controlStatus == ProjectControl.PLAY) {
-        _smPlay(performance.now())
-        isRunning.current = true
+        _smPlay(performance.now());
+        isRunning.current = true;
 
         /**
          * TODO: figure out why this is a long task
          */
-        setValidationState('validating')
-        let preres = await System.instance().prebuild(logger)
+        setValidationState("validating");
+        let preres = await System.instance().prebuild(logger);
         if (!preres) {
-          setValidationState('failed')
-          if (buildState === 'built') {
-            requestAnimationFrame(renderStep)
-            return () => cancelAnimationFrame(intervalHandle.current)
+          setValidationState("failed");
+          if (buildState === "built") {
+            requestAnimationFrame(renderStep);
+            return () => cancelAnimationFrame(intervalHandle.current);
           }
-          return
+          return;
         }
-        setPrebuildResult(preres)
-        setValidationState('validated')
-        setBuildState('building')
-        let result = await System.instance().build(logger)
+        setPrebuildResult(preres);
+        setValidationState("validated");
+        setBuildState("building");
+        let result = await System.instance().build(logger);
         if (result) {
-          setBuildState('built')
-          requestAnimationFrame(renderStep)
-          return () => cancelAnimationFrame(intervalHandle.current)
+          setBuildState("built");
+          requestAnimationFrame(renderStep);
+          return () => cancelAnimationFrame(intervalHandle.current);
         }
-        setBuildState('failed')
-        stop()
-
+        setBuildState("failed");
+        stop();
       }
       if (controlStatus == ProjectControl.PAUSE) {
-        _smPause()
-        isRunning.current = false
+        _smPause();
+        isRunning.current = false;
       }
       if (controlStatus == ProjectControl.STOP) {
-        _smStop()
-        isRunning.current = false
+        _smStop();
+        isRunning.current = false;
       }
-    }
-    onControlChange()
-  }, [controlStatus])
-
-
+    };
+    onControlChange();
+  }, [controlStatus]);
 
   // TODO find better solution than brute forcing diff
   // very unoptimized, but heavily debounced so this is low priority for now
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const processFileDelta = useCallback(debounce(async (files: { [key: string]: types.File; }) => {
+  const processFileDelta = useCallback(
+    debounce(async (files: { [key: string]: types.File }) => {
+      const prev = System.instance().files;
+      const prevFiles = Object.keys(prev);
 
-    const prev = System.instance().files
-    const prevFiles = Object.keys(prev)
-
-    // skip delta calculations
-    if (Object.keys(prevFiles).length === 0) {
-      System.instance().pushFileDelta(files, [])
-    }
-
-    // feed availible io by diff for more advanced rebuild strategies down the line
-    let currentFiles = Object.keys(files)
-    let diff: Record<string, types.File> = {}
-    let removed: string[] = []
-    for (const fileId of union(prevFiles, currentFiles)) {
-      const prevFile = prev[fileId]
-      const currentFile = files[fileId]
-
-      if (prevFile && currentFile) {
-        if (!isEqual(prevFile, currentFile)) {
-          diff[fileId] = currentFile
-        }
-      } else if (prevFile && !currentFile) {
-        removed.push(fileId)
-      } else if (!prevFile && currentFile) {
-        diff[fileId] = currentFile
+      // skip delta calculations
+      if (Object.keys(prevFiles).length === 0) {
+        System.instance().pushFileDelta(files, []);
       }
-    }
 
-    System.instance().pushFileDelta(diff, removed, logger)
+      // feed availible io by diff for more advanced rebuild strategies down the line
+      let currentFiles = Object.keys(files);
+      let diff: Record<string, types.File> = {};
+      let removed: string[] = [];
+      for (const fileId of union(prevFiles, currentFiles)) {
+        const prevFile = prev[fileId];
+        const currentFile = files[fileId];
 
-  }, 500), [])
+        if (prevFile && currentFile) {
+          if (!isEqual(prevFile, currentFile)) {
+            diff[fileId] = currentFile;
+          }
+        } else if (prevFile && !currentFile) {
+          removed.push(fileId);
+        } else if (!prevFile && currentFile) {
+          diff[fileId] = currentFile;
+        }
+      }
 
-  useEffect(() => {
-    processFileDelta(files)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [files])
-
+      System.instance().pushFileDelta(diff, removed, logger);
+    }, 500),
+    []
+  );
 
   // TODO find better solution than brute forcing diff
   // very unoptimized, but it shouldn't run much at all. basically only on
   // a component mount/unmount should this be called
-  const processIODelta = useCallback(async (currentChannels: Record<string, types.IOChannel>) => {
-    const prevChannels = System.instance().availChannels
+  const processIODelta = useCallback(
+    async (currentChannels: Record<string, types.IOChannel>) => {
+      const prevChannels = System.instance().availChannels;
 
-    let prevKeys = Object.keys(prevChannels)
+      let prevKeys = Object.keys(prevChannels);
 
-    // skip delta calculations
-    if (prevKeys.length === 0) {
-      System.instance().pushIoDelta(currentChannels, [], [], logger)
-      return
-    }
-
-    // feed availible io by diff for more advanced rebuild strategies down the line
-    let currentKeys = Object.keys(currentChannels)
-    let diff: Record<string, types.IOChannel> = {}
-    let removed: string[] = []
-    let updated: string[] = []
-    for (const channelKey of uniq([...prevKeys, ...currentKeys])) {
-      const prevIOChannel = prevChannels[channelKey]
-      const currentIOChannel = currentChannels[channelKey]
-
-      if (prevIOChannel && currentIOChannel) {
-        if (!isEqual(prevIOChannel, currentIOChannel)) {
-          diff[channelKey] = currentIOChannel
-        } else {
-          updated.push(channelKey)
-        }
-      } else if (prevIOChannel && !currentIOChannel) {
-        removed.push(channelKey)
-      } else if (!prevIOChannel && currentIOChannel) {
-        diff[channelKey] = currentIOChannel
+      // skip delta calculations
+      if (prevKeys.length === 0) {
+        System.instance().pushIoDelta(currentChannels, [], [], logger);
+        return;
       }
-    }
 
-    System.instance().pushIoDelta(diff, updated, removed, logger)
+      // feed availible io by diff for more advanced rebuild strategies down the line
+      let currentKeys = Object.keys(currentChannels);
+      let diff: Record<string, types.IOChannel> = {};
+      let removed: string[] = [];
+      let updated: string[] = [];
+      for (const channelKey of uniq([...prevKeys, ...currentKeys])) {
+        const prevIOChannel = prevChannels[channelKey];
+        const currentIOChannel = currentChannels[channelKey];
 
-    // re-build on file change
-    // TODO: debounce this or find a more sensible rebuild solution
-    setBuildState('building')
-    let preres = await System.instance().build(logger)
-    setBuildState(preres ? 'built' : 'failed')
+        if (prevIOChannel && currentIOChannel) {
+          if (!isEqual(prevIOChannel, currentIOChannel)) {
+            diff[channelKey] = currentIOChannel;
+          } else {
+            updated.push(channelKey);
+          }
+        } else if (prevIOChannel && !currentIOChannel) {
+          removed.push(channelKey);
+        } else if (!prevIOChannel && currentIOChannel) {
+          diff[channelKey] = currentIOChannel;
+        }
+      }
 
+      System.instance().pushIoDelta(diff, updated, removed, logger);
 
-  }, [])
+      // re-build on file change
+      // TODO: debounce this or find a more sensible rebuild solution
+      setBuildState("building");
+      let preres = await System.instance().build(logger);
+      setBuildState(preres ? "built" : "failed");
+
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    []
+  );
+
+  const processResourceDelta = useCallback(
+    async (currentResources: Record<string, types.Resource>) => {
+      const prevResources = System.instance().resources;
+
+      let prevKeys = Object.keys(prevResources);
+
+      // skip delta calculations
+      if (prevKeys.length === 0) {
+        System.instance().pushResourceDelta(currentResources, [], [], logger);
+        return;
+      }
+
+      let resourceKeys = Object.keys(currentResources);
+      let diff: Record<string, types.Resource> = {};
+      let removed: string[] = [];
+      let updated: string[] = [];
+      for (const resourceKey of uniq([...prevKeys, ...resourceKeys])) {
+        const prevResource = prevResources[resourceKey];
+        const currentResource = currentResources[resourceKey];
+
+        if (prevResource && currentResource) {
+          if (!isEqual(prevResource, currentResource)) {
+            diff[resourceKey] = currentResource;
+          } else {
+            updated.push(resourceKey);
+          }
+        } else if (prevResource && !currentResource) {
+          removed.push(resourceKey);
+        } else if (!prevResource && currentResource) {
+          diff[resourceKey] = currentResource;
+        }
+      }
+
+      console.log("resource diff", diff, updated, removed);
+      System.instance().pushResourceDelta(diff, updated, removed, logger);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    []
+  );
 
   useEffect(() => {
-    processIODelta(ioChannels)
+    processResourceDelta(resources);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ioChannels])
+  }, [resources]);
 
+  useEffect(() => {
+    processFileDelta(files);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [files]);
+
+  useEffect(() => {
+    processIODelta(ioChannels);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ioChannels]);
 
   // Anytime the working project changes, reset project running state
   useEffect(() => {
     return () => {
-      _smStop()
-      cancelAnimationFrame(intervalHandle.current)
-      setClearConsole()
-      stop()
-    }
+      _smStop();
+      cancelAnimationFrame(intervalHandle.current);
+      setClearConsole();
+      stop();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectID])
+  }, [projectID]);
 
+  const onKeyDown = useCallback(
+    async (ev: KeyboardEvent) => {
+      // save validates the current files
+      if (ev.key == "s" && ev.ctrlKey) {
+        ev.preventDefault();
 
-  const onKeyDown = useCallback(async (ev: KeyboardEvent) => {
-    // save validates the current files
-    if (ev.key == 's' && ev.ctrlKey) {
-      ev.preventDefault()
+        _smPause();
+        pause();
+        setBuildState("unbuilt");
 
-      _smPause()
-      pause()
-      setBuildState('unbuilt')
+        await processFileDelta.flush();
+        setValidationState("validating");
+        let preresult = await System.instance().prebuild(logger);
+        setValidationState(preresult ? "validated" : "failed");
+        preresult && setPrebuildResult(preresult);
 
-      await processFileDelta.flush()
-      setValidationState('validating')
-      let preresult = await System.instance().prebuild(logger)
-      setValidationState(preresult ? 'validated' : 'failed')
-      preresult && setPrebuildResult(preresult)
+        setBuildState("building");
+        let result = await System.instance().build(logger);
+        setBuildState(result ? "built" : "failed");
 
-      setBuildState('building')
-      let result = await System.instance().build(logger)
-      setBuildState(result ? 'built' : 'failed')
-
-      if (result) {
-        const timestamp = performance.now()
-        _smPlay(timestamp)
-        play()
-        requestAnimationFrame(renderStep)
+        if (result) {
+          const timestamp = performance.now();
+          _smPlay(timestamp);
+          play();
+          requestAnimationFrame(renderStep);
+        }
       }
-    }
-  }, [processFileDelta])
+    },
+    [processFileDelta]
+  );
 
   useEffect(() => {
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onKeyDown])
-
-}
-
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onKeyDown]);
+};
 
 /**
- * 
- * Time dependent state machine for tracking system run times. 
+ *
+ * Time dependent state machine for tracking system run times.
  * @returns controls for state machine
  */
 const _useSystemFrameState = () => {
-  const setFrameState = useSetRecoilState(systemFrameStateAtom)
+  const setFrameState = useSetRecoilState(systemFrameStateAtom);
 
   const _smPause = useCallback(() => {
-    setFrameState(old => {
+    setFrameState((old) => {
       return {
         ...old,
         running: false,
-        prevDuration: old.runDuration
-      }
-    })
-  }, [setFrameState])
+        prevDuration: old.runDuration,
+      };
+    });
+  }, [setFrameState]);
 
-  const _smPlay = useCallback((timestamp: DOMHighResTimeStamp) => {
-    setFrameState(old => {
-      return {
-        ...old,
-        running: true,
-        lastStartTime: timestamp,
-      }
-    })
-  }, [setFrameState])
+  const _smPlay = useCallback(
+    (timestamp: DOMHighResTimeStamp) => {
+      setFrameState((old) => {
+        return {
+          ...old,
+          running: true,
+          lastStartTime: timestamp,
+        };
+      });
+    },
+    [setFrameState]
+  );
 
   const _smStop = useCallback(() => {
-    setFrameState(old => {
+    setFrameState((old) => {
       return {
         ...old,
         running: false,
         frameNum: 0,
         runDuration: 0,
         prevDuration: 0,
-      }
-    })
-  }, [setFrameState])
+      };
+    });
+  }, [setFrameState]);
 
-  const _smStep = useCallback((timestamp: DOMHighResTimeStamp) => {
-    setFrameState(old => {
-      System.instance().dispatch(old)
-      return {
-        ...old,
-        runDuration: (timestamp - old.lastStartTime) / 1000 + old.prevDuration,
-        lastFrameRendered: timestamp,
-        dt: timestamp - old.lastFrameRendered,
-        frameNum: old.frameNum + 1
-      }
-    })
-  }, [setFrameState])
+  const _smStep = useCallback(
+    (timestamp: DOMHighResTimeStamp) => {
+      setFrameState((old) => {
+        System.instance().dispatch(old);
+        return {
+          ...old,
+          runDuration:
+            (timestamp - old.lastStartTime) / 1000 + old.prevDuration,
+          lastFrameRendered: timestamp,
+          dt: timestamp - old.lastFrameRendered,
+          frameNum: old.frameNum + 1,
+        };
+      });
+    },
+    [setFrameState]
+  );
 
   useEffect(() => {
-    return () => _smStop()
-  }, [_smStop])
+    return () => _smStop();
+  }, [_smStop]);
 
-  return { _smPlay, _smPause, _smStop, _smStep }
-}
+  return { _smPlay, _smPause, _smStop, _smStep };
+};
 
-export default useProjectManager
+export default useProjectManager;

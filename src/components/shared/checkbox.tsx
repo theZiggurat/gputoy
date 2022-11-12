@@ -1,19 +1,18 @@
-import { Box, chakra, Flex, FlexProps } from "@chakra-ui/react"
-import { themed } from "theme/theme"
+import { Box, chakra, Flex, FlexProps } from "@chakra-ui/react";
+import { themed } from "theme/theme";
 
 type CheckboxProps = {
-  title: string,
-  checked?: boolean
-  onCheck: (val: boolean) => void
-  hint?: string
-}
+  title: string;
+  checked?: boolean;
+  onCheck: (val: boolean) => void;
+  hint?: string;
+};
 
 const Checkbox = (props: FlexProps & CheckboxProps) => {
+  const { title, checked, onCheck, ...flexProps } = props;
 
-  const { title, checked, onCheck, ...flexProps } = props
-
-  const mainColor = checked ? themed('border') : themed('borderLight')
-  const textColor = checked ? themed('textMidLight') : themed('border')
+  const mainColor = checked ? themed("border") : themed("borderLight");
+  const textColor = checked ? themed("textMidLight") : themed("border");
 
   return (
     <Flex
@@ -31,15 +30,20 @@ const Checkbox = (props: FlexProps & CheckboxProps) => {
         mr="4px"
         borderRadius="0"
         border="1px"
-        bg={checked ? themed('borderLight') : 'none'}
+        bg={checked ? themed("borderLight") : "none"}
         borderColor={mainColor}
+      ></Box>
+      <chakra.label
+        fontSize="xx-small"
+        color={textColor}
+        display="inline"
+        pointerEvents="none"
+        userSelect="none"
       >
-      </Box>
-      <chakra.label fontSize="xx-small" color={textColor} display="inline" pointerEvents="none" userSelect="none">
         {props.title}
       </chakra.label>
     </Flex>
-  )
-}
+  );
+};
 
-export default Checkbox
+export default Checkbox;

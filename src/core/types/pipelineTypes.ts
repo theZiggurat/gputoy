@@ -1,34 +1,33 @@
-import { Logger } from '@core/recoil/atoms/console'
-import * as types from '.'
+import { Logger } from "@core/recoil/atoms/console";
+import * as types from ".";
 
-export type PipelineType = 'compute' | 'render' | 'quad'
+export type PipelineType = "compute" | "render" | "quad";
 
 export interface Pipeline {
-
   /**
    * This will be used as webgpu internal label, along with console messages
    */
-  label: string
+  label: string;
 
-  type: PipelineType
+  type: PipelineType;
 
-  bindGroupLayout: GPUBindGroupLayout
+  bindGroupLayout: GPUBindGroupLayout;
 
-  bindGroups: GPUBindGroup[]
+  bindGroups: GPUBindGroup[];
 
   /**
    * TODO: demote pipeline build resposibilities
    * this is a really trash way to do it, i'll iron it out with some better contructs.
    * unfortunately, for now the build process must be done in a certain order and this appears to be
    * the busiest intersection of all the system components.
-   * @param device 
+   * @param device
    * @param run run data from JSON
    * @param modules module cache
    * @param moduleNeedCompile module cache validity
    * @param files project files
    * @param processedFiles processed shader files
    * @param resolve resolves resources from x::y paths in json
-   * @param logger 
+   * @param logger
    * @returns true if successful false if not
    */
   build: (
@@ -38,9 +37,12 @@ export interface Pipeline {
     moduleNeedCompile: Record<string, boolean>,
     files: Record<string, types.File>,
     processedFiles: Record<string, types.ValidationResult>,
-    resolve: (path?: string, logger?: Logger) => types.ResourceInstance | undefined,
+    resolve: (
+      path?: string,
+      logger?: Logger
+    ) => types.ResourceInstance | undefined,
     logger?: Logger
-  ) => Promise<boolean>
+  ) => Promise<boolean>;
 
-  dispatch: (commandEncoder: GPUCommandEncoder, logger?: Logger) => boolean
+  dispatch: (commandEncoder: GPUCommandEncoder, logger?: Logger) => boolean;
 }

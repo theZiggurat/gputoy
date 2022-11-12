@@ -1,12 +1,12 @@
-import { Flex, Box, IconButton, Icon, Text, ResponsiveValue, Input } from "@chakra-ui/react"
+import { Box, Flex, Icon, IconButton, Input, Text } from "@chakra-ui/react"
 import { useFileMetadata } from "@core/hooks/useFiles"
+import * as types from '@core/types'
 import { Directory, Extension } from "@core/types"
 import { themed } from "@theme/theme"
 import { useMemo, useState } from "react"
-import { AiFillFolderOpen, AiFillFolder } from "react-icons/ai"
+import { AiFillFolder, AiFillFolderOpen } from "react-icons/ai"
 import { MdCheck, MdClose, MdDelete } from "react-icons/md"
 import FileIcon from "../misc/fileIcon"
-import * as types from '@core/types'
 
 const buttonProps = {
   size: "xs",

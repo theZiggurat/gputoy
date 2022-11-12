@@ -1,57 +1,56 @@
-import * as types from "@core/types"
-import { Resource, ResourceJSON } from "@core/types"
-import { atomFamily, atom, DefaultValue, selector } from "recoil"
+import * as types from "@core/types";
+import { Resource, ResourceJSON } from "@core/types";
+import { atom, atomFamily, DefaultValue, selector } from "recoil";
 
 export const resourceAtom = atomFamily<types.Resource, string>({
-  key: 'resource',
+  key: "resource",
   default: (key: string) => ({
     id: key,
-    type: 'buffer',
-    name: '',
-    args: types.defaultBufferArgs
+    type: "buffer",
+    name: "",
+    args: types.resourceTypeToDefaultArgs["buffer"],
   }),
-})
+});
 
 export const resourceKeysAtom = atom<string[]>({
-  key: 'resourceKeys',
-  default: []
-})
+  key: "resourceKeys",
+  default: [],
+});
 
 export const resourceInterfacePropsAtom = atomFamily<any, string>({
-  key: 'resourceInterface',
-  default: {}
-})
+  key: "resourceInterface",
+  default: {},
+});
 
 export const withResourceJSON = selector<ResourceJSON>({
-  key: 'withResourceJSON',
+  key: "withResourceJSON",
   get: ({ get }) => {
-    let ret: ResourceJSON = {}
+    let ret: ResourceJSON = {};
     for (const key of get(resourceKeysAtom)) {
-      ret[key] = get(resourceAtom(key))
+      ret[key] = get(resourceAtom(key));
     }
-    return ret
+    return ret;
   },
   set: ({ set, reset }, resources) => {
     if (resources instanceof DefaultValue) {
-      reset(resourceKeysAtom)
+      reset(resourceKeysAtom);
     } else {
-      const keys = Object.keys(resources)
-      keys.map(key => set(resourceAtom(key), resources[key]))
-      set(resourceKeysAtom, keys)
+      const keys = Object.keys(resources);
+      keys.map((key) => set(resourceAtom(key), resources[key]));
+      set(resourceKeysAtom, keys);
     }
-  }
-})
+  },
+});
 
 export const withAddResource = selector<Resource>({
-  key: 'withAddResource',
-  get: ({ }) => ({} as Resource),
+  key: "withAddResource",
+  get: ({}) => ({} as Resource),
   set: ({ set, reset }, resource) => {
     if (resource instanceof DefaultValue) {
-
     } else {
-      set(resourceAtom(resource.id), resource)
+      set(resourceAtom(resource.id), resource);
       // TODO: be more precautious about ids that will be pushed to recoil system
-      set(resourceKeysAtom, old => [...old, resource.id])
+      set(resourceKeysAtom, (old) => [...old, resource.id]);
     }
-  }
-})
+  },
+});

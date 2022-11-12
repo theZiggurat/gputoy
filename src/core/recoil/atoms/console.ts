@@ -1,11 +1,11 @@
-import { atom } from "recoil"
+import { atom } from "recoil";
 
 export interface Message {
-  time: Date,
-  type: MessageType,
-  header: string,
-  body: string,
-  occurences?: number
+  time: Date;
+  type: MessageType;
+  header: string;
+  body: string;
+  occurences?: number;
 }
 
 export enum MessageType {
@@ -17,14 +17,14 @@ export enum MessageType {
 }
 
 export const consoleAtom = atom<Message[]>({
-  key: 'console',
-  default: []
-})
+  key: "console",
+  default: [],
+});
 
 export type Logger = {
-  trace: (header: string, body: string) => void
-  log: (header: string, body: string) => void,
-  err: (header: string, body: string) => void
-  fatal: (header: string, body: string) => void,
-  debug: (header: string, body: string) => void,
-}
+  trace: (header: string, body: string) => void;
+  log: (header: string, body: string) => void;
+  err: (header: string, body: string) => void;
+  fatal: (header: string, body: string) => void;
+  debug: (header: string, body: string) => void;
+};

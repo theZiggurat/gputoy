@@ -1,18 +1,18 @@
-import { Box, ChakraProvider, Flex, Spinner } from '@chakra-ui/react'
-import "@fontsource/jetbrains-mono"
-import Compiler from '@core/system/compiler'
+import { Box, ChakraProvider, Flex } from '@chakra-ui/react'
 import useGPU from '@core/hooks/singleton/useGPU'
+import Compiler from '@core/system/compiler'
+import "@fontsource/jetbrains-mono"
+import theme from '@theme/theme'
+import { Provider } from 'next-auth/client'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { RecoilRoot } from 'recoil'
-import theme from '@theme/theme'
+import '../styles/actionbar.css'
 import '../styles/create.css'
 import '../styles/globals.css'
 import '../styles/index.css'
-import '../styles/actionbar.css'
-import { Provider } from 'next-auth/client'
 
 
 const GPUController = () => {

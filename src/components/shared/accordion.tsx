@@ -1,20 +1,28 @@
-import { Flex, Box, Icon, Text } from "@chakra-ui/react"
-import { themed } from "@theme/theme"
-import { ReactElement, ReactNode, useState } from "react"
-import { MdArrowRight } from "react-icons/md"
+import { Box, Flex, Icon, Text } from "@chakra-ui/react";
+import { themed } from "@theme/theme";
+import { ReactElement, ReactNode } from "react";
+import { MdArrowRight } from "react-icons/md";
 
 type AccordionProps = {
-  title: string,
-  open: boolean
-  onToggleOpen: () => void
-  children: ReactElement<any>[] | ReactElement<any>,
-  first?: boolean
-  last?: boolean
-  rightSide?: ReactNode
-}
+  title: string;
+  open: boolean;
+  onToggleOpen: () => void;
+  children: ReactElement<any>[] | ReactElement<any>;
+  first?: boolean;
+  last?: boolean;
+  rightSide?: ReactNode;
+};
 const Accordion = (props: AccordionProps) => {
-
-  const { title, open, onToggleOpen, children, first, last, rightSide, ...rest } = props
+  const {
+    title,
+    open,
+    onToggleOpen,
+    children,
+    first,
+    last,
+    rightSide,
+    ...rest
+  } = props;
 
   return (
     <Flex flexDir="column">
@@ -25,16 +33,16 @@ const Accordion = (props: AccordionProps) => {
         flexDir="row"
         justifyContent="space-between"
         alignItems="center"
-        borderBottom={open ? "1px" : props.last ? '1px' : '0px'}
+        borderBottom={open ? "1px" : props.last ? "1px" : "0px"}
         borderTop={first ? "0px" : "1px"}
-        borderColor={themed('border')}
-        bg={themed('a1')}
+        borderColor={themed("border")}
+        bg={themed("a1")}
         p="0.5rem"
         py="0.3rem"
-        color={themed('textMid')}
+        color={themed("textMid")}
         _hover={{
-          bg: themed('a2'),
-          color: themed('textHigh')
+          bg: themed("a2"),
+          color: themed("textHigh"),
         }}
       >
         <Box>
@@ -53,18 +61,11 @@ const Accordion = (props: AccordionProps) => {
             {title}
           </Text>
         </Box>
-        {
-          props.rightSide
-        }
+        {props.rightSide}
       </Flex>
-      {open &&
-        <Box {...rest}>
-          {children}
-        </Box>
-      }
+      {open && <Box {...rest}>{children}</Box>}
     </Flex>
-  )
+  );
+};
 
-}
-
-export default Accordion
+export default Accordion;

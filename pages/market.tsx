@@ -1,5 +1,4 @@
 import { chakra, HStack, Text } from '@chakra-ui/react'
-import React from 'react'
 import Scaffold from "../src/components/shared/scaffold"
 
 const Market = () => {

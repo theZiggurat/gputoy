@@ -1,16 +1,14 @@
 import { chakra, useColorModeValue } from '@chakra-ui/react'
-import usePanels from '@core/hooks/singleton/usePanels'
-import { GetStaticProps } from 'next'
-import Head from 'next/head'
-import React from 'react'
-import { lightResizer, darkResizer } from 'theme/consts'
-import prisma from 'core/backend/prisma'
+import Nav from '@components/create/navbar'
+import ProjectSelection from '@components/create/projectSelecion'
 import descriptors from '@components/panels/descriptors'
 import { Panels } from '@components/panels/panel'
-import Nav from '@components/create/navbar'
-import { scrollbarHidden } from 'theme/consts'
+import usePanels from '@core/hooks/singleton/usePanels'
 import { ProjectQuery, projectQuery } from '@core/types'
-import ProjectSelection from '@components/create/projectSelecion'
+import prisma from 'core/backend/prisma'
+import { GetStaticProps } from 'next'
+import Head from 'next/head'
+import { darkResizer, lightResizer, scrollbarHidden } from 'theme/consts'
 
 export const getStaticProps: GetStaticProps = async ({ req, res }) => {
   const templates = await prisma.project.findMany({

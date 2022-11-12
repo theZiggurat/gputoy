@@ -1,155 +1,199 @@
-import { Logger } from '@core/recoil/atoms/console'
-import * as types from '@core/types'
-import { CanvasTextureResource } from './resource/textureResource'
-import GPU from '@core/system/gpu'
-import BufferResource from './resource/bufferResource'
+import { Logger } from "@core/recoil/atoms/console";
+import * as types from "@core/types";
+import { CanvasTextureResource } from "./resource/textureResource";
+import GPU from "@core/system/gpu";
+import BufferResource from "./resource/bufferResource";
 
 export class ViewportIO implements types.IO {
-  type: types.IOType = 'viewport'
-  usage = 'write' as 'write'
+  type: types.IOType = "viewport";
+  usage = "write" as "write";
 
-  label!: string
-  texture!: CanvasTextureResource
+  label!: string;
+  texture!: CanvasTextureResource;
 
-  private mousebuffer!: BufferResource
-  private resbuffer!: BufferResource
+  private mousebuffer!: BufferResource;
+  private resbuffer!: BufferResource;
 
-  canvasElem!: HTMLElement
-  mouseElem!: HTMLElement
-  mousePos: number[] = [0, 0]
-  mouseNorm: number[] = [0, 0]
-  m1: number = 0
-  m2: number = 0
-  m3: number = 0
+  canvasElem!: HTMLElement;
+  mouseElem!: HTMLElement;
+  mousePos: number[] = [0, 0];
+  mouseNorm: number[] = [0, 0];
+  m1: number = 0;
+  m2: number = 0;
+  m3: number = 0;
 
-  resizeObserver!: ResizeObserver
+  resizeObserver!: ResizeObserver;
 
-  res: number[] = [0, 0]
+  res: number[] = [0, 0];
 
-  needUpdate = true
+  needUpdate = true;
 
   onMouseMove = (ev: MouseEvent) => {
-    const rect = this.mouseElem.getBoundingClientRect()
-    const x = ev.clientX
-    const y = ev.clientY
-    this.mousePos = [x - rect.x, rect.height - y + rect.y]
-    this.mouseNorm = [this.mousePos[0] / rect.width, this.mousePos[1] / rect.height]
-    this.needUpdate = true
-  }
+    const rect = this.mouseElem.getBoundingClientRect();
+    const x = ev.clientX;
+    const y = ev.clientY;
+    this.mousePos = [x - rect.x, rect.height - y + rect.y];
+    this.mouseNorm = [
+      this.mousePos[0] / rect.width,
+      this.mousePos[1] / rect.height,
+    ];
+    this.needUpdate = true;
+  };
 
-  onMouseDown = (ev: MouseEvent) => {
-  }
+  onMouseDown = (ev: MouseEvent) => {};
 
-  onMouseUp = (ev: MouseEvent) => {
-  }
+  onMouseUp = (ev: MouseEvent) => {};
 
   onResize = () => {
-    const rect = this.canvasElem.getBoundingClientRect()
-    this.res = [rect.width, rect.height]
-    this.needUpdate = true
-  }
+    const rect = this.canvasElem.getBoundingClientRect();
+    this.res = [rect.width, rect.height];
+    this.needUpdate = true;
+  };
 
-  build = async (args: types.IOArgs, label: string, logger?: Logger): Promise<boolean> => {
-    const { canvasId, mouseId } = args as types.ViewportIOArgs
-    if (!canvasId) return false
+  build = async (
+    args: types.IOArgs,
+    label: string,
+    logger?: Logger
+  ): Promise<boolean> => {
+    const { canvasId, mouseId } = args as types.ViewportIOArgs;
+    if (!canvasId) return false;
 
-    this.label = label
-
+    this.label = label;
 
     // set up DOM events
-    const canvasElem = document.getElementById(canvasId)
+    const canvasElem = document.getElementById(canvasId);
     if (!canvasElem) {
-      logger?.err(`System::IO::Viewport[${canvasId}]`, 'Element not found: ' + canvasId)
-      return false
+      logger?.err(
+        `System::IO::Viewport[${canvasId}]`,
+        "Element not found: " + canvasId
+      );
+      return false;
     }
-    this.resizeObserver = new ResizeObserver(this.onResize)
-    this.resizeObserver.observe(canvasElem)
-    this.canvasElem = canvasElem
-    this.onResize()
+    this.resizeObserver = new ResizeObserver(this.onResize);
+    this.resizeObserver.observe(canvasElem);
+    this.canvasElem = canvasElem;
+    this.onResize();
 
-    const mouseElem = document.getElementById(mouseId)
+    const mouseElem = document.getElementById(mouseId);
     if (!mouseElem) {
-      logger?.err(`System::IO::Viewport[${mouseId}]`, 'Element not found: ' + mouseId)
-      return false
+      logger?.err(
+        `System::IO::Viewport[${mouseId}]`,
+        "Element not found: " + mouseId
+      );
+      return false;
     }
-    mouseElem.addEventListener('mousemove', this.onMouseMove)
-    mouseElem.addEventListener('mousedown', this.onMouseDown)
-    mouseElem.addEventListener('mouseup', this.onMouseUp)
-    this.mouseElem = mouseElem
-
+    mouseElem.addEventListener("mousemove", this.onMouseMove);
+    mouseElem.addEventListener("mousedown", this.onMouseDown);
+    mouseElem.addEventListener("mouseup", this.onMouseUp);
+    this.mouseElem = mouseElem;
 
     // canvas texture
-    const tex = await CanvasTextureResource.fromId(canvasId, GPU.device, GPU.adapter)
+    const tex = await CanvasTextureResource.fromId(
+      canvasId,
+      GPU.device,
+      GPU.adapter
+    );
     if (!tex) {
-      logger?.err(`System::IO::Viewport[${canvasId}]`, 'Could not contruct texture resource due to previous error')
-      return false
+      logger?.err(
+        `System::IO::Viewport[${canvasId}]`,
+        "Could not contruct texture resource due to previous error"
+      );
+      return false;
     }
-    this.texture = tex as CanvasTextureResource
-
+    this.texture = tex as CanvasTextureResource;
 
     // mouse buffer
-    const fullStructMouse = types.getStructFromModel(this.getNamespace().exported, 'Mouse')
+    const fullStructMouse = types.getStructFromModel(
+      this.getNamespace().exported,
+      "Mouse"
+    );
     if (!fullStructMouse) {
-      logger?.debug(`System::IO::Viewport[${canvasId}]`, 'Was the namespace changed? Cannot build Mouse struct from namespace.')
-      return false
+      logger?.debug(
+        `System::IO::Viewport[${canvasId}]`,
+        "Was the namespace changed? Cannot build Mouse struct from namespace."
+      );
+      return false;
     }
 
-    const mousebuffer = await BufferResource.build({
-      bufferBindingType: 'uniform',
-      bufferUsageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      label: `${this.label}::mouse`,
-      layout: fullStructMouse,
-    }, GPU.device, logger) as BufferResource
+    const mousebufferArgs = {
+      bindingType: "uniform",
+      usageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    } as const;
 
+    const mousebuffer = (await BufferResource.build(
+      `${this.label}::mouse`,
+      mousebufferArgs,
+      types.getStructFromModel(this.getNamespace().exported, "Mouse")!,
+      GPU.device,
+      logger
+    )) as BufferResource;
 
     // res buffer
-    const fullStructRes = types.getStructFromModel(this.getNamespace().exported, 'Res')
+    const fullStructRes = types.getStructFromModel(
+      this.getNamespace().exported,
+      "Res"
+    );
     if (!fullStructRes) {
-      logger?.debug(`System::IO::Viewport[${canvasId}]`, 'Was the namespace changed? Cannot build Res struct from namespace.')
-      return false
+      logger?.debug(
+        `System::IO::Viewport[${canvasId}]`,
+        "Was the namespace changed? Cannot build Res struct from namespace."
+      );
+      return false;
     }
 
-    const resbuffer = await BufferResource.build({
-      bufferBindingType: 'uniform',
-      bufferUsageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      label: `${this.label}::res`,
-      layout: fullStructRes,
-    }, GPU.device, logger) as BufferResource
+    const resbufferArgs = {
+      bindingType: "uniform",
+      usageFlags: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    } as const;
 
+    const resbuffer = (await BufferResource.build(
+      `${this.label}::res`,
+      resbufferArgs,
+      types.getStructFromModel(this.getNamespace().exported, "Res")!,
+      GPU.device,
+      logger
+    )) as BufferResource;
 
     if (!mousebuffer || !resbuffer) {
-      logger?.debug(`System::IO::Viewport[${canvasId}]`, 'Could not contruct buffer resource due to previous error')
-      return false
+      logger?.debug(
+        `System::IO::Viewport[${canvasId}]`,
+        "Could not contruct buffer resource due to previous error"
+      );
+      return false;
     }
 
-    this.resbuffer = resbuffer
-    this.mousebuffer = mousebuffer
+    this.resbuffer = resbuffer;
+    this.mousebuffer = mousebuffer;
 
-    logger?.trace(`System::IO::Viewport[${canvasId}]`, 'Initialization complete')
+    logger?.trace(
+      `System::IO::Viewport[${canvasId}]`,
+      "Initialization complete"
+    );
 
-    return true
-  }
-
+    return true;
+  };
 
   /**
    * Destroys textures, buffers, and removes all event listeners
-   * @param logger 
+   * @param logger
    */
   destroy = (logger?: Logger) => {
-    logger?.debug(`System::IO::Viewport[${this.texture.getCanvasId()}]`, 'Destroying')
-    this.texture.destroy()
-    this.mousebuffer.destroy()
-    this.resbuffer.destroy()
-    this.resizeObserver.disconnect()
-    this.mouseElem.removeEventListener('mousemove', this.onMouseMove)
-    this.mouseElem.removeEventListener('mousedown', this.onMouseDown)
-    this.mouseElem.removeEventListener('mouseup', this.onMouseUp)
-    this.canvasElem.removeEventListener('resize', this.onResize)
-  }
-
+    logger?.debug(
+      `System::IO::Viewport[${this.texture.getCanvasId()}]`,
+      "Destroying"
+    );
+    this.texture.destroy();
+    this.mousebuffer.destroy();
+    this.resbuffer.destroy();
+    this.resizeObserver.disconnect();
+    this.mouseElem.removeEventListener("mousemove", this.onMouseMove);
+    this.mouseElem.removeEventListener("mousedown", this.onMouseDown);
+    this.mouseElem.removeEventListener("mouseup", this.onMouseUp);
+    this.canvasElem.removeEventListener("resize", this.onResize);
+  };
 
   getNamespace = (): types.Namespace => {
-    const label = this.label
+    const label = this.label;
     let ret: types.Namespace = {
       exported: {
         name: `Viewport`,
@@ -157,188 +201,188 @@ export class ViewportIO implements types.IO {
         dependentFileIds: [],
         indexedTypes: [
           {
-            "name": null,
-            "inner": {
-              "Vector": {
-                "size": "Bi",
-                "kind": "Sint",
-                "width": 4
-              }
-            }
+            name: null,
+            inner: {
+              Vector: {
+                size: "Bi",
+                kind: "Sint",
+                width: 4,
+              },
+            },
           },
           {
-            "name": null,
-            "inner": {
-              "Vector": {
-                "size": "Bi",
-                "kind": "Float",
-                "width": 4
-              }
-            }
+            name: null,
+            inner: {
+              Vector: {
+                size: "Bi",
+                kind: "Float",
+                width: 4,
+              },
+            },
           },
           {
-            "name": null,
-            "inner": {
-              "Scalar": {
-                "kind": "Sint",
-                "width": 4
-              }
-            }
+            name: null,
+            inner: {
+              Scalar: {
+                kind: "Sint",
+                width: 4,
+              },
+            },
           },
           {
-            "name": "Mouse",
-            "inner": {
-              "Struct": {
-                "members": [
+            name: "Mouse",
+            inner: {
+              Struct: {
+                members: [
                   {
-                    "name": "pixel",
-                    "ty": 1,
-                    "binding": null,
-                    "offset": 0
+                    name: "pixel",
+                    ty: 1,
+                    binding: null,
+                    offset: 0,
                   },
                   {
-                    "name": "pixelf",
-                    "ty": 2,
-                    "binding": null,
-                    "offset": 8
+                    name: "pixelf",
+                    ty: 2,
+                    binding: null,
+                    offset: 8,
                   },
                   {
-                    "name": "norm",
-                    "ty": 2,
-                    "binding": null,
-                    "offset": 16
+                    name: "norm",
+                    ty: 2,
+                    binding: null,
+                    offset: 16,
                   },
                   {
-                    "name": "btn1",
-                    "ty": 3,
-                    "binding": null,
-                    "offset": 24
+                    name: "btn1",
+                    ty: 3,
+                    binding: null,
+                    offset: 24,
                   },
                   {
-                    "name": "btn2",
-                    "ty": 3,
-                    "binding": null,
-                    "offset": 28
+                    name: "btn2",
+                    ty: 3,
+                    binding: null,
+                    offset: 28,
                   },
                   {
-                    "name": "btn3",
-                    "ty": 3,
-                    "binding": null,
-                    "offset": 32
-                  }
+                    name: "btn3",
+                    ty: 3,
+                    binding: null,
+                    offset: 32,
+                  },
                 ],
-                "span": 40
-              }
-            }
+                span: 40,
+              },
+            },
           },
           {
-            "name": null,
-            "inner": {
-              "Scalar": {
-                "kind": "Float",
-                "width": 4
-              }
-            }
+            name: null,
+            inner: {
+              Scalar: {
+                kind: "Float",
+                width: 4,
+              },
+            },
           },
           {
-            "name": "Res",
-            "inner": {
-              "Struct": {
-                "members": [
+            name: "Res",
+            inner: {
+              Struct: {
+                members: [
                   {
-                    "name": "width",
-                    "ty": 3,
-                    "binding": null,
-                    "offset": 0
+                    name: "width",
+                    ty: 3,
+                    binding: null,
+                    offset: 0,
                   },
                   {
-                    "name": "height",
-                    "ty": 3,
-                    "binding": null,
-                    "offset": 4
+                    name: "height",
+                    ty: 3,
+                    binding: null,
+                    offset: 4,
                   },
                   {
-                    "name": "box",
-                    "ty": 1,
-                    "binding": null,
-                    "offset": 8
+                    name: "box",
+                    ty: 1,
+                    binding: null,
+                    offset: 8,
                   },
                   {
-                    "name": "aspect",
-                    "ty": 5,
-                    "binding": null,
-                    "offset": 16
-                  }
+                    name: "aspect",
+                    ty: 5,
+                    binding: null,
+                    offset: 16,
+                  },
                 ],
-                "span": 24
-              }
-            }
-          }
+                span: 24,
+              },
+            },
+          },
         ],
         namedTypes: {
-          "Mouse": 4,
-          "Res": 6,
-        }
+          Mouse: 4,
+          Res: 6,
+        },
       },
-      imported: []
-    }
-    return ret
-  }
+      imported: [],
+    };
+    return ret;
+  };
 
   /**
-   * 
+   *
    * @returns Name => resource map for this viewport
    */
   getResourceInstances = (): Record<string, types.ResourceInstance> => {
     return {
-      "texture": this.texture,
-      "mouse": this.mousebuffer,
-      "res": this.resbuffer
-    }
-  }
+      texture: this.texture,
+      mouse: this.mousebuffer,
+      res: this.resbuffer,
+    };
+  };
 
   getResources = (): Record<string, types.Resource> => {
     return {
-      "texture": {
-        id: this.label + '_texture',
-        type: 'texture',
+      texture: {
+        id: this.label + "_texture",
+        type: "texture",
         args: {
-          dim: '2d',
+          dim: "2d",
           width: this.res[0],
           height: this.res[1],
           depthOrArrayLayers: 1,
           format: this.texture.format,
           sampleCount: 1,
-          usage: GPUTextureUsage.RENDER_ATTACHMENT
-        }
-      }
-    }
-  }
+          usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        },
+      },
+    };
+  };
 
   onBeginDispatch = (queue: GPUQueue) => {
     if (this.needUpdate) {
       this.mousebuffer.write(
         [
-          this.mousePos,    // mouse pixel
-          this.mousePos,    // mouse pixel float
-          this.mouseNorm,   // mouse normalized
-          [this.m1],        // btn1
-          [this.m2],        // btn2
-          [this.m3]         // btn3
+          this.mousePos, // mouse pixel
+          this.mousePos, // mouse pixel float
+          this.mouseNorm, // mouse normalized
+          [this.m1], // btn1
+          [this.m2], // btn2
+          [this.m3], // btn3
         ],
         queue
-      )
+      );
       this.resbuffer.write(
         [
-          [this.res[0]],              // width
-          [this.res[1]],              // height
-          this.res,                   // res
-          [this.res[0] / this.res[1]] // aspect ratio
+          [this.res[0]], // width
+          [this.res[1]], // height
+          this.res, // res
+          [this.res[0] / this.res[1]], // aspect ratio
         ],
         queue
-      )
+      );
     }
-    this.needUpdate = false
-  }
-  onEndDispatch = (queue: GPUQueue) => { }
+    this.needUpdate = false;
+  };
+  onEndDispatch = (queue: GPUQueue) => {};
 }

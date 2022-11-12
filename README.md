@@ -3,8 +3,8 @@
 ![GitHub deployments](https://img.shields.io/github/deployments/theZiggurat/gputoy/preview?label=production&logo=vercel&logoColor=white)
 ![GitHub deployments](https://img.shields.io/github/deployments/theZiggurat/gputoy/preview?label=preview&logo=vercel&logoColor=white)
 
-#### `Note: See supported browsers`
-#### `Note++: This project is a major work in progress. Many ui functions are not implemented yet and some implemented features may be inconsistent or buggy. Check the `[docs](docs/)&nbsp;`if you're interesting in contributing.`
+# This project is undergoing a complete rewrite in a [new repository](https://github.com/gputoy/gputoy). 
+
 # [gputoy](https://gputoy.io)
 
 ## A shader prototyping tool built for [`WebGPU`](https://www.w3.org/TR/webgpu/).
@@ -43,7 +43,6 @@
 - **Low Bandwith/Storage**
   - I dont ever plan on running ads on gputoy, so expenses should be kept to a minimum. Monetization will only be used as necessary.
   - Database queries should only be used when needed.
-
 ## **Currently Supported Browsers**
   - Chrome version > 94 will work automatically thanks to origin trial
     - Chrome version > 80 with `enable-unsafe-webgpu` flag enabled

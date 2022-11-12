@@ -1,9 +1,8 @@
-import { chakra, Flex, HStack, Text } from '@chakra-ui/react'
-import React from 'react'
-import { BsSearch } from 'react-icons/bs'
+import { Flex, HStack, Text } from '@chakra-ui/react'
+import Footer from '@components/index/footer'
 import Scaffold from '@components/shared/scaffold'
 import { themed, themedRaw } from '@theme/theme'
-import Footer from '@components/index/footer'
+import { BsSearch } from 'react-icons/bs'
 
 const NotFoundPage = () => {
   return (

@@ -1,10 +1,10 @@
-import React from "react"
-import Dropdown, { DropdownDivider, DropdownItem, DropdownSubDropdown } from "../dropdown"
-
+import Dropdown, {
+    DropdownDivider,
+    DropdownItem
+} from "../dropdown";
 
 const EditDropdown = () => {
-
-  const _ = useDropdown()
+  const _ = useDropdown();
 
   return (
     <Dropdown text="Edit">
@@ -19,11 +19,9 @@ const EditDropdown = () => {
       <DropdownDivider />
       <DropdownItem text="Toggle Comment" rightText="Ctrl+ /" />
     </Dropdown>
-  )
-}
+  );
+};
 
-const useDropdown = () => {
+const useDropdown = () => {};
 
-}
-
-export default EditDropdown
+export default EditDropdown;

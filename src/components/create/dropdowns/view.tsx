@@ -1,15 +1,14 @@
-import { useColorMode } from "@chakra-ui/color-mode"
-import usePanels from "@core/hooks/singleton/usePanels"
-import React, { useCallback } from "react"
-import Dropdown, { DropdownDivider, DropdownItem, DropdownSubDropdown } from "../dropdown"
-
+import { useColorMode } from "@chakra-ui/color-mode";
+import usePanels from "@core/hooks/singleton/usePanels";
+import { useCallback } from "react";
+import Dropdown, {
+    DropdownDivider,
+    DropdownItem,
+    DropdownSubDropdown
+} from "../dropdown";
 
 const ViewDropdown = () => {
-
-  const {
-    resetLayout,
-    toggleColorMode
-  } = useDropdown()
+  const { resetLayout, toggleColorMode } = useDropdown();
 
   return (
     <Dropdown text="View">
@@ -25,31 +24,28 @@ const ViewDropdown = () => {
       <DropdownDivider />
       <DropdownItem text="Toggle Night Mode" onClick={toggleColorMode} />
     </Dropdown>
-  )
-}
+  );
+};
 
 const useDropdown = () => {
-
-  const { resetPanels, panelLayout, addPanel, onCombinePanel } = usePanels({})
-  const { toggleColorMode } = useColorMode()
+  const { resetPanels, panelLayout, addPanel, onCombinePanel } = usePanels({});
+  const { toggleColorMode } = useColorMode();
 
   const toggleSummary = useCallback(() => {
     if (panelLayout.left && panelLayout.right) {
       if (panelLayout.left.index == 5) {
-
       } else if (panelLayout.right.index == 5) {
-
       } else {
-        addPanel(5, 'left')
+        addPanel(5, "left");
       }
     }
-  }, [panelLayout, addPanel, onCombinePanel])
+  }, [panelLayout, addPanel, onCombinePanel]);
 
   return {
     resetLayout: resetPanels,
     toggleColorMode,
-    toggleSummary
-  }
-}
+    toggleSummary,
+  };
+};
 
-export default ViewDropdown
+export default ViewDropdown;

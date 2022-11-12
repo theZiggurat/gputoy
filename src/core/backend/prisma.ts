@@ -1,9 +1,9 @@
-import { Prisma, PrismaClient } from '@prisma/client';
-import * as K from '../types'
+import { Prisma, PrismaClient } from "@prisma/client";
+import * as K from "../types";
 
 let prisma: PrismaClient;
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   prisma = new PrismaClient();
 } else {
   if (!global.prisma) {
